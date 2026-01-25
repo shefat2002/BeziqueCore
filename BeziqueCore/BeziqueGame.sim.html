@@ -253,6 +253,8 @@ GAME_STARTED
 
 GAME_STARTED : GAME_STARTED
 
+GAME_STARTED : enter / #123; NotifyAll()#59; #125;
+
 CARD_PLACED
 
 CARD_PLACED : CARD_PLACED
@@ -320,6 +322,16 @@ CARD_PLACED --> TRUMP_SELECTED : do
 TRUMP_SELECTED --> ENOUGH_CARD_GAME : do
 
 ENOUGH_CARD_GAME --> LAST_9_CARD_GAME : do
+
+PLAYER --> TURN_ENDED : do
+
+TURN_ENDED --> WINNER : do
+
+WINNER --> MELT_CHECKED : do
+
+MELT_CHECKED --> TICK_OVER : do
+
+TICK_OVER --> NEXT_TRICK : do
 
 ENOUGH_CARD_GAME.(InitialState) --> PLAYER
 
@@ -423,12 +435,12 @@ evaluateGuard = null;
             // ROOT.<InitialState> is a pseudo state and cannot have an `enter` trigger.
             
             // ROOT.<InitialState> behavior
-            // uml: / { this.tracer?.edgeTransition("edge6"); } TransitionTo(GAME_STARTED)
+            // uml: / { this.tracer?.edgeTransition("edge11"); } TransitionTo(GAME_STARTED)
             {
                 // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
                 
-                // Step 2: Transition action: `this.tracer?.edgeTransition("edge6");`.
-                this.tracer?.edgeTransition("edge6");
+                // Step 2: Transition action: `this.tracer?.edgeTransition("edge11");`.
+                this.tracer?.edgeTransition("edge11");
                 
                 // Step 3: Enter/move towards transition target `GAME_STARTED`.
                 this.#GAME_STARTED_enter();
@@ -469,8 +481,7 @@ evaluateGuard = null;
             
             // STATE: MELT_CHECKED
             case BeziqueGame.StateId.MELT_CHECKED:
-                this.#ENOUGH_CARD_GAME_do();  // First ancestor handler for this event
-
+                this.#MELT_CHECKED_do(); 
                 break;
             
             // STATE: NEXT_TRICK
@@ -481,26 +492,22 @@ evaluateGuard = null;
             
             // STATE: PLAYER
             case BeziqueGame.StateId.PLAYER:
-                this.#ENOUGH_CARD_GAME_do();  // First ancestor handler for this event
-
+                this.#PLAYER_do(); 
                 break;
             
             // STATE: TICK_OVER
             case BeziqueGame.StateId.TICK_OVER:
-                this.#ENOUGH_CARD_GAME_do();  // First ancestor handler for this event
-
+                this.#TICK_OVER_do(); 
                 break;
             
             // STATE: TURN_ENDED
             case BeziqueGame.StateId.TURN_ENDED:
-                this.#ENOUGH_CARD_GAME_do();  // First ancestor handler for this event
-
+                this.#TURN_ENDED_do(); 
                 break;
             
             // STATE: WINNER
             case BeziqueGame.StateId.WINNER:
-                this.#ENOUGH_CARD_GAME_do();  // First ancestor handler for this event
-
+                this.#WINNER_do(); 
                 break;
             
             // STATE: GAME_STARTED
@@ -669,12 +676,12 @@ evaluateGuard = null;
             this.#LAST_9_CARD_GAME_enter();
             
             // LAST_9_CARD_GAME.<InitialState> behavior
-            // uml: / { this.tracer?.edgeTransition("edge5"); } TransitionTo(L9CG_PLAYER)
+            // uml: / { this.tracer?.edgeTransition("edge10"); } TransitionTo(L9CG_PLAYER)
             {
                 // Step 1: Exit states until we reach `LAST_9_CARD_GAME` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
                 
-                // Step 2: Transition action: `this.tracer?.edgeTransition("edge5");`.
-                this.tracer?.edgeTransition("edge5");
+                // Step 2: Transition action: `this.tracer?.edgeTransition("edge10");`.
+                this.tracer?.edgeTransition("edge10");
                 
                 // Step 3: Enter/move towards transition target `L9CG_PLAYER`.
                 this.#L9CG_PLAYER_enter();
@@ -745,6 +752,33 @@ evaluateGuard = null;
         this.stateId = BeziqueGame.StateId.ENOUGH_CARD_GAME;
     }
     
+    #MELT_CHECKED_do()
+    {
+        let consume_event = false;
+        
+        // MELT_CHECKED behavior
+        // uml: do / { this.tracer?.edgeTransition("edge7"); } TransitionTo(TICK_OVER)
+        {
+            // Step 1: Exit states until we reach `ENOUGH_CARD_GAME` state (Least Common Ancestor for transition).
+            this.#MELT_CHECKED_exit();
+            
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge7");`.
+            this.tracer?.edgeTransition("edge7");
+            
+            // Step 3: Enter/move towards transition target `TICK_OVER`.
+            this.#TICK_OVER_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for MELT_CHECKED
+        
+        // Check if event has been consumed before calling ancestor handler.
+        if (!consume_event)
+        {
+            this.#ENOUGH_CARD_GAME_do();
+        }
+    }
+    
     
     ////////////////////////////////////////////////////////////////////////////////
     // event handlers for state NEXT_TRICK
@@ -803,6 +837,33 @@ evaluateGuard = null;
         this.stateId = BeziqueGame.StateId.ENOUGH_CARD_GAME;
     }
     
+    #PLAYER_do()
+    {
+        let consume_event = false;
+        
+        // PLAYER behavior
+        // uml: do / { this.tracer?.edgeTransition("edge4"); } TransitionTo(TURN_ENDED)
+        {
+            // Step 1: Exit states until we reach `ENOUGH_CARD_GAME` state (Least Common Ancestor for transition).
+            this.#PLAYER_exit();
+            
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge4");`.
+            this.tracer?.edgeTransition("edge4");
+            
+            // Step 3: Enter/move towards transition target `TURN_ENDED`.
+            this.#TURN_ENDED_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for PLAYER
+        
+        // Check if event has been consumed before calling ancestor handler.
+        if (!consume_event)
+        {
+            this.#ENOUGH_CARD_GAME_do();
+        }
+    }
+    
     
     ////////////////////////////////////////////////////////////////////////////////
     // event handlers for state TICK_OVER
@@ -830,6 +891,33 @@ evaluateGuard = null;
         } // end of behavior for TICK_OVER
         
         this.stateId = BeziqueGame.StateId.ENOUGH_CARD_GAME;
+    }
+    
+    #TICK_OVER_do()
+    {
+        let consume_event = false;
+        
+        // TICK_OVER behavior
+        // uml: do / { this.tracer?.edgeTransition("edge8"); } TransitionTo(NEXT_TRICK)
+        {
+            // Step 1: Exit states until we reach `ENOUGH_CARD_GAME` state (Least Common Ancestor for transition).
+            this.#TICK_OVER_exit();
+            
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge8");`.
+            this.tracer?.edgeTransition("edge8");
+            
+            // Step 3: Enter/move towards transition target `NEXT_TRICK`.
+            this.#NEXT_TRICK_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for TICK_OVER
+        
+        // Check if event has been consumed before calling ancestor handler.
+        if (!consume_event)
+        {
+            this.#ENOUGH_CARD_GAME_do();
+        }
     }
     
     
@@ -861,6 +949,33 @@ evaluateGuard = null;
         this.stateId = BeziqueGame.StateId.ENOUGH_CARD_GAME;
     }
     
+    #TURN_ENDED_do()
+    {
+        let consume_event = false;
+        
+        // TURN_ENDED behavior
+        // uml: do / { this.tracer?.edgeTransition("edge5"); } TransitionTo(WINNER)
+        {
+            // Step 1: Exit states until we reach `ENOUGH_CARD_GAME` state (Least Common Ancestor for transition).
+            this.#TURN_ENDED_exit();
+            
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge5");`.
+            this.tracer?.edgeTransition("edge5");
+            
+            // Step 3: Enter/move towards transition target `WINNER`.
+            this.#WINNER_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for TURN_ENDED
+        
+        // Check if event has been consumed before calling ancestor handler.
+        if (!consume_event)
+        {
+            this.#ENOUGH_CARD_GAME_do();
+        }
+    }
+    
     
     ////////////////////////////////////////////////////////////////////////////////
     // event handlers for state WINNER
@@ -890,6 +1005,33 @@ evaluateGuard = null;
         this.stateId = BeziqueGame.StateId.ENOUGH_CARD_GAME;
     }
     
+    #WINNER_do()
+    {
+        let consume_event = false;
+        
+        // WINNER behavior
+        // uml: do / { this.tracer?.edgeTransition("edge6"); } TransitionTo(MELT_CHECKED)
+        {
+            // Step 1: Exit states until we reach `ENOUGH_CARD_GAME` state (Least Common Ancestor for transition).
+            this.#WINNER_exit();
+            
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge6");`.
+            this.tracer?.edgeTransition("edge6");
+            
+            // Step 3: Enter/move towards transition target `MELT_CHECKED`.
+            this.#MELT_CHECKED_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for WINNER
+        
+        // Check if event has been consumed before calling ancestor handler.
+        if (!consume_event)
+        {
+            this.#ENOUGH_CARD_GAME_do();
+        }
+    }
+    
     
     ////////////////////////////////////////////////////////////////////////////////
     // event handlers for state GAME_STARTED
@@ -904,6 +1046,13 @@ evaluateGuard = null;
         {
             // Step 1: execute action `this.tracer?.enterState('GAME_STARTED');`
             this.tracer?.enterState('GAME_STARTED');
+        } // end of behavior for GAME_STARTED
+        
+        // GAME_STARTED behavior
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "NotifyAll();"); }
+        {
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "NotifyAll();");`
+            this.tracer?.log("⚡ FSM would execute action: " + "NotifyAll();");
         } // end of behavior for GAME_STARTED
     }
     
@@ -1042,12 +1191,12 @@ evaluateGuard = null;
             this.#ENOUGH_CARD_GAME_enter();
             
             // ENOUGH_CARD_GAME.<InitialState> behavior
-            // uml: / { this.tracer?.edgeTransition("edge4"); } TransitionTo(PLAYER)
+            // uml: / { this.tracer?.edgeTransition("edge9"); } TransitionTo(PLAYER)
             {
                 // Step 1: Exit states until we reach `ENOUGH_CARD_GAME` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
                 
-                // Step 2: Transition action: `this.tracer?.edgeTransition("edge4");`.
-                this.tracer?.edgeTransition("edge4");
+                // Step 2: Transition action: `this.tracer?.edgeTransition("edge9");`.
+                this.tracer?.edgeTransition("edge9");
                 
                 // Step 3: Enter/move towards transition target `PLAYER`.
                 this.#PLAYER_enter();

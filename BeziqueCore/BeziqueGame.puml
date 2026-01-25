@@ -6,7 +6,9 @@ SmRunnerSettings.transpilerId = "CSharp"
 
 hide empty description
 
-state GAME_STARTED
+state GAME_STARTED {
+    GAME_STARTED: enter / NotifyAll();
+}
 state CARD_PLACED
 state TRUMP_SELECTED
 
@@ -20,6 +22,12 @@ state ENOUGH_CARD_GAME{
     state DRAW_CARD
     
     [*] -> PLAYER
+    PLAYER -> TURN_ENDED
+    TURN_ENDED -> WINNER
+    WINNER -> MELT_CHECKED
+    MELT_CHECKED -> TICK_OVER
+    TICK_OVER -> NEXT_TRICK
+    
 }
 
 state LAST_9_CARD_GAME{

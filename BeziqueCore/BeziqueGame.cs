@@ -101,8 +101,7 @@ public partial class BeziqueGame
 
             // STATE: MELT_CHECKED
             case StateId.MELT_CHECKED:
-                ENOUGH_CARD_GAME_do();  // First ancestor handler for this event
-
+                MELT_CHECKED_do();
                 break;
 
             // STATE: NEXT_TRICK
@@ -113,26 +112,22 @@ public partial class BeziqueGame
 
             // STATE: PLAYER
             case StateId.PLAYER:
-                ENOUGH_CARD_GAME_do();  // First ancestor handler for this event
-
+                PLAYER_do();
                 break;
 
             // STATE: TICK_OVER
             case StateId.TICK_OVER:
-                ENOUGH_CARD_GAME_do();  // First ancestor handler for this event
-
+                TICK_OVER_do();
                 break;
 
             // STATE: TURN_ENDED
             case StateId.TURN_ENDED:
-                ENOUGH_CARD_GAME_do();  // First ancestor handler for this event
-
+                TURN_ENDED_do();
                 break;
 
             // STATE: WINNER
             case StateId.WINNER:
-                ENOUGH_CARD_GAME_do();  // First ancestor handler for this event
-
+                WINNER_do();
                 break;
 
             // STATE: GAME_STARTED
@@ -318,6 +313,32 @@ public partial class BeziqueGame
         this.stateId = StateId.ENOUGH_CARD_GAME;
     }
 
+    private void MELT_CHECKED_do()
+    {
+        bool consume_event = false;
+
+        // MELT_CHECKED behavior
+        // uml: do TransitionTo(TICK_OVER)
+        {
+            // Step 1: Exit states until we reach `ENOUGH_CARD_GAME` state (Least Common Ancestor for transition).
+            MELT_CHECKED_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `TICK_OVER`.
+            TICK_OVER_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for MELT_CHECKED
+
+        // Check if event has been consumed before calling ancestor handler.
+        if (!consume_event)
+        {
+            ENOUGH_CARD_GAME_do();
+        }
+    }
+
 
     ////////////////////////////////////////////////////////////////////////////////
     // event handlers for state NEXT_TRICK
@@ -348,6 +369,32 @@ public partial class BeziqueGame
         this.stateId = StateId.ENOUGH_CARD_GAME;
     }
 
+    private void PLAYER_do()
+    {
+        bool consume_event = false;
+
+        // PLAYER behavior
+        // uml: do TransitionTo(TURN_ENDED)
+        {
+            // Step 1: Exit states until we reach `ENOUGH_CARD_GAME` state (Least Common Ancestor for transition).
+            PLAYER_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `TURN_ENDED`.
+            TURN_ENDED_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for PLAYER
+
+        // Check if event has been consumed before calling ancestor handler.
+        if (!consume_event)
+        {
+            ENOUGH_CARD_GAME_do();
+        }
+    }
+
 
     ////////////////////////////////////////////////////////////////////////////////
     // event handlers for state TICK_OVER
@@ -361,6 +408,32 @@ public partial class BeziqueGame
     private void TICK_OVER_exit()
     {
         this.stateId = StateId.ENOUGH_CARD_GAME;
+    }
+
+    private void TICK_OVER_do()
+    {
+        bool consume_event = false;
+
+        // TICK_OVER behavior
+        // uml: do TransitionTo(NEXT_TRICK)
+        {
+            // Step 1: Exit states until we reach `ENOUGH_CARD_GAME` state (Least Common Ancestor for transition).
+            TICK_OVER_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `NEXT_TRICK`.
+            NEXT_TRICK_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for TICK_OVER
+
+        // Check if event has been consumed before calling ancestor handler.
+        if (!consume_event)
+        {
+            ENOUGH_CARD_GAME_do();
+        }
     }
 
 
@@ -378,6 +451,32 @@ public partial class BeziqueGame
         this.stateId = StateId.ENOUGH_CARD_GAME;
     }
 
+    private void TURN_ENDED_do()
+    {
+        bool consume_event = false;
+
+        // TURN_ENDED behavior
+        // uml: do TransitionTo(WINNER)
+        {
+            // Step 1: Exit states until we reach `ENOUGH_CARD_GAME` state (Least Common Ancestor for transition).
+            TURN_ENDED_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `WINNER`.
+            WINNER_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for TURN_ENDED
+
+        // Check if event has been consumed before calling ancestor handler.
+        if (!consume_event)
+        {
+            ENOUGH_CARD_GAME_do();
+        }
+    }
+
 
     ////////////////////////////////////////////////////////////////////////////////
     // event handlers for state WINNER
@@ -393,6 +492,32 @@ public partial class BeziqueGame
         this.stateId = StateId.ENOUGH_CARD_GAME;
     }
 
+    private void WINNER_do()
+    {
+        bool consume_event = false;
+
+        // WINNER behavior
+        // uml: do TransitionTo(MELT_CHECKED)
+        {
+            // Step 1: Exit states until we reach `ENOUGH_CARD_GAME` state (Least Common Ancestor for transition).
+            WINNER_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `MELT_CHECKED`.
+            MELT_CHECKED_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for WINNER
+
+        // Check if event has been consumed before calling ancestor handler.
+        if (!consume_event)
+        {
+            ENOUGH_CARD_GAME_do();
+        }
+    }
+
 
     ////////////////////////////////////////////////////////////////////////////////
     // event handlers for state GAME_STARTED
@@ -401,6 +526,13 @@ public partial class BeziqueGame
     private void GAME_STARTED_enter()
     {
         this.stateId = StateId.GAME_STARTED;
+
+        // GAME_STARTED behavior
+        // uml: enter / { NotifyAll(); }
+        {
+            // Step 1: execute action `NotifyAll();`
+            NotifyAll();
+        } // end of behavior for GAME_STARTED
     }
 
     private void GAME_STARTED_exit()

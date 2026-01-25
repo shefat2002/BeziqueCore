@@ -1,2 +1,4 @@
 <Solution>
+  <Project Path="BeziqueCore.CLI/BeziqueCore.CLI.csproj" />
+  <Project Path="BeziqueCore/BeziqueCore.csproj" />
 </Solution>
