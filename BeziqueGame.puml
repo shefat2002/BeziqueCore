@@ -1,0 +1,38 @@
+@startuml
+
+/'! $CONFIG : toml
+SmRunnerSettings.transpilerId = "CSharp"
+'/
+
+hide empty description
+
+state GAME_STARTED
+state CARD_PLACED
+state TRUMP_SELECTED
+
+state ENOUGH_CARD_GAME{
+    state PLAYER
+    state TURN_ENDED
+    state WINNER
+    state MELT_CHECKED
+    state TICK_OVER
+    state NEXT_TRICK
+    state DRAW_CARD
+    
+    [*] -> PLAYER
+}
+
+state LAST_9_CARD_GAME{
+    state L9CG_PLAYER 
+    [*] -> L9CG_PLAYER
+}
+
+
+
+
+
+
+
+
+@enduml
+
