@@ -27,7 +27,6 @@ namespace BeziqueCore.Models
 
         public void Reset()
         {
-            Players.Clear();
             RoundScores.Clear();
             Winner = null;
             CurrentPlayer = null;

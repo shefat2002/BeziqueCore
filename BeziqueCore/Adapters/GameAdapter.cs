@@ -39,6 +39,7 @@ namespace BeziqueCore.Adapters
         public void DealCards()
         {
             var players = _gameState.Players;
+            int totalCardsToDeal = players.Count * CardsPerPlayer;
 
             for (int i = 0; i < CardsPerPlayer; i += DealSetSize)
             {
@@ -50,6 +51,7 @@ namespace BeziqueCore.Adapters
                         if (card != null)
                         {
                             player.Hand.Add(card);
+                            totalCardsToDeal--;
                         }
                     }
                 }

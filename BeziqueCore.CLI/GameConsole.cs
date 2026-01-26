@@ -56,20 +56,29 @@ namespace BeziqueCore.CLI
             AnsiConsole.MarkupLine("[cyan]🎴 Dealing cards to players...[/]");
             var players = _gameState.Players;
 
+            AnsiConsole.MarkupLine($"[dim]Player count: {players.Count}[/]");
+            AnsiConsole.MarkupLine($"[dim]Before dealing - Deck: {_deckOps.GetRemainingCardCount()} cards[/]");
+
             for (int i = 0; i < 9; i += 3)
             {
+                AnsiConsole.MarkupLine($"[dim]Outer loop iteration {i}[/]");
                 foreach (var player in players)
                 {
+                    AnsiConsole.MarkupLine($"[dim]Dealing to {player.Name}[/]");
                     for (int j = 0; j < 3 && _deckOps.GetRemainingCardCount() > 1; j++)
                     {
+                        AnsiConsole.MarkupLine($"[dim]  Inner loop iteration {j}, deck count: {_deckOps.GetRemainingCardCount()}[/]");
                         var card = _deckOps.DrawTopCard();
                         if (card != null)
                         {
                             player.Hand.Add(card);
+                            AnsiConsole.MarkupLine($"[dim]Dealt {card.Rank} of {card.Suit} to {player.Name}[/]");
                         }
                     }
                 }
             }
+
+            AnsiConsole.MarkupLine($"[dim]After dealing - Deck: {_deckOps.GetRemainingCardCount()} cards[/]");
 
             DisplayHands();
         }

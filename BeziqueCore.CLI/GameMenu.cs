@@ -48,6 +48,7 @@ namespace BeziqueCore.CLI
 
         private void StartNewGame()
         {
+            AnsiConsole.MarkupLine("[dim]Entering StartNewGame...[/]");
             AnsiConsole.Clear();
             PrintHeader();
 
@@ -57,6 +58,7 @@ namespace BeziqueCore.CLI
                     .AddChoices(new[] { 2, 4 })
             );
 
+            AnsiConsole.MarkupLine($"[dim]Selected {playerCount} players. Setting up...[/]");
             SetupPlayers(playerCount);
             RunGameLoop();
         }
@@ -106,7 +108,7 @@ namespace BeziqueCore.CLI
 
         private void SetupPlayers(int playerCount)
         {
-            AnsiConsole.MarkupLine("\n[bold cyan]Enter player names:[/]\n");
+            AnsiConsole.MarkupLine($"\n[bold cyan]Setting up {playerCount} players...[/]\n");
 
             for (int i = 0; i < playerCount; i++)
             {
@@ -126,14 +128,28 @@ namespace BeziqueCore.CLI
                 };
 
                 _gameConsole.AddPlayer(player);
+                AnsiConsole.MarkupLine($"[dim]Added player: {name}[/]");
             }
 
             _gameConsole.SetCurrentPlayer(0);
+            AnsiConsole.MarkupLine($"[dim]Total players in game: {_gameConsole.GetPlayers().Count}[/]");
         }
 
         public void RunGameLoop()
         {
+            AnsiConsole.MarkupLine("[dim]About to start state machine...[/]");
             _stateMachine.Start();
+            AnsiConsole.MarkupLine($"[dim]State machine started. Current state: {_stateMachine.stateId}[/]");
+
+            // Initialize the game - dispatch events to progress through initial states
+            _gameConsole.InitializeGame();
+            _stateMachine.DispatchGameInitialized();
+            _gameConsole.DealCards();
+            _stateMachine.DispatchCardsDealt();
+            _gameConsole.FlipTrumpCard();
+            _stateMachine.DispatchTrumpDetermined();
+
+            AnsiConsole.MarkupLine($"[dim]Game initialized. Current state: {_stateMachine.stateId}[/]");
 
             while (true)
             {
