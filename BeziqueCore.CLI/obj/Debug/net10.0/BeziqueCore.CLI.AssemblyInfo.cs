@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BeziqueCore.CLI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2194a93e45c629a5c75f578fa2a01999c0959614")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4a4f4ef87f9e4e3cf96d3b9abde0ca99654067df")]
 [assembly: System.Reflection.AssemblyProductAttribute("BeziqueCore.CLI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BeziqueCore.CLI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

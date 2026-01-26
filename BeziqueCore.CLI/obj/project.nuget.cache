@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "J+Mi5CwZslM=",
+  "dgSpecHash": "oqbCQkFT6hs=",
   "success": true,
   "projectFilePath": "/Users/admin/Documents/GitHub/BeziqueCore/BeziqueCore.CLI/BeziqueCore.CLI.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "/Users/admin/.nuget/packages/spectre.console/0.49.1/spectre.console.0.49.1.nupkg.sha512"
+  ],
   "logs": []
 }

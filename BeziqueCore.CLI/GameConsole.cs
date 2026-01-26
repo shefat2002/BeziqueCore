@@ -1,0 +1,295 @@
+using BeziqueCore.Adapters;
+using BeziqueCore.Actions;
+using BeziqueCore.Deck;
+using BeziqueCore.Notifiers;
+using BeziqueCore.Validators;
+using BeziqueCore.Resolvers;
+using BeziqueCore.Timers;
+using BeziqueCore.Models;
+using BeziqueCore.Interfaces;
+using Spectre.Console;
+
+namespace BeziqueCore.CLI
+{
+    public class GameConsole : IGameAdapter
+    {
+        private readonly IDeckOperations _deckOps;
+        private readonly IPlayerActions _playerActions;
+        private readonly IGameStateNotifier _notifier;
+        private readonly IGameState _gameState;
+        private readonly IPlayerTimer _playerTimer;
+        private readonly IMeldValidator _meldValidator;
+        private readonly ITrickResolver _trickResolver;
+        private readonly Dictionary<Player, List<Card>> _playedCards;
+        private Suit _trumpSuit;
+        private int _currentPlayerIndex;
+
+        public GameConsole()
+        {
+            _deckOps = new DeckOperations();
+            _meldValidator = new MeldValidator();
+            _notifier = new GameNotifier();
+            _playerTimer = new PlayerTimer();
+            _gameState = new GameState(_playerTimer);
+            _trickResolver = new TrickResolver(_gameState);
+            _playerActions = new PlayerActions(_deckOps, _meldValidator, _notifier, _gameState);
+            _playedCards = new Dictionary<Player, List<Card>>();
+            _trumpSuit = default;
+            _currentPlayerIndex = 0;
+        }
+
+        public void InitializeGame()
+        {
+            AnsiConsole.MarkupLine("[bold yellow]🎴 Initializing Bezique Card Game...[/]");
+            _deckOps.InitializeDeck();
+            _gameState.Reset();
+            _playedCards.Clear();
+        }
+
+        public void NotifyGameInitialized()
+        {
+            _notifier.NotifyGameStarted();
+        }
+
+        public void DealCards()
+        {
+            AnsiConsole.MarkupLine("[cyan]🎴 Dealing cards to players...[/]");
+            var players = _gameState.Players;
+
+            for (int i = 0; i < 9; i += 3)
+            {
+                foreach (var player in players)
+                {
+                    for (int j = 0; j < 3 && _deckOps.GetRemainingCardCount() > 1; j++)
+                    {
+                        var card = _deckOps.DrawTopCard();
+                        if (card != null)
+                        {
+                            player.Hand.Add(card);
+                        }
+                    }
+                }
+            }
+
+            DisplayHands();
+        }
+
+        public void NotifyCardsDealt()
+        {
+            _notifier.NotifyCardsDealt(_gameState.Players.ToDictionary(p => p, p => p.Hand));
+        }
+
+        public void FlipTrumpCard()
+        {
+            AnsiConsole.MarkupLine("[yellow]🃏 Flipping trump card...[/]");
+            var trumpCard = _deckOps.FlipTrumpCard();
+            if (trumpCard == null)
+            {
+                throw new InvalidOperationException("No cards remaining in deck");
+            }
+
+            _gameState.TrumpSuit = trumpCard.Suit;
+            _gameState.TrumpCard = trumpCard;
+            _trumpSuit = trumpCard.Suit;
+
+            var suitIcon = GetSuitIcon(trumpCard.Suit);
+            AnsiConsole.MarkupLine($"[bold green]Trump: {suitIcon} {trumpCard.Rank}[/]");
+
+            if (trumpCard.Rank == Rank.Seven)
+            {
+                var dealer = _gameState.Players.FirstOrDefault(p => p.IsDealer);
+                if (dealer != null)
+                {
+                    dealer.Score += 10;
+                    AnsiConsole.MarkupLine($"[green]✨ Dealer gets 10 points for 7 of Trump![/]");
+                }
+            }
+        }
+
+        public void NotifyTrumpDetermined()
+        {
+            _notifier.NotifyTrumpDetermined(_gameState.TrumpSuit, _gameState.TrumpCard);
+        }
+
+        public void StartPlayerTimer()
+        {
+            _playerTimer.Start();
+            var current = _gameState.CurrentPlayer;
+            AnsiConsole.MarkupLine($"[bold blue]⏱️ {current?.Name}'s turn (15 seconds)[/]");
+        }
+
+        public void StopPlayerTimer()
+        {
+            _playerTimer.Stop();
+        }
+
+        public void ResetPlayerTimer()
+        {
+            _playerTimer.Reset();
+        }
+
+        public void DeductTimeoutPoints()
+        {
+            var current = _gameState.CurrentPlayer;
+            if (current != null)
+            {
+                current.Score = Math.Max(0, current.Score - 10);
+                AnsiConsole.MarkupLine($"[red]⏰ {current.Name} timed out! -10 points[/]");
+                _notifier.NotifyPlayerTimeout(current);
+            }
+        }
+
+        public void CalculateRoundScores()
+        {
+            AnsiConsole.MarkupLine("[cyan]📊 Calculating round scores...[/]");
+            foreach (var player in _gameState.Players)
+            {
+                _gameState.RoundScores[player] = player.Score;
+            }
+        }
+
+        public void NotifyRoundEnded()
+        {
+            _notifier.NotifyRoundEnded(_gameState.RoundScores);
+        }
+
+        public void DeclareWinner()
+        {
+            var winner = _gameState.Players.OrderByDescending(p => p.Score).First();
+            _gameState.Winner = winner;
+        }
+
+        public void NotifyGameOver()
+        {
+            _notifier.NotifyGameOver(_gameState.Winner);
+        }
+
+        public bool IsLastNineCardsPhase()
+        {
+            int playerCount = _gameState.Players.Count;
+            int remainingDeckCount = _deckOps.GetRemainingCardCount();
+
+            return playerCount switch
+            {
+                2 => remainingDeckCount <= 1,
+                4 => remainingDeckCount <= 3,
+                _ => remainingDeckCount <= (playerCount - 1)
+            };
+        }
+
+        public BeziqueGameFlow CreateStateMachine()
+        {
+            return new BeziqueGameFlow(this);
+        }
+
+        public IDeckOperations DeckOps => _deckOps;
+        public IPlayerActions PlayerActions => _playerActions;
+        public IGameStateNotifier Notifier => _notifier;
+        public IGameState GameState => _gameState;
+        public IMeldValidator MeldValidator => _meldValidator;
+        public ITrickResolver TrickResolver => _trickResolver;
+
+        public void DisplayHands()
+        {
+            var table = new Table();
+            table.Border(TableBorder.Rounded);
+            table.AddColumn("[bold]Player[/]");
+            table.AddColumn("[bold]Hand[/]");
+            table.AddColumn("[bold]Score[/]");
+
+            foreach (var player in _gameState.Players)
+            {
+                var hand = string.Join(", ", player.Hand.Take(5).Select(c => GetCardString(c)));
+                if (player.Hand.Count > 5)
+                {
+                    hand += $" +{player.Hand.Count - 5} more";
+                }
+                table.AddRow(
+                    player.Name,
+                    hand,
+                    player.Score.ToString()
+                );
+            }
+
+            AnsiConsole.Write(table);
+            AnsiConsole.MarkupLine($"[dim]Deck: {_deckOps.GetRemainingCardCount()} cards remaining[/]");
+        }
+
+        public void DisplayGameState()
+        {
+            var panel = new Panel($@"
+Current State: [bold blue]{GetCurrentStateName()}[/]
+Current Player: [bold]{_gameState.CurrentPlayer?.Name ?? "None"}[/]
+Trump: {GetSuitIcon(_trumpSuit)} {_trumpSuit}
+Deck: {_deckOps.GetRemainingCardCount()} cards
+Last 9 Phase: {(IsLastNineCardsPhase() ? "[bold red]YES[/]" : "[green]NO[/]")}");
+
+            panel.Header = new PanelHeader("[bold yellow]🎮 Game State[/]");
+            panel.Border = BoxBorder.Rounded;
+            AnsiConsole.Write(panel);
+        }
+
+        private string GetCurrentStateName()
+        {
+            return _currentPlayerIndex.ToString();
+        }
+
+        private string GetCardString(Card card)
+        {
+            if (card.IsJoker) return "🃏";
+            return $"{GetSuitIcon(card.Suit)}{GetRankSymbol(card.Rank)}";
+        }
+
+        private string GetSuitIcon(Suit suit)
+        {
+            return suit switch
+            {
+                Suit.Hearts => "♥",
+                Suit.Diamonds => "♦",
+                Suit.Clubs => "♣",
+                Suit.Spades => "♠",
+                _ => "?"
+            };
+        }
+
+        private string GetRankSymbol(Rank rank)
+        {
+            return rank switch
+            {
+                Rank.Ace => "A",
+                Rank.King => "K",
+                Rank.Queen => "Q",
+                Rank.Jack => "J",
+                Rank.Ten => "10",
+                Rank.Nine => "9",
+                Rank.Eight => "8",
+                Rank.Seven => "7",
+                _ => rank.ToString()
+            };
+        }
+
+        public void SetCurrentPlayer(int index)
+        {
+            if (index >= 0 && index < _gameState.Players.Count)
+            {
+                _currentPlayerIndex = index;
+                _gameState.CurrentPlayer = _gameState.Players[index];
+            }
+        }
+
+        public Player GetCurrentPlayer()
+        {
+            return _gameState.CurrentPlayer;
+        }
+
+        public List<Player> GetPlayers()
+        {
+            return _gameState.Players;
+        }
+
+        public void AddPlayer(Player player)
+        {
+            _gameState.AddPlayer(player);
+        }
+    }
+}

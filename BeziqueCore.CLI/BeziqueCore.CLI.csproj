@@ -9,6 +9,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\BeziqueCore\BeziqueCore.csproj" />
+      <PackageReference Include="Spectre.Console" Version="0.49.1" />
     </ItemGroup>
 
 </Project>

@@ -12,5 +12,6 @@ namespace BeziqueCore.Interfaces
         IPlayerTimer CurrentPlayerTimer { get; }
         Dictionary<Player, int> RoundScores { get; }
         void Reset();
+        void AddPlayer(Player player);
     }
 }
