@@ -44,6 +44,17 @@ namespace BeziqueCore.CLI
             _deckOps.InitializeDeck();
             _gameState.Reset();
             _playedCards.Clear();
+
+            // Set non-dealer as first player to lead
+            var nonDealer = _gameState.Players.FirstOrDefault(p => !p.IsDealer)
+                         ?? _gameState.Players.FirstOrDefault();
+            if (nonDealer != null)
+            {
+                _gameState.CurrentPlayer = nonDealer;
+            }
+
+            // Initialize first trick
+            _gameState.StartNewTrick();
         }
 
         public void NotifyGameInitialized()
@@ -194,7 +205,37 @@ namespace BeziqueCore.CLI
 
         public void ResolveTrick()
         {
-            // Trick resolution is handled by IPlayerActions.PlayCard
+            var currentTrick = _gameState.CurrentTrick;
+            if (currentTrick == null || currentTrick.Count == 0)
+            {
+                return;
+            }
+
+            // Get lead suit (handle joker case - if joker led, use trump as default)
+            Suit leadSuit = _gameState.LeadSuit ?? _gameState.TrumpSuit;
+
+            // Determine winner
+            var winner = _trickResolver.DetermineTrickWinner(
+                currentTrick,
+                _gameState.TrumpSuit,
+                leadSuit
+            );
+
+            // Calculate points
+            var cards = currentTrick.Values.ToList();
+            var points = _trickResolver.CalculateTrickPoints(cards);
+
+            // Award points
+            winner.Score += points;
+
+            // Notify
+            _notifier.NotifyTrickWon(winner, cards.ToArray(), points);
+
+            // Winner leads next trick
+            _gameState.CurrentPlayer = winner;
+
+            // Clear trick for next round
+            _gameState.StartNewTrick();
         }
 
         public void ProcessMeldOpportunity()

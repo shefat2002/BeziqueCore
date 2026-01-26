@@ -11,7 +11,15 @@ namespace BeziqueCore.Interfaces
         Card TrumpCard { get; set; }
         IPlayerTimer CurrentPlayerTimer { get; }
         Dictionary<Player, int> RoundScores { get; }
+
+        // Trick tracking
+        Dictionary<Player, Card> CurrentTrick { get; set; }
+        Suit? LeadSuit { get; set; }
+
         void Reset();
         void AddPlayer(Player player);
+        void StartNewTrick();
+        void AddCardToTrick(Player player, Card card);
+        bool IsTrickComplete();
     }
 }

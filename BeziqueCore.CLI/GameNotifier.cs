@@ -8,6 +8,7 @@ namespace BeziqueCore.CLI
     {
         public event Action<Player>? OnPlayerTurn;
         public event Action<Player, Card>? OnCardPlayed;
+        public event Action<Dictionary<Player, Card>>? OnTrickComplete;
         public event Action<Player, Card[], int>? OnTrickWon;
         public event Action<Player, Meld, int>? OnMeldDeclared;
         public event Action<Player>? OnSevenOfTrumpSwitched;
@@ -50,6 +51,12 @@ namespace BeziqueCore.CLI
             OnCardPlayed?.Invoke(player, card);
             var cardStr = card.IsJoker ? "🃏 Joker" : $"{card.Rank} of {card.Suit}";
             AnsiConsole.MarkupLine($"[dim]{player.Name} played {cardStr}[/]");
+        }
+
+        public void NotifyTrickComplete(Dictionary<Player, Card> trick)
+        {
+            OnTrickComplete?.Invoke(trick);
+            AnsiConsole.MarkupLine($"[dim]Trick complete! {trick.Count} cards played.[/]");
         }
 
         public void NotifyTrickWon(Player winner, Card[] cards, int points)

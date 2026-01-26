@@ -7,6 +7,7 @@ namespace BeziqueCore.Notifiers
     {
         public event Action<Player>? OnPlayerTurn;
         public event Action<Player, Card>? OnCardPlayed;
+        public event Action<Dictionary<Player, Card>>? OnTrickComplete;
         public event Action<Player, Card[], int>? OnTrickWon;
         public event Action<Player, Meld, int>? OnMeldDeclared;
         public event Action<Player>? OnSevenOfTrumpSwitched;
@@ -41,6 +42,12 @@ namespace BeziqueCore.Notifiers
             OnCardPlayed?.Invoke(player, card);
             string cardStr = card.IsJoker ? "Joker" : $"{card.Rank} of {card.Suit}";
             Console.WriteLine($"{player.Name} played {cardStr}");
+        }
+
+        public void NotifyTrickComplete(Dictionary<Player, Card> trick)
+        {
+            OnTrickComplete?.Invoke(trick);
+            Console.WriteLine($"Trick complete! {trick.Count} cards played.");
         }
 
         public void NotifyTrickWon(Player winner, Card[] cards, int points)

@@ -9,6 +9,7 @@ namespace BeziqueCore.Adapters
         private readonly IPlayerActions _playerActions;
         private readonly IGameStateNotifier _notifier;
         private readonly IGameState _gameState;
+        private readonly ITrickResolver _trickResolver;
         private const int CardsPerPlayer = 9;
         private const int DealSetSize = 3;
         private const int TimeoutPenalty = 10;
@@ -17,18 +18,31 @@ namespace BeziqueCore.Adapters
             IDeckOperations deckOps,
             IPlayerActions playerActions,
             IGameStateNotifier notifier,
-            IGameState gameState)
+            IGameState gameState,
+            ITrickResolver trickResolver)
         {
             _deckOps = deckOps;
             _playerActions = playerActions;
             _notifier = notifier;
             _gameState = gameState;
+            _trickResolver = trickResolver;
         }
 
         public void InitializeGame()
         {
             _deckOps.InitializeDeck();
             _gameState.Reset();
+
+            // Set non-dealer as first player to lead
+            var nonDealer = _gameState.Players.FirstOrDefault(p => !p.IsDealer)
+                         ?? _gameState.Players.FirstOrDefault();
+            if (nonDealer != null)
+            {
+                _gameState.CurrentPlayer = nonDealer;
+            }
+
+            // Initialize first trick
+            _gameState.StartNewTrick();
         }
 
         public void NotifyGameInitialized()
@@ -160,8 +174,37 @@ namespace BeziqueCore.Adapters
 
         public void ResolveTrick()
         {
-            // Determine the winner of the current trick
-            // The trick resolver logic is handled by IPlayerActions
+            var currentTrick = _gameState.CurrentTrick;
+            if (currentTrick == null || currentTrick.Count == 0)
+            {
+                return;
+            }
+
+            // Get lead suit (handle joker case - if joker led, use trump as default)
+            Suit leadSuit = _gameState.LeadSuit ?? _gameState.TrumpSuit;
+
+            // Determine winner
+            var winner = _trickResolver.DetermineTrickWinner(
+                currentTrick,
+                _gameState.TrumpSuit,
+                leadSuit
+            );
+
+            // Calculate points
+            var cards = currentTrick.Values.ToList();
+            var points = _trickResolver.CalculateTrickPoints(cards);
+
+            // Award points
+            winner.Score += points;
+
+            // Notify
+            _notifier.NotifyTrickWon(winner, cards.ToArray(), points);
+
+            // Winner leads next trick
+            _gameState.CurrentPlayer = winner;
+
+            // Clear trick for next round
+            _gameState.StartNewTrick();
         }
 
         public void ProcessMeldOpportunity()

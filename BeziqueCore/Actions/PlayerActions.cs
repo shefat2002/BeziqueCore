@@ -31,7 +31,17 @@ namespace BeziqueCore.Actions
             }
 
             player.Hand.Remove(card);
+
+            // Add to current trick
+            _gameState.AddCardToTrick(player, card);
+
             _notifier.NotifyCardPlayed(player, card);
+
+            // Check if trick is complete (all players have played)
+            if (_gameState.IsTrickComplete())
+            {
+                _notifier.NotifyTrickComplete(_gameState.CurrentTrick);
+            }
         }
 
         public void DeclareMeld(Player player, Meld meld)
