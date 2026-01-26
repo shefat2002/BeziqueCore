@@ -48,6 +48,7 @@ namespace BeziqueCore.Interfaces
         public int Score { get; set; }
         public List<Card> Hand { get; set; }
         public bool IsDealer { get; set; }
+        public List<Meld> DeclaredMelds { get; set; }
     }
 
     public class Meld

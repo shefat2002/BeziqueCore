@@ -51,8 +51,35 @@ namespace BeziqueCore.Actions
                 throw new InvalidOperationException("Invalid meld.");
             }
 
+            // Check for duplicate meld declaration
+            if (player.DeclaredMelds != null)
+            {
+                foreach (var declaredMeld in player.DeclaredMelds)
+                {
+                    if (declaredMeld.Type == meld.Type)
+                    {
+                        // Check if the same cards are being used (prevents declaring same meld twice)
+                        var declaredCards = declaredMeld.Cards;
+                        var newCards = meld.Cards;
+
+                        if (declaredCards.All(newCards.Contains) && declaredCards.Count == newCards.Count)
+                        {
+                            throw new InvalidOperationException("This meld has already been declared.");
+                        }
+                    }
+                }
+            }
+
             meld.Points = _meldValidator.CalculateMeldPoints(meld);
             player.Score += meld.Points;
+
+            // Store the declared meld (cards stay in hand!)
+            if (player.DeclaredMelds == null)
+            {
+                player.DeclaredMelds = new List<Meld>();
+            }
+            player.DeclaredMelds.Add(meld);
+
             _notifier.NotifyMeldDeclared(player, meld, meld.Points);
         }
 
