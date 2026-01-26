@@ -1,0 +1,90 @@
+@startuml
+
+/'! $CONFIG : toml
+SmRunnerSettings.transpilerId = "CSharp"
+'/
+
+hide empty description
+skinparam linetype ortho
+skinparam stateMessageAlignment center
+
+state GAME_INIT {
+    GAME_INIT: enter / gameAdapter.InitializeGame();
+    GAME_INIT: exit / gameAdapter.NotifyGameInitialized();
+}
+
+state DEALING {
+    DEALING: enter / gameAdapter.DealCards();
+    DEALING: exit / gameAdapter.NotifyCardsDealt();
+}
+
+state TRUMP_SELECTION {
+    TRUMP_SELECTION: enter / gameAdapter.FlipTrumpCard();
+    TRUMP_SELECTION: exit / gameAdapter.NotifyTrumpDetermined();
+}
+
+state GAMEPLAY {
+    state PLAYER_TURN {
+        PLAYER_TURN: enter / gameAdapter.StartPlayerTimer();
+        PLAYER_TURN: exit / gameAdapter.StopPlayerTimer();
+    }
+    state OPPONENT_RESPONSE
+    state TRICK_RESOLUTION
+    state MELD_OPPORTUNITY
+    state MELD_SCORING
+    state CARD_DRAW
+    state DECK_CHECK
+
+    PLAYER_TURN -down-> OPPONENT_RESPONSE : CardPlayed
+    OPPONENT_RESPONSE -down-> TRICK_RESOLUTION : AllPlayersResponded
+    TRICK_RESOLUTION -down-> MELD_OPPORTUNITY : TrickResolved
+    MELD_OPPORTUNITY -down-> MELD_SCORING : MeldDeclared
+    MELD_OPPORTUNITY -right-> CARD_DRAW : MeldSkipped
+    MELD_SCORING -down-> CARD_DRAW : MeldScored
+    CARD_DRAW -down-> DECK_CHECK : CardsDrawn
+    DECK_CHECK -up-> PLAYER_TURN : MoreCardsAvailable
+}
+
+state LAST_9_CARDS {
+    state L9_PLAYER_TURN {
+        L9_PLAYER_TURN: enter / gameAdapter.StartPlayerTimer();
+        L9_PLAYER_TURN: exit / gameAdapter.StopPlayerTimer();
+    }
+    state L9_OPPONENT_RESPONSE
+    state L9_TRICK_RESOLUTION
+    state L9_FINAL_SCORING
+
+    L9_PLAYER_TURN -down-> L9_OPPONENT_RESPONSE : CardPlayed
+    L9_OPPONENT_RESPONSE -down-> L9_TRICK_RESOLUTION : AllPlayersResponded
+    L9_TRICK_RESOLUTION -down-> L9_FINAL_SCORING : FinalTrickResolved
+    L9_FINAL_SCORING -up-> L9_PLAYER_TURN : ContinueLastNine
+}
+
+state ROUND_END {
+    ROUND_END: enter / gameAdapter.CalculateRoundScores();
+    ROUND_END: exit / gameAdapter.NotifyRoundEnded();
+}
+
+state GAME_OVER {
+    GAME_OVER: enter / gameAdapter.DeclareWinner();
+    GAME_OVER: exit / gameAdapter.NotifyGameOver();
+}
+
+state TIMER_TIMEOUT {
+    TIMER_TIMEOUT: enter / gameAdapter.DeductTimeoutPoints();
+    TIMER_TIMEOUT: exit / gameAdapter.ResetPlayerTimer();
+}
+
+[*] -down-> GAME_INIT
+GAME_INIT -down-> DEALING : Initialized
+DEALING -down-> TRUMP_SELECTION : CardsDealt
+TRUMP_SELECTION -down-> GAMEPLAY : TrumpDetermined
+GAMEPLAY -down-> LAST_9_CARDS : LastNineReached
+LAST_9_CARDS -down-> ROUND_END : DeckEmpty
+ROUND_END -left-> GAME_INIT : ContinueGame
+ROUND_END -down-> GAME_OVER : WinningScoreReached
+PLAYER_TURN -right-> TIMER_TIMEOUT : TimerExpired
+TIMER_TIMEOUT -left-> PLAYER_TURN : TimerReset
+L9_PLAYER_TURN -right-> TIMER_TIMEOUT : TimerExpired
+
+@enduml

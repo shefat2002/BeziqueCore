@@ -1,0 +1,20 @@
+using BeziqueCore.Models;
+
+namespace BeziqueCore.Interfaces
+{
+    public interface IGameStateNotifier
+    {
+        void NotifyGameStarted();
+        void NotifyTrumpDetermined(Suit trumpSuit, Card trumpCard);
+        void NotifyPlayerTurn(Player player);
+        void NotifyCardPlayed(Player player, Card card);
+        void NotifyTrickWon(Player winner, Card[] cards, int points);
+        void NotifyMeldDeclared(Player player, Meld meld, int points);
+        void NotifySevenOfTrumpSwitched(Player player);
+        void NotifyRoundEnded(Dictionary<Player, int> scores);
+        void NotifyGameOver(Player winner);
+        void NotifyPlayerTimeout(Player player);
+        void NotifyLastNineCardsStarted();
+        void NotifyCardsDealt(Dictionary<Player, List<Card>> hands);
+    }
+}

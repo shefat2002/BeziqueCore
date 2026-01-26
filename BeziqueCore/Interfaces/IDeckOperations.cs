@@ -1,0 +1,15 @@
+using BeziqueCore.Models;
+
+namespace BeziqueCore.Interfaces
+{
+    public interface IDeckOperations
+    {
+        void InitializeDeck();
+        Card? DrawTopCard();
+        int GetRemainingCardCount();
+        bool IsLastNineCards();
+        Card? FlipTrumpCard();
+        void ShuffleDeck();
+        Card? GetTrumpCard();
+    }
+}
