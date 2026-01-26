@@ -24,6 +24,7 @@ state TRUMP_SELECTION {
 }
 
 state GAMEPLAY {
+    [*] -> PLAYER_TURN
     state PLAYER_TURN {
         PLAYER_TURN: enter / gameAdapter.StartPlayerTimer();
         PLAYER_TURN: exit / gameAdapter.StopPlayerTimer();
@@ -46,6 +47,7 @@ state GAMEPLAY {
 }
 
 state LAST_9_CARDS {
+    [*] -> L9_PLAYER_TURN
     state L9_PLAYER_TURN {
         L9_PLAYER_TURN: enter / gameAdapter.StartPlayerTimer();
         L9_PLAYER_TURN: exit / gameAdapter.StopPlayerTimer();

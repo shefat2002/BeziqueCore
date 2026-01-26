@@ -489,8 +489,19 @@ public partial class BeziqueGameFlow
             // Step 3: Enter/move towards transition target `LAST_9_CARDS`.
             LAST_9_CARDS_enter();
 
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
+            // LAST_9_CARDS.<InitialState> behavior
+            // uml: TransitionTo(L9_PLAYER_TURN)
+            {
+                // Step 1: Exit states until we reach `LAST_9_CARDS` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
+
+                // Step 2: Transition action: ``.
+
+                // Step 3: Enter/move towards transition target `L9_PLAYER_TURN`.
+                L9_PLAYER_TURN_enter();
+
+                // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+                return;
+            } // end of behavior for LAST_9_CARDS.<InitialState>
         } // end of behavior for GAMEPLAY
 
         // No ancestor handles this event.
@@ -1165,8 +1176,19 @@ public partial class BeziqueGameFlow
             // Step 3: Enter/move towards transition target `GAMEPLAY`.
             GAMEPLAY_enter();
 
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
+            // GAMEPLAY.<InitialState> behavior
+            // uml: TransitionTo(PLAYER_TURN)
+            {
+                // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
+
+                // Step 2: Transition action: ``.
+
+                // Step 3: Enter/move towards transition target `PLAYER_TURN`.
+                PLAYER_TURN_enter();
+
+                // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+                return;
+            } // end of behavior for GAMEPLAY.<InitialState>
         } // end of behavior for TRUMP_SELECTION
 
         // No ancestor handles this event.
