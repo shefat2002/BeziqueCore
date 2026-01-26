@@ -128,4 +128,18 @@ public partial class BeziqueGameFlow
             DispatchEvent(EventId.MORECARDSAVAILABLE);
         }
     }
+
+    public void CheckAndDispatchL9TrickComplete()
+    {
+        if (gameAdapter.AreAllHandsEmpty())
+        {
+            // All players have no cards left - this was the final trick
+            DispatchEvent(EventId.FINALTRICKRESOLVED);
+        }
+        else
+        {
+            // Players still have cards - continue last 9 cards phase
+            DispatchEvent(EventId.CONTINUELASTNINE);
+        }
+    }
 }

@@ -196,6 +196,11 @@ namespace BeziqueCore.CLI
             return _deckOps.GetRemainingCardCount() == 0;
         }
 
+        public bool AreAllHandsEmpty()
+        {
+            return _gameState.Players.All(p => p.Hand.Count == 0);
+        }
+
         // Gameplay actions
         public void ProcessOpponentResponses()
         {

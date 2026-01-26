@@ -36,5 +36,6 @@ namespace BeziqueCore.Interfaces
 
         bool IsLastNineCardsPhase();
         bool IsDeckEmpty();
+        bool AreAllHandsEmpty();
     }
 }
