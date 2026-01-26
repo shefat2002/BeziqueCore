@@ -11,5 +11,6 @@ namespace BeziqueCore.Interfaces
         Card? FlipTrumpCard();
         void ShuffleDeck();
         Card? GetTrumpCard();
+        Card? TakeTrumpCard();
     }
 }

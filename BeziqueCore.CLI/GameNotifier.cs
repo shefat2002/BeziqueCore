@@ -83,6 +83,12 @@ namespace BeziqueCore.CLI
             AnsiConsole.MarkupLine($"[bold cyan]7️⃏ {player.Name} played 7 of Trump! (+10 points)[/]");
         }
 
+        public void NotifyTrumpCardTaken(Player player, Card trumpCard)
+        {
+            var cardStr = trumpCard.IsJoker ? "🃏 Joker" : $"{trumpCard.Rank} of {trumpCard.Suit}";
+            AnsiConsole.MarkupLine($"[bold yellow]🃏 {player.Name} took the trump card ({cardStr})[/]");
+        }
+
         public void NotifyRoundEnded(Dictionary<Player, int> scores)
         {
             OnRoundEnded?.Invoke(scores);

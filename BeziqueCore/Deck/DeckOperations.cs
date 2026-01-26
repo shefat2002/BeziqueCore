@@ -90,5 +90,12 @@ namespace BeziqueCore.Deck
         {
             return _trumpCard;
         }
+
+        public Card? TakeTrumpCard()
+        {
+            var card = _trumpCard;
+            _trumpCard = null;
+            return card;
+        }
     }
 }

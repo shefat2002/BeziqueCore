@@ -74,6 +74,12 @@ namespace BeziqueCore.Notifiers
             Console.WriteLine($"{player.Name} played 7 of trump (+10 points)");
         }
 
+        public void NotifyTrumpCardTaken(Player player, Card trumpCard)
+        {
+            string cardStr = trumpCard.IsJoker ? "Joker" : $"{trumpCard.Rank} of {trumpCard.Suit}";
+            Console.WriteLine($"{player.Name} took the trump card ({cardStr})");
+        }
+
         public void NotifyRoundEnded(Dictionary<Player, int> scores)
         {
             OnRoundEnded?.Invoke(scores);

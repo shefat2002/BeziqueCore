@@ -231,7 +231,45 @@ namespace BeziqueCore.Adapters
                 return;
             }
 
-            // Winner draws first
+            // Find the loser (the other player)
+            var loser = _gameState.Players.FirstOrDefault(p => p != winner);
+            if (loser == null)
+            {
+                return;
+            }
+
+            // Special case: Last card before last 9 cards phase
+            // For 2 players: 1 card face down + 1 trump face up = 2 cards remaining
+            // For 4 players: 3 cards face down + 1 trump face up = 4 cards remaining
+            int totalCardsRemaining = _deckOps.GetRemainingCardCount();
+            int cardsToTakeFromDeck = _gameState.Players.Count == 2 ? 1 : 3;
+
+            bool isLastTrickBeforeFinalPhase = totalCardsRemaining == (cardsToTakeFromDeck + 1);
+
+            if (isLastTrickBeforeFinalPhase)
+            {
+                // Winner takes the last card(s) from deck
+                for (int i = 0; i < cardsToTakeFromDeck && _deckOps.GetRemainingCardCount() > 1; i++)
+                {
+                    var card = _deckOps.DrawTopCard();
+                    if (card != null)
+                    {
+                        winner.Hand.Add(card);
+                    }
+                }
+
+                // Loser takes the flipped-up trump card
+                var trumpCard = _deckOps.TakeTrumpCard();
+                if (trumpCard != null)
+                {
+                    loser.Hand.Add(trumpCard);
+                    _notifier.NotifyTrumpCardTaken(loser, trumpCard);
+                }
+
+                return;
+            }
+
+            // Normal drawing: Winner draws first
             if (_deckOps.GetRemainingCardCount() > 0)
             {
                 var card = _deckOps.DrawTopCard();
@@ -241,9 +279,8 @@ namespace BeziqueCore.Adapters
                 }
             }
 
-            // Find the loser (the other player)
-            var loser = _gameState.Players.FirstOrDefault(p => p != winner);
-            if (loser != null && _deckOps.GetRemainingCardCount() > 0)
+            // Loser draws next
+            if (_deckOps.GetRemainingCardCount() > 0)
             {
                 var card = _deckOps.DrawTopCard();
                 if (card != null)
