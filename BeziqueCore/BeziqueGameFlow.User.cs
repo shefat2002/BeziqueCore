@@ -104,4 +104,16 @@ public partial class BeziqueGameFlow
     {
         DispatchEvent(EventId.TIMERRESET);
     }
+
+    public void CheckAndDispatchLastNineReached()
+    {
+        if (gameAdapter.IsLastNineCardsPhase())
+        {
+            DispatchEvent(EventId.LASTNINEREACHED);
+        }
+        else
+        {
+            DispatchEvent(EventId.MORECARDSAVAILABLE);
+        }
+    }
 }

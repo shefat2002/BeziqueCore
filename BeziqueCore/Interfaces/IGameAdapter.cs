@@ -16,5 +16,6 @@ namespace BeziqueCore.Interfaces
         void NotifyRoundEnded();
         void DeclareWinner();
         void NotifyGameOver();
+        bool IsLastNineCardsPhase();
     }
 }

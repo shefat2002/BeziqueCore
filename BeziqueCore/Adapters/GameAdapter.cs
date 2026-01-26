@@ -136,5 +136,18 @@ namespace BeziqueCore.Adapters
         {
             _notifier.NotifyGameOver(_gameState.Winner);
         }
+
+        public bool IsLastNineCardsPhase()
+        {
+            int playerCount = _gameState.Players.Count;
+            int remainingDeckCount = _deckOps.GetRemainingCardCount();
+
+            return playerCount switch
+            {
+                2 => remainingDeckCount <= 1,
+                4 => remainingDeckCount <= 3,
+                _ => remainingDeckCount <= (playerCount - 1)
+            };
+        }
     }
 }
