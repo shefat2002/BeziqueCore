@@ -528,10 +528,10 @@ public partial class BeziqueGame
         this.stateId = StateId.GAME_STARTED;
 
         // GAME_STARTED behavior
-        // uml: enter / { NotifyAll(); }
+        // uml: enter / { addapter.NotifyAll(); }
         {
-            // Step 1: execute action `NotifyAll();`
-            NotifyAll();
+            // Step 1: execute action `addapter.NotifyAll();`
+            addapter.NotifyAll();
         } // end of behavior for GAME_STARTED
     }
 

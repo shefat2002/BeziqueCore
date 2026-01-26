@@ -7,7 +7,7 @@ SmRunnerSettings.transpilerId = "CSharp"
 hide empty description
 
 state GAME_STARTED {
-    GAME_STARTED: enter / NotifyAll();
+    GAME_STARTED: enter / addapter.NotifyAll();
 }
 state CARD_PLACED
 state TRUMP_SELECTED

@@ -1,4 +1,8 @@
-﻿var beziqueGame = new BeziqueGame();
+﻿using BeziqueCore.CLI;
+
+var beziqueGame = new BeziqueGame();
+var concreateBezicGame = new ConcreateBezicGame();
+beziqueGame.addapter = concreateBezicGame;
 
 
 beziqueGame.Start();

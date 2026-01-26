@@ -253,7 +253,7 @@ GAME_STARTED
 
 GAME_STARTED : GAME_STARTED
 
-GAME_STARTED : enter / #123; NotifyAll()#59; #125;
+GAME_STARTED : enter / #123; addapter.NotifyAll()#59; #125;
 
 CARD_PLACED
 
@@ -1049,10 +1049,10 @@ evaluateGuard = null;
         } // end of behavior for GAME_STARTED
         
         // GAME_STARTED behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "NotifyAll();"); }
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "addapter.NotifyAll();"); }
         {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "NotifyAll();");`
-            this.tracer?.log("⚡ FSM would execute action: " + "NotifyAll();");
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "addapter.NotifyAll();");`
+            this.tracer?.log("⚡ FSM would execute action: " + "addapter.NotifyAll();");
         } // end of behavior for GAME_STARTED
     }
     

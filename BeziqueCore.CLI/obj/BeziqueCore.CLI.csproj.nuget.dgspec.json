@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/Users/admin/Projects/StateSmith/src/StateSmith.Cli/bin/Debug/net9.0/BeziqueCore/BeziqueCore.CLI/BeziqueCore.CLI.csproj": {}
+    "/Users/admin/Documents/GitHub/BeziqueCore/BeziqueCore.CLI/BeziqueCore.CLI.csproj": {}
   },
   "projects": {
-    "/Users/admin/Projects/StateSmith/src/StateSmith.Cli/bin/Debug/net9.0/BeziqueCore/BeziqueCore.CLI/BeziqueCore.CLI.csproj": {
+    "/Users/admin/Documents/GitHub/BeziqueCore/BeziqueCore.CLI/BeziqueCore.CLI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/admin/Projects/StateSmith/src/StateSmith.Cli/bin/Debug/net9.0/BeziqueCore/BeziqueCore.CLI/BeziqueCore.CLI.csproj",
+        "projectUniqueName": "/Users/admin/Documents/GitHub/BeziqueCore/BeziqueCore.CLI/BeziqueCore.CLI.csproj",
         "projectName": "BeziqueCore.CLI",
-        "projectPath": "/Users/admin/Projects/StateSmith/src/StateSmith.Cli/bin/Debug/net9.0/BeziqueCore/BeziqueCore.CLI/BeziqueCore.CLI.csproj",
+        "projectPath": "/Users/admin/Documents/GitHub/BeziqueCore/BeziqueCore.CLI/BeziqueCore.CLI.csproj",
         "packagesPath": "/Users/admin/.nuget/packages/",
-        "outputPath": "/Users/admin/Projects/StateSmith/src/StateSmith.Cli/bin/Debug/net9.0/BeziqueCore/BeziqueCore.CLI/obj/",
+        "outputPath": "/Users/admin/Documents/GitHub/BeziqueCore/BeziqueCore.CLI/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/admin/.nuget/NuGet/NuGet.Config"
@@ -27,8 +27,8 @@
           "net10.0": {
             "targetAlias": "net10.0",
             "projectReferences": {
-              "/Users/admin/Projects/StateSmith/src/StateSmith.Cli/bin/Debug/net9.0/BeziqueCore/BeziqueCore/BeziqueCore.csproj": {
-                "projectPath": "/Users/admin/Projects/StateSmith/src/StateSmith.Cli/bin/Debug/net9.0/BeziqueCore/BeziqueCore/BeziqueCore.csproj"
+              "/Users/admin/Documents/GitHub/BeziqueCore/BeziqueCore/BeziqueCore.csproj": {
+                "projectPath": "/Users/admin/Documents/GitHub/BeziqueCore/BeziqueCore/BeziqueCore.csproj"
               }
             }
           }
@@ -342,14 +342,14 @@
         }
       }
     },
-    "/Users/admin/Projects/StateSmith/src/StateSmith.Cli/bin/Debug/net9.0/BeziqueCore/BeziqueCore/BeziqueCore.csproj": {
+    "/Users/admin/Documents/GitHub/BeziqueCore/BeziqueCore/BeziqueCore.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/admin/Projects/StateSmith/src/StateSmith.Cli/bin/Debug/net9.0/BeziqueCore/BeziqueCore/BeziqueCore.csproj",
+        "projectUniqueName": "/Users/admin/Documents/GitHub/BeziqueCore/BeziqueCore/BeziqueCore.csproj",
         "projectName": "BeziqueCore",
-        "projectPath": "/Users/admin/Projects/StateSmith/src/StateSmith.Cli/bin/Debug/net9.0/BeziqueCore/BeziqueCore/BeziqueCore.csproj",
+        "projectPath": "/Users/admin/Documents/GitHub/BeziqueCore/BeziqueCore/BeziqueCore.csproj",
         "packagesPath": "/Users/admin/.nuget/packages/",
-        "outputPath": "/Users/admin/Projects/StateSmith/src/StateSmith.Cli/bin/Debug/net9.0/BeziqueCore/BeziqueCore/obj/",
+        "outputPath": "/Users/admin/Documents/GitHub/BeziqueCore/BeziqueCore/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/admin/.nuget/NuGet/NuGet.Config"
