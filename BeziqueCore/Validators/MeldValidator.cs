@@ -1,5 +1,6 @@
 using BeziqueCore.Interfaces;
 using BeziqueCore.Models;
+using System.Linq;
 
 namespace BeziqueCore.Validators
 {
@@ -153,6 +154,153 @@ namespace BeziqueCore.Validators
             }
 
             return MeldType.InvalidMeld;
+        }
+
+        public Meld GetBestPossibleMeld(Card[] selectedCards, List<Card> playerHand, Suit trumpSuit)
+        {
+            if (selectedCards == null || selectedCards.Length == 0)
+            {
+                return null;
+            }
+
+            // Find all possible melds that can be made with the selected cards
+            var possibleMelds = new List<Meld>();
+
+            // Check for Double Bezique (4 cards: 2x Q♠ + 2x J♦)
+            if (selectedCards.Length == 4)
+            {
+                var spadeQueens = selectedCards.Where(c => c.Suit == Suit.Spades && c.Rank == Rank.Queen).ToList();
+                var diamondJacks = selectedCards.Where(c => c.Suit == Suit.Diamonds && c.Rank == Rank.Jack).ToList();
+
+                if (spadeQueens.Count >= 2 && diamondJacks.Count >= 2)
+                {
+                    possibleMelds.Add(new Meld
+                    {
+                        Type = MeldType.DoubleBezique,
+                        Cards = spadeQueens.Take(2).Concat(diamondJacks.Take(2)).ToList(),
+                        Points = DoubleBeziquePoints
+                    });
+                }
+            }
+
+            // Check for Four of a Kind
+            if (selectedCards.Length == 4)
+            {
+                var ranks = selectedCards.Select(c => c.Rank).Distinct().ToList();
+                if (ranks.Count == 1)
+                {
+                    var rank = ranks.First();
+                    MeldType meldType = rank switch
+                    {
+                        Rank.Ace => MeldType.FourAces,
+                        Rank.King => MeldType.FourKings,
+                        Rank.Queen => MeldType.FourQueens,
+                        Rank.Jack => MeldType.FourJacks,
+                        _ => MeldType.InvalidMeld
+                    };
+
+                    if (meldType != MeldType.InvalidMeld)
+                    {
+                        var points = CalculateMeldPoints(new Meld { Type = meldType });
+                        possibleMelds.Add(new Meld
+                        {
+                            Type = meldType,
+                            Cards = selectedCards.ToList(),
+                            Points = points
+                        });
+                    }
+                }
+            }
+
+            // Check for Trump Run (5 cards of trump suit: A, 10, K, Q, J)
+            if (selectedCards.Length == 5)
+            {
+                if (selectedCards.All(c => c.Suit == trumpSuit) &&
+                    selectedCards.Any(c => c.Rank == Rank.Ace) &&
+                    selectedCards.Any(c => c.Rank == Rank.Ten) &&
+                    selectedCards.Any(c => c.Rank == Rank.King) &&
+                    selectedCards.Any(c => c.Rank == Rank.Queen) &&
+                    selectedCards.Any(c => c.Rank == Rank.Jack))
+                {
+                    possibleMelds.Add(new Meld
+                    {
+                        Type = MeldType.TrumpRun,
+                        Cards = selectedCards.ToList(),
+                        Points = TrumpRunPoints
+                    });
+                }
+            }
+
+            // Check for marriages (2 cards: K + Q of same suit)
+            if (selectedCards.Length == 2)
+            {
+                var hasKing = selectedCards.Any(c => c.Rank == Rank.King);
+                var hasQueen = selectedCards.Any(c => c.Rank == Rank.Queen);
+
+                if (hasKing && hasQueen)
+                {
+                    var suits = selectedCards.Select(c => c.Suit).Distinct().ToList();
+                    if (suits.Count == 1)
+                    {
+                        var suit = suits.First();
+
+                        // Trump Marriage
+                        if (suit == trumpSuit)
+                        {
+                            possibleMelds.Add(new Meld
+                            {
+                                Type = MeldType.TrumpMarriage,
+                                Cards = selectedCards.ToList(),
+                                Points = TrumpMarriagePoints
+                            });
+                        }
+                        else
+                        {
+                            // Regular Marriage
+                            possibleMelds.Add(new Meld
+                            {
+                                Type = MeldType.Marriage,
+                                Cards = selectedCards.ToList(),
+                                Points = MarriagePoints
+                            });
+                        }
+                    }
+                }
+
+                // Check for Bezique (Q♠ + J♦)
+                if (selectedCards.Any(c => c.Suit == Suit.Spades && c.Rank == Rank.Queen) &&
+                    selectedCards.Any(c => c.Suit == Suit.Diamonds && c.Rank == Rank.Jack))
+                {
+                    possibleMelds.Add(new Meld
+                    {
+                        Type = MeldType.Bezique,
+                        Cards = selectedCards.ToList(),
+                        Points = BeziquePoints
+                    });
+                }
+            }
+
+            // Check for 7 of Trump (single card)
+            if (selectedCards.Length == 1 &&
+                selectedCards[0].Suit == trumpSuit &&
+                selectedCards[0].Rank == Rank.Seven)
+            {
+                possibleMelds.Add(new Meld
+                {
+                    Type = MeldType.TrumpSeven,
+                    Cards = selectedCards.ToList(),
+                    Points = TrumpSevenPoints
+                });
+            }
+
+            // If no melds found, return null
+            if (possibleMelds.Count == 0)
+            {
+                return null;
+            }
+
+            // Return the meld with the highest points
+            return possibleMelds.OrderByDescending(m => m.Points).First();
         }
     }
 }
