@@ -40,16 +40,16 @@ public partial class BeziqueGameFlow
         GAMEPLAY = 4,
         CARD_DRAW = 5,
         DECK_CHECK = 6,
-        MELD_OPPORTUNITY = 7,
-        MELD_SCORING = 8,
-        OPPONENT_RESPONSE = 9,
-        PLAYER_TURN = 10,
-        TRICK_RESOLUTION = 11,
-        LAST_9_CARDS = 12,
-        L9_FINAL_SCORING = 13,
-        L9_OPPONENT_RESPONSE = 14,
-        L9_PLAYER_TURN = 15,
-        L9_TRICK_RESOLUTION = 16,
+        LAST_9_CARDS = 7,
+        L9_FINAL_SCORING = 8,
+        L9_OPPONENT_RESPONSE = 9,
+        L9_PLAYER_TURN = 10,
+        L9_TRICK_RESOLUTION = 11,
+        MELD_OPPORTUNITY = 12,
+        MELD_SCORING = 13,
+        OPPONENT_RESPONSE = 14,
+        PLAYER_TURN = 15,
+        TRICK_RESOLUTION = 16,
         ROUND_END = 17,
         TIMER_TIMEOUT = 18,
         TRUMP_SELECTION = 19,
@@ -148,8 +148,59 @@ public partial class BeziqueGameFlow
             case StateId.DECK_CHECK:
                 switch (eventId)
                 {
+                    case EventId.DECKEMPTY: DECK_CHECK_deckempty(); break;
                     case EventId.MORECARDSAVAILABLE: DECK_CHECK_morecardsavailable(); break;
                     case EventId.LASTNINEREACHED: GAMEPLAY_lastninereached(); break; // First ancestor handler for this event
+                }
+                break;
+
+            // STATE: LAST_9_CARDS
+            case StateId.LAST_9_CARDS:
+                switch (eventId)
+                {
+                    case EventId.DECKEMPTY: LAST_9_CARDS_deckempty(); break;
+                    case EventId.LASTNINEREACHED: GAMEPLAY_lastninereached(); break; // First ancestor handler for this event
+                }
+                break;
+
+            // STATE: L9_FINAL_SCORING
+            case StateId.L9_FINAL_SCORING:
+                switch (eventId)
+                {
+                    case EventId.CONTINUELASTNINE: L9_FINAL_SCORING_continuelastnine(); break;
+                    case EventId.LASTNINEREACHED: GAMEPLAY_lastninereached(); break; // First ancestor handler for this event
+                    case EventId.DECKEMPTY: LAST_9_CARDS_deckempty(); break; // First ancestor handler for this event
+                }
+                break;
+
+            // STATE: L9_OPPONENT_RESPONSE
+            case StateId.L9_OPPONENT_RESPONSE:
+                switch (eventId)
+                {
+                    case EventId.ALLPLAYERSRESPONDED: L9_OPPONENT_RESPONSE_allplayersresponded(); break;
+                    case EventId.LASTNINEREACHED: GAMEPLAY_lastninereached(); break; // First ancestor handler for this event
+                    case EventId.DECKEMPTY: LAST_9_CARDS_deckempty(); break; // First ancestor handler for this event
+                }
+                break;
+
+            // STATE: L9_PLAYER_TURN
+            case StateId.L9_PLAYER_TURN:
+                switch (eventId)
+                {
+                    case EventId.CARDPLAYED: L9_PLAYER_TURN_cardplayed(); break;
+                    case EventId.TIMEREXPIRED: L9_PLAYER_TURN_timerexpired(); break;
+                    case EventId.LASTNINEREACHED: GAMEPLAY_lastninereached(); break; // First ancestor handler for this event
+                    case EventId.DECKEMPTY: LAST_9_CARDS_deckempty(); break; // First ancestor handler for this event
+                }
+                break;
+
+            // STATE: L9_TRICK_RESOLUTION
+            case StateId.L9_TRICK_RESOLUTION:
+                switch (eventId)
+                {
+                    case EventId.FINALTRICKRESOLVED: L9_TRICK_RESOLUTION_finaltrickresolved(); break;
+                    case EventId.LASTNINEREACHED: GAMEPLAY_lastninereached(); break; // First ancestor handler for this event
+                    case EventId.DECKEMPTY: LAST_9_CARDS_deckempty(); break; // First ancestor handler for this event
                 }
                 break;
 
@@ -197,51 +248,6 @@ public partial class BeziqueGameFlow
                 {
                     case EventId.TRICKRESOLVED: TRICK_RESOLUTION_trickresolved(); break;
                     case EventId.LASTNINEREACHED: GAMEPLAY_lastninereached(); break; // First ancestor handler for this event
-                }
-                break;
-
-            // STATE: LAST_9_CARDS
-            case StateId.LAST_9_CARDS:
-                switch (eventId)
-                {
-                    case EventId.DECKEMPTY: LAST_9_CARDS_deckempty(); break;
-                }
-                break;
-
-            // STATE: L9_FINAL_SCORING
-            case StateId.L9_FINAL_SCORING:
-                switch (eventId)
-                {
-                    case EventId.CONTINUELASTNINE: L9_FINAL_SCORING_continuelastnine(); break;
-                    case EventId.DECKEMPTY: LAST_9_CARDS_deckempty(); break; // First ancestor handler for this event
-                }
-                break;
-
-            // STATE: L9_OPPONENT_RESPONSE
-            case StateId.L9_OPPONENT_RESPONSE:
-                switch (eventId)
-                {
-                    case EventId.ALLPLAYERSRESPONDED: L9_OPPONENT_RESPONSE_allplayersresponded(); break;
-                    case EventId.DECKEMPTY: LAST_9_CARDS_deckempty(); break; // First ancestor handler for this event
-                }
-                break;
-
-            // STATE: L9_PLAYER_TURN
-            case StateId.L9_PLAYER_TURN:
-                switch (eventId)
-                {
-                    case EventId.CARDPLAYED: L9_PLAYER_TURN_cardplayed(); break;
-                    case EventId.TIMEREXPIRED: L9_PLAYER_TURN_timerexpired(); break;
-                    case EventId.DECKEMPTY: LAST_9_CARDS_deckempty(); break; // First ancestor handler for this event
-                }
-                break;
-
-            // STATE: L9_TRICK_RESOLUTION
-            case StateId.L9_TRICK_RESOLUTION:
-                switch (eventId)
-                {
-                    case EventId.FINALTRICKRESOLVED: L9_TRICK_RESOLUTION_finaltrickresolved(); break;
-                    case EventId.DECKEMPTY: LAST_9_CARDS_deckempty(); break; // First ancestor handler for this event
                 }
                 break;
 
@@ -293,16 +299,6 @@ public partial class BeziqueGameFlow
 
                 case StateId.DECK_CHECK: DECK_CHECK_exit(); break;
 
-                case StateId.MELD_OPPORTUNITY: MELD_OPPORTUNITY_exit(); break;
-
-                case StateId.MELD_SCORING: MELD_SCORING_exit(); break;
-
-                case StateId.OPPONENT_RESPONSE: OPPONENT_RESPONSE_exit(); break;
-
-                case StateId.PLAYER_TURN: PLAYER_TURN_exit(); break;
-
-                case StateId.TRICK_RESOLUTION: TRICK_RESOLUTION_exit(); break;
-
                 case StateId.LAST_9_CARDS: LAST_9_CARDS_exit(); break;
 
                 case StateId.L9_FINAL_SCORING: L9_FINAL_SCORING_exit(); break;
@@ -312,6 +308,16 @@ public partial class BeziqueGameFlow
                 case StateId.L9_PLAYER_TURN: L9_PLAYER_TURN_exit(); break;
 
                 case StateId.L9_TRICK_RESOLUTION: L9_TRICK_RESOLUTION_exit(); break;
+
+                case StateId.MELD_OPPORTUNITY: MELD_OPPORTUNITY_exit(); break;
+
+                case StateId.MELD_SCORING: MELD_SCORING_exit(); break;
+
+                case StateId.OPPONENT_RESPONSE: OPPONENT_RESPONSE_exit(); break;
+
+                case StateId.PLAYER_TURN: PLAYER_TURN_exit(); break;
+
+                case StateId.TRICK_RESOLUTION: TRICK_RESOLUTION_exit(); break;
 
                 case StateId.ROUND_END: ROUND_END_exit(); break;
 
@@ -481,27 +487,16 @@ public partial class BeziqueGameFlow
         // GAMEPLAY behavior
         // uml: LastNineReached TransitionTo(LAST_9_CARDS)
         {
-            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
-            ExitUpToStateHandler(StateId.ROOT);
+            // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
+            ExitUpToStateHandler(StateId.GAMEPLAY);
 
             // Step 2: Transition action: ``.
 
             // Step 3: Enter/move towards transition target `LAST_9_CARDS`.
             LAST_9_CARDS_enter();
 
-            // LAST_9_CARDS.<InitialState> behavior
-            // uml: TransitionTo(L9_PLAYER_TURN)
-            {
-                // Step 1: Exit states until we reach `LAST_9_CARDS` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
-
-                // Step 2: Transition action: ``.
-
-                // Step 3: Enter/move towards transition target `L9_PLAYER_TURN`.
-                L9_PLAYER_TURN_enter();
-
-                // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-                return;
-            } // end of behavior for LAST_9_CARDS.<InitialState>
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
         } // end of behavior for GAMEPLAY
 
         // No ancestor handles this event.
@@ -515,6 +510,13 @@ public partial class BeziqueGameFlow
     private void CARD_DRAW_enter()
     {
         this.stateId = StateId.CARD_DRAW;
+
+        // CARD_DRAW behavior
+        // uml: enter / { gameAdapter.DrawCards(); }
+        {
+            // Step 1: execute action `gameAdapter.DrawCards();`
+            gameAdapter.DrawCards();
+        } // end of behavior for CARD_DRAW
     }
 
     private void CARD_DRAW_exit()
@@ -550,11 +552,38 @@ public partial class BeziqueGameFlow
     private void DECK_CHECK_enter()
     {
         this.stateId = StateId.DECK_CHECK;
+
+        // DECK_CHECK behavior
+        // uml: enter / { gameAdapter.CheckDeck(); }
+        {
+            // Step 1: execute action `gameAdapter.CheckDeck();`
+            gameAdapter.CheckDeck();
+        } // end of behavior for DECK_CHECK
     }
 
     private void DECK_CHECK_exit()
     {
         this.stateId = StateId.GAMEPLAY;
+    }
+
+    private void DECK_CHECK_deckempty()
+    {
+        // DECK_CHECK behavior
+        // uml: DeckEmpty TransitionTo(LAST_9_CARDS)
+        {
+            // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
+            DECK_CHECK_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `LAST_9_CARDS`.
+            LAST_9_CARDS_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for DECK_CHECK
+
+        // No ancestor handles this event.
     }
 
     private void DECK_CHECK_morecardsavailable()
@@ -579,235 +608,6 @@ public partial class BeziqueGameFlow
 
 
     ////////////////////////////////////////////////////////////////////////////////
-    // event handlers for state MELD_OPPORTUNITY
-    ////////////////////////////////////////////////////////////////////////////////
-
-    private void MELD_OPPORTUNITY_enter()
-    {
-        this.stateId = StateId.MELD_OPPORTUNITY;
-    }
-
-    private void MELD_OPPORTUNITY_exit()
-    {
-        this.stateId = StateId.GAMEPLAY;
-    }
-
-    private void MELD_OPPORTUNITY_melddeclared()
-    {
-        // MELD_OPPORTUNITY behavior
-        // uml: MeldDeclared TransitionTo(MELD_SCORING)
-        {
-            // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
-            MELD_OPPORTUNITY_exit();
-
-            // Step 2: Transition action: ``.
-
-            // Step 3: Enter/move towards transition target `MELD_SCORING`.
-            MELD_SCORING_enter();
-
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
-        } // end of behavior for MELD_OPPORTUNITY
-
-        // No ancestor handles this event.
-    }
-
-    private void MELD_OPPORTUNITY_meldskipped()
-    {
-        // MELD_OPPORTUNITY behavior
-        // uml: MeldSkipped TransitionTo(CARD_DRAW)
-        {
-            // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
-            MELD_OPPORTUNITY_exit();
-
-            // Step 2: Transition action: ``.
-
-            // Step 3: Enter/move towards transition target `CARD_DRAW`.
-            CARD_DRAW_enter();
-
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
-        } // end of behavior for MELD_OPPORTUNITY
-
-        // No ancestor handles this event.
-    }
-
-
-    ////////////////////////////////////////////////////////////////////////////////
-    // event handlers for state MELD_SCORING
-    ////////////////////////////////////////////////////////////////////////////////
-
-    private void MELD_SCORING_enter()
-    {
-        this.stateId = StateId.MELD_SCORING;
-    }
-
-    private void MELD_SCORING_exit()
-    {
-        this.stateId = StateId.GAMEPLAY;
-    }
-
-    private void MELD_SCORING_meldscored()
-    {
-        // MELD_SCORING behavior
-        // uml: MeldScored TransitionTo(CARD_DRAW)
-        {
-            // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
-            MELD_SCORING_exit();
-
-            // Step 2: Transition action: ``.
-
-            // Step 3: Enter/move towards transition target `CARD_DRAW`.
-            CARD_DRAW_enter();
-
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
-        } // end of behavior for MELD_SCORING
-
-        // No ancestor handles this event.
-    }
-
-
-    ////////////////////////////////////////////////////////////////////////////////
-    // event handlers for state OPPONENT_RESPONSE
-    ////////////////////////////////////////////////////////////////////////////////
-
-    private void OPPONENT_RESPONSE_enter()
-    {
-        this.stateId = StateId.OPPONENT_RESPONSE;
-    }
-
-    private void OPPONENT_RESPONSE_exit()
-    {
-        this.stateId = StateId.GAMEPLAY;
-    }
-
-    private void OPPONENT_RESPONSE_allplayersresponded()
-    {
-        // OPPONENT_RESPONSE behavior
-        // uml: AllPlayersResponded TransitionTo(TRICK_RESOLUTION)
-        {
-            // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
-            OPPONENT_RESPONSE_exit();
-
-            // Step 2: Transition action: ``.
-
-            // Step 3: Enter/move towards transition target `TRICK_RESOLUTION`.
-            TRICK_RESOLUTION_enter();
-
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
-        } // end of behavior for OPPONENT_RESPONSE
-
-        // No ancestor handles this event.
-    }
-
-
-    ////////////////////////////////////////////////////////////////////////////////
-    // event handlers for state PLAYER_TURN
-    ////////////////////////////////////////////////////////////////////////////////
-
-    private void PLAYER_TURN_enter()
-    {
-        this.stateId = StateId.PLAYER_TURN;
-
-        // PLAYER_TURN behavior
-        // uml: enter / { gameAdapter.StartPlayerTimer(); }
-        {
-            // Step 1: execute action `gameAdapter.StartPlayerTimer();`
-            gameAdapter.StartPlayerTimer();
-        } // end of behavior for PLAYER_TURN
-    }
-
-    private void PLAYER_TURN_exit()
-    {
-        // PLAYER_TURN behavior
-        // uml: exit / { gameAdapter.StopPlayerTimer(); }
-        {
-            // Step 1: execute action `gameAdapter.StopPlayerTimer();`
-            gameAdapter.StopPlayerTimer();
-        } // end of behavior for PLAYER_TURN
-
-        this.stateId = StateId.GAMEPLAY;
-    }
-
-    private void PLAYER_TURN_cardplayed()
-    {
-        // PLAYER_TURN behavior
-        // uml: CardPlayed TransitionTo(OPPONENT_RESPONSE)
-        {
-            // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
-            PLAYER_TURN_exit();
-
-            // Step 2: Transition action: ``.
-
-            // Step 3: Enter/move towards transition target `OPPONENT_RESPONSE`.
-            OPPONENT_RESPONSE_enter();
-
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
-        } // end of behavior for PLAYER_TURN
-
-        // No ancestor handles this event.
-    }
-
-    private void PLAYER_TURN_timerexpired()
-    {
-        // PLAYER_TURN behavior
-        // uml: TimerExpired TransitionTo(TIMER_TIMEOUT)
-        {
-            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
-            ExitUpToStateHandler(StateId.ROOT);
-
-            // Step 2: Transition action: ``.
-
-            // Step 3: Enter/move towards transition target `TIMER_TIMEOUT`.
-            TIMER_TIMEOUT_enter();
-
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
-        } // end of behavior for PLAYER_TURN
-
-        // No ancestor handles this event.
-    }
-
-
-    ////////////////////////////////////////////////////////////////////////////////
-    // event handlers for state TRICK_RESOLUTION
-    ////////////////////////////////////////////////////////////////////////////////
-
-    private void TRICK_RESOLUTION_enter()
-    {
-        this.stateId = StateId.TRICK_RESOLUTION;
-    }
-
-    private void TRICK_RESOLUTION_exit()
-    {
-        this.stateId = StateId.GAMEPLAY;
-    }
-
-    private void TRICK_RESOLUTION_trickresolved()
-    {
-        // TRICK_RESOLUTION behavior
-        // uml: TrickResolved TransitionTo(MELD_OPPORTUNITY)
-        {
-            // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
-            TRICK_RESOLUTION_exit();
-
-            // Step 2: Transition action: ``.
-
-            // Step 3: Enter/move towards transition target `MELD_OPPORTUNITY`.
-            MELD_OPPORTUNITY_enter();
-
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
-        } // end of behavior for TRICK_RESOLUTION
-
-        // No ancestor handles this event.
-    }
-
-
-    ////////////////////////////////////////////////////////////////////////////////
     // event handlers for state LAST_9_CARDS
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -818,7 +618,7 @@ public partial class BeziqueGameFlow
 
     private void LAST_9_CARDS_exit()
     {
-        this.stateId = StateId.ROOT;
+        this.stateId = StateId.GAMEPLAY;
     }
 
     private void LAST_9_CARDS_deckempty()
@@ -849,6 +649,13 @@ public partial class BeziqueGameFlow
     private void L9_FINAL_SCORING_enter()
     {
         this.stateId = StateId.L9_FINAL_SCORING;
+
+        // L9_FINAL_SCORING behavior
+        // uml: enter / { gameAdapter.CalculateL9FinalScores(); }
+        {
+            // Step 1: execute action `gameAdapter.CalculateL9FinalScores();`
+            gameAdapter.CalculateL9FinalScores();
+        } // end of behavior for L9_FINAL_SCORING
     }
 
     private void L9_FINAL_SCORING_exit()
@@ -884,6 +691,13 @@ public partial class BeziqueGameFlow
     private void L9_OPPONENT_RESPONSE_enter()
     {
         this.stateId = StateId.L9_OPPONENT_RESPONSE;
+
+        // L9_OPPONENT_RESPONSE behavior
+        // uml: enter / { gameAdapter.ProcessL9OpponentResponses(); }
+        {
+            // Step 1: execute action `gameAdapter.ProcessL9OpponentResponses();`
+            gameAdapter.ProcessL9OpponentResponses();
+        } // end of behavior for L9_OPPONENT_RESPONSE
     }
 
     private void L9_OPPONENT_RESPONSE_exit()
@@ -988,6 +802,13 @@ public partial class BeziqueGameFlow
     private void L9_TRICK_RESOLUTION_enter()
     {
         this.stateId = StateId.L9_TRICK_RESOLUTION;
+
+        // L9_TRICK_RESOLUTION behavior
+        // uml: enter / { gameAdapter.ResolveL9Trick(); }
+        {
+            // Step 1: execute action `gameAdapter.ResolveL9Trick();`
+            gameAdapter.ResolveL9Trick();
+        } // end of behavior for L9_TRICK_RESOLUTION
     }
 
     private void L9_TRICK_RESOLUTION_exit()
@@ -1011,6 +832,263 @@ public partial class BeziqueGameFlow
             // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
             return;
         } // end of behavior for L9_TRICK_RESOLUTION
+
+        // No ancestor handles this event.
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state MELD_OPPORTUNITY
+    ////////////////////////////////////////////////////////////////////////////////
+
+    private void MELD_OPPORTUNITY_enter()
+    {
+        this.stateId = StateId.MELD_OPPORTUNITY;
+
+        // MELD_OPPORTUNITY behavior
+        // uml: enter / { gameAdapter.ProcessMeldOpportunity(); }
+        {
+            // Step 1: execute action `gameAdapter.ProcessMeldOpportunity();`
+            gameAdapter.ProcessMeldOpportunity();
+        } // end of behavior for MELD_OPPORTUNITY
+    }
+
+    private void MELD_OPPORTUNITY_exit()
+    {
+        this.stateId = StateId.GAMEPLAY;
+    }
+
+    private void MELD_OPPORTUNITY_melddeclared()
+    {
+        // MELD_OPPORTUNITY behavior
+        // uml: MeldDeclared TransitionTo(MELD_SCORING)
+        {
+            // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
+            MELD_OPPORTUNITY_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `MELD_SCORING`.
+            MELD_SCORING_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for MELD_OPPORTUNITY
+
+        // No ancestor handles this event.
+    }
+
+    private void MELD_OPPORTUNITY_meldskipped()
+    {
+        // MELD_OPPORTUNITY behavior
+        // uml: MeldSkipped TransitionTo(CARD_DRAW)
+        {
+            // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
+            MELD_OPPORTUNITY_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `CARD_DRAW`.
+            CARD_DRAW_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for MELD_OPPORTUNITY
+
+        // No ancestor handles this event.
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state MELD_SCORING
+    ////////////////////////////////////////////////////////////////////////////////
+
+    private void MELD_SCORING_enter()
+    {
+        this.stateId = StateId.MELD_SCORING;
+
+        // MELD_SCORING behavior
+        // uml: enter / { gameAdapter.ScoreMeld(); }
+        {
+            // Step 1: execute action `gameAdapter.ScoreMeld();`
+            gameAdapter.ScoreMeld();
+        } // end of behavior for MELD_SCORING
+    }
+
+    private void MELD_SCORING_exit()
+    {
+        this.stateId = StateId.GAMEPLAY;
+    }
+
+    private void MELD_SCORING_meldscored()
+    {
+        // MELD_SCORING behavior
+        // uml: MeldScored TransitionTo(CARD_DRAW)
+        {
+            // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
+            MELD_SCORING_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `CARD_DRAW`.
+            CARD_DRAW_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for MELD_SCORING
+
+        // No ancestor handles this event.
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state OPPONENT_RESPONSE
+    ////////////////////////////////////////////////////////////////////////////////
+
+    private void OPPONENT_RESPONSE_enter()
+    {
+        this.stateId = StateId.OPPONENT_RESPONSE;
+
+        // OPPONENT_RESPONSE behavior
+        // uml: enter / { gameAdapter.ProcessOpponentResponses(); }
+        {
+            // Step 1: execute action `gameAdapter.ProcessOpponentResponses();`
+            gameAdapter.ProcessOpponentResponses();
+        } // end of behavior for OPPONENT_RESPONSE
+    }
+
+    private void OPPONENT_RESPONSE_exit()
+    {
+        this.stateId = StateId.GAMEPLAY;
+    }
+
+    private void OPPONENT_RESPONSE_allplayersresponded()
+    {
+        // OPPONENT_RESPONSE behavior
+        // uml: AllPlayersResponded TransitionTo(TRICK_RESOLUTION)
+        {
+            // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
+            OPPONENT_RESPONSE_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `TRICK_RESOLUTION`.
+            TRICK_RESOLUTION_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for OPPONENT_RESPONSE
+
+        // No ancestor handles this event.
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state PLAYER_TURN
+    ////////////////////////////////////////////////////////////////////////////////
+
+    private void PLAYER_TURN_enter()
+    {
+        this.stateId = StateId.PLAYER_TURN;
+
+        // PLAYER_TURN behavior
+        // uml: enter / { gameAdapter.StartPlayerTimer(); }
+        {
+            // Step 1: execute action `gameAdapter.StartPlayerTimer();`
+            gameAdapter.StartPlayerTimer();
+        } // end of behavior for PLAYER_TURN
+    }
+
+    private void PLAYER_TURN_exit()
+    {
+        // PLAYER_TURN behavior
+        // uml: exit / { gameAdapter.StopPlayerTimer(); }
+        {
+            // Step 1: execute action `gameAdapter.StopPlayerTimer();`
+            gameAdapter.StopPlayerTimer();
+        } // end of behavior for PLAYER_TURN
+
+        this.stateId = StateId.GAMEPLAY;
+    }
+
+    private void PLAYER_TURN_cardplayed()
+    {
+        // PLAYER_TURN behavior
+        // uml: CardPlayed TransitionTo(OPPONENT_RESPONSE)
+        {
+            // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
+            PLAYER_TURN_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `OPPONENT_RESPONSE`.
+            OPPONENT_RESPONSE_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for PLAYER_TURN
+
+        // No ancestor handles this event.
+    }
+
+    private void PLAYER_TURN_timerexpired()
+    {
+        // PLAYER_TURN behavior
+        // uml: TimerExpired TransitionTo(TIMER_TIMEOUT)
+        {
+            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
+            ExitUpToStateHandler(StateId.ROOT);
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `TIMER_TIMEOUT`.
+            TIMER_TIMEOUT_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for PLAYER_TURN
+
+        // No ancestor handles this event.
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state TRICK_RESOLUTION
+    ////////////////////////////////////////////////////////////////////////////////
+
+    private void TRICK_RESOLUTION_enter()
+    {
+        this.stateId = StateId.TRICK_RESOLUTION;
+
+        // TRICK_RESOLUTION behavior
+        // uml: enter / { gameAdapter.ResolveTrick(); }
+        {
+            // Step 1: execute action `gameAdapter.ResolveTrick();`
+            gameAdapter.ResolveTrick();
+        } // end of behavior for TRICK_RESOLUTION
+    }
+
+    private void TRICK_RESOLUTION_exit()
+    {
+        this.stateId = StateId.GAMEPLAY;
+    }
+
+    private void TRICK_RESOLUTION_trickresolved()
+    {
+        // TRICK_RESOLUTION behavior
+        // uml: TrickResolved TransitionTo(MELD_OPPORTUNITY)
+        {
+            // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
+            TRICK_RESOLUTION_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `MELD_OPPORTUNITY`.
+            MELD_OPPORTUNITY_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for TRICK_RESOLUTION
 
         // No ancestor handles this event.
     }
@@ -1206,16 +1284,16 @@ public partial class BeziqueGameFlow
             case StateId.GAMEPLAY: return "GAMEPLAY";
             case StateId.CARD_DRAW: return "CARD_DRAW";
             case StateId.DECK_CHECK: return "DECK_CHECK";
-            case StateId.MELD_OPPORTUNITY: return "MELD_OPPORTUNITY";
-            case StateId.MELD_SCORING: return "MELD_SCORING";
-            case StateId.OPPONENT_RESPONSE: return "OPPONENT_RESPONSE";
-            case StateId.PLAYER_TURN: return "PLAYER_TURN";
-            case StateId.TRICK_RESOLUTION: return "TRICK_RESOLUTION";
             case StateId.LAST_9_CARDS: return "LAST_9_CARDS";
             case StateId.L9_FINAL_SCORING: return "L9_FINAL_SCORING";
             case StateId.L9_OPPONENT_RESPONSE: return "L9_OPPONENT_RESPONSE";
             case StateId.L9_PLAYER_TURN: return "L9_PLAYER_TURN";
             case StateId.L9_TRICK_RESOLUTION: return "L9_TRICK_RESOLUTION";
+            case StateId.MELD_OPPORTUNITY: return "MELD_OPPORTUNITY";
+            case StateId.MELD_SCORING: return "MELD_SCORING";
+            case StateId.OPPONENT_RESPONSE: return "OPPONENT_RESPONSE";
+            case StateId.PLAYER_TURN: return "PLAYER_TURN";
+            case StateId.TRICK_RESOLUTION: return "TRICK_RESOLUTION";
             case StateId.ROUND_END: return "ROUND_END";
             case StateId.TIMER_TIMEOUT: return "TIMER_TIMEOUT";
             case StateId.TRUMP_SELECTION: return "TRUMP_SELECTION";

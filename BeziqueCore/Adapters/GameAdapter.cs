@@ -141,15 +141,83 @@ namespace BeziqueCore.Adapters
 
         public bool IsLastNineCardsPhase()
         {
-            int playerCount = _gameState.Players.Count;
-            int remainingDeckCount = _deckOps.GetRemainingCardCount();
+            // Last 9 cards phase is reached when deck is empty (0 cards remaining)
+            // This is checked AFTER drawing cards
+            return _deckOps.GetRemainingCardCount() == 0;
+        }
 
-            return playerCount switch
+        public bool IsDeckEmpty()
+        {
+            return _deckOps.GetRemainingCardCount() == 0;
+        }
+
+        // Gameplay actions
+        public void ProcessOpponentResponses()
+        {
+            // Check if all opponents have responded to the played card
+            // This is a no-op in single-player vs AI, but would wait for human opponents in multiplayer
+        }
+
+        public void ResolveTrick()
+        {
+            // Determine the winner of the current trick
+            // The trick resolver logic is handled by IPlayerActions
+        }
+
+        public void ProcessMeldOpportunity()
+        {
+            // Give current player opportunity to declare a meld
+            // This is handled by the CLI/UI asking the player
+        }
+
+        public void ScoreMeld()
+        {
+            // Award points for declared meld
+            // Points are calculated by MeldValidator
+        }
+
+        public void DrawCards()
+        {
+            // Current player draws a card from the deck
+            var currentPlayer = _gameState.CurrentPlayer;
+            if (currentPlayer != null && _deckOps.GetRemainingCardCount() > 0)
             {
-                2 => remainingDeckCount <= 1,
-                4 => remainingDeckCount <= 3,
-                _ => remainingDeckCount <= (playerCount - 1)
-            };
+                var card = _deckOps.DrawTopCard();
+                if (card != null)
+                {
+                    currentPlayer.Hand.Add(card);
+                }
+            }
+        }
+
+        public void CheckDeck()
+        {
+            // Check if we should transition to LAST_9_CARDS phase
+            // This is handled by IsLastNineCardsPhase() method
+        }
+
+        // Last 9 cards actions
+        public void ProcessL9OpponentResponses()
+        {
+            // Same as ProcessOpponentResponses but for last 9 cards phase
+            ProcessOpponentResponses();
+        }
+
+        public void ResolveL9Trick()
+        {
+            // Same as ResolveTrick but for last 9 cards phase
+            ResolveTrick();
+        }
+
+        public void CalculateL9FinalScores()
+        {
+            // Calculate final scores including any last 9 cards bonuses
+            foreach (var player in _gameState.Players)
+            {
+                // Add any remaining card points
+                // In last 9 cards, players get points for cards they've won
+                _gameState.RoundScores[player] = player.Score;
+            }
         }
     }
 }

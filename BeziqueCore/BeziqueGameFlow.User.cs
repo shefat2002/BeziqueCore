@@ -116,4 +116,16 @@ public partial class BeziqueGameFlow
             DispatchEvent(EventId.MORECARDSAVAILABLE);
         }
     }
+
+    public void CheckAndDispatchDeckEmpty()
+    {
+        if (gameAdapter.IsDeckEmpty())
+        {
+            DispatchEvent(EventId.DECKEMPTY);
+        }
+        else
+        {
+            DispatchEvent(EventId.MORECARDSAVAILABLE);
+        }
+    }
 }

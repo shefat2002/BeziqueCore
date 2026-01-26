@@ -175,15 +175,79 @@ namespace BeziqueCore.CLI
 
         public bool IsLastNineCardsPhase()
         {
-            int playerCount = _gameState.Players.Count;
-            int remainingDeckCount = _deckOps.GetRemainingCardCount();
+            // Last 9 cards phase is reached when deck is empty (0 cards remaining)
+            // This is checked AFTER drawing cards
+            return _deckOps.GetRemainingCardCount() == 0;
+        }
 
-            return playerCount switch
+        public bool IsDeckEmpty()
+        {
+            return _deckOps.GetRemainingCardCount() == 0;
+        }
+
+        // Gameplay actions
+        public void ProcessOpponentResponses()
+        {
+            // In single-player CLI, this is a no-op
+            // Would wait for network opponents in multiplayer
+        }
+
+        public void ResolveTrick()
+        {
+            // Trick resolution is handled by IPlayerActions.PlayCard
+        }
+
+        public void ProcessMeldOpportunity()
+        {
+            // Meld opportunity is handled by the menu system
+        }
+
+        public void ScoreMeld()
+        {
+            // Meld scoring is handled by IPlayerActions.DeclareMeld
+        }
+
+        public void DrawCards()
+        {
+            var currentPlayer = _gameState.CurrentPlayer;
+            if (currentPlayer != null && _deckOps.GetRemainingCardCount() > 0)
             {
-                2 => remainingDeckCount <= 1,
-                4 => remainingDeckCount <= 3,
-                _ => remainingDeckCount <= (playerCount - 1)
-            };
+                var card = _deckOps.DrawTopCard();
+                if (card != null)
+                {
+                    currentPlayer.Hand.Add(card);
+                    AnsiConsole.MarkupLine($"[dim]{currentPlayer.Name} drew {GetCardString(card)}[/]");
+                }
+            }
+        }
+
+        public void CheckDeck()
+        {
+            // Check if we should transition to LAST_9_CARDS phase
+            if (IsLastNineCardsPhase())
+            {
+                AnsiConsole.MarkupLine("[bold yellow]⚠️ Last 9 Cards phase reached![/]");
+            }
+        }
+
+        // Last 9 cards actions
+        public void ProcessL9OpponentResponses()
+        {
+            ProcessOpponentResponses();
+        }
+
+        public void ResolveL9Trick()
+        {
+            ResolveTrick();
+        }
+
+        public void CalculateL9FinalScores()
+        {
+            AnsiConsole.MarkupLine("[cyan]📊 Calculating final scores (Last 9 Cards)...[/]");
+            foreach (var player in _gameState.Players)
+            {
+                _gameState.RoundScores[player] = player.Score;
+            }
         }
 
         public BeziqueGameFlow CreateStateMachine()
