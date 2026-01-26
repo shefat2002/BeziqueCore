@@ -7,6 +7,7 @@ namespace BeziqueCore.Models
         public List<Player> Players { get; }
         public Player CurrentPlayer { get; set; }
         public Player Winner { get; set; }
+        public Player LastTrickWinner { get; set; }
         public Suit TrumpSuit { get; set; }
         public Card TrumpCard { get; set; }
         public IPlayerTimer CurrentPlayerTimer { get; }
@@ -35,6 +36,7 @@ namespace BeziqueCore.Models
             RoundScores.Clear();
             Winner = null;
             CurrentPlayer = null;
+            LastTrickWinner = null;
             TrumpSuit = default;
             TrumpCard = null;
             CurrentTrick = new Dictionary<Player, Card>();

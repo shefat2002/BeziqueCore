@@ -7,6 +7,7 @@ namespace BeziqueCore.Interfaces
         List<Player> Players { get; }
         Player CurrentPlayer { get; set; }
         Player Winner { get; set; }
+        Player LastTrickWinner { get; set; }
         Suit TrumpSuit { get; set; }
         Card TrumpCard { get; set; }
         IPlayerTimer CurrentPlayerTimer { get; }

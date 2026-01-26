@@ -197,6 +197,9 @@ namespace BeziqueCore.Adapters
             // Award points
             winner.Score += points;
 
+            // Store winner for drawing phase
+            _gameState.LastTrickWinner = winner;
+
             // Notify
             _notifier.NotifyTrickWon(winner, cards.ToArray(), points);
 
@@ -221,14 +224,31 @@ namespace BeziqueCore.Adapters
 
         public void DrawCards()
         {
-            // Current player draws a card from the deck
-            var currentPlayer = _gameState.CurrentPlayer;
-            if (currentPlayer != null && _deckOps.GetRemainingCardCount() > 0)
+            // Winner draws first (top card), then loser draws next
+            var winner = _gameState.LastTrickWinner;
+            if (winner == null)
+            {
+                return;
+            }
+
+            // Winner draws first
+            if (_deckOps.GetRemainingCardCount() > 0)
             {
                 var card = _deckOps.DrawTopCard();
                 if (card != null)
                 {
-                    currentPlayer.Hand.Add(card);
+                    winner.Hand.Add(card);
+                }
+            }
+
+            // Find the loser (the other player)
+            var loser = _gameState.Players.FirstOrDefault(p => p != winner);
+            if (loser != null && _deckOps.GetRemainingCardCount() > 0)
+            {
+                var card = _deckOps.DrawTopCard();
+                if (card != null)
+                {
+                    loser.Hand.Add(card);
                 }
             }
         }
