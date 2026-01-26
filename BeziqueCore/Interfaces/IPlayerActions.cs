@@ -67,8 +67,8 @@ namespace BeziqueCore.Interfaces
         FourKings,
         FourQueens,
         FourJacks,
-        Bezigue,
-        DoubleBezigue,
+        Bezique,
+        DoubleBezique,
         InvalidMeld
     }
 }

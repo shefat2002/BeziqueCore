@@ -44,8 +44,8 @@ namespace BeziqueCore.Validators
                 MeldType.FourKings => FourKingsPoints,
                 MeldType.FourQueens => FourQueensPoints,
                 MeldType.FourJacks => FourJacksPoints,
-                MeldType.Bezigue => BeziquePoints,
-                MeldType.DoubleBezigue => DoubleBeziguePoints,
+                MeldType.Bezique => BeziquePoints,
+                MeldType.DoubleBezique => DoubleBeziquePoints,
                 _ => 0
             };
         }
@@ -106,7 +106,7 @@ namespace BeziqueCore.Validators
 
                 if (spadeQueens == 2 && diamondJacks == 2)
                 {
-                    return MeldType.DoubleBezigue;
+                    return MeldType.DoubleBezique;
                 }
             }
 
@@ -149,7 +149,7 @@ namespace BeziqueCore.Validators
                 cards.Any(c => c.Suit == Suit.Spades && c.Rank == Rank.Queen) &&
                 cards.Any(c => c.Suit == Suit.Diamonds && c.Rank == Rank.Jack))
             {
-                return MeldType.Bezigue;
+                return MeldType.Bezique;
             }
 
             return MeldType.InvalidMeld;
