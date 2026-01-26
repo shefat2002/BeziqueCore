@@ -305,8 +305,22 @@ namespace BeziqueCore.Adapters
 
         public void ResolveL9Trick()
         {
-            // Same as ResolveTrick but for last 9 cards phase
+            // Resolve the trick normally
             ResolveTrick();
+
+            // Check if this is the last trick (all hands will be empty after this)
+            bool allHandsEmpty = _gameState.Players.All(p => p.Hand.Count == 0);
+
+            if (allHandsEmpty)
+            {
+                // Award 10 points for winning the last trick
+                var winner = _gameState.LastTrickWinner;
+                if (winner != null)
+                {
+                    winner.Score += 10;
+                    _notifier.NotifyLastTrickBonus(winner, 10);
+                }
+            }
         }
 
         public void CalculateL9FinalScores()

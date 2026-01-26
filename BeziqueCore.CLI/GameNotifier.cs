@@ -89,6 +89,11 @@ namespace BeziqueCore.CLI
             AnsiConsole.MarkupLine($"[bold yellow]🃏 {player.Name} took the trump card ({cardStr})[/]");
         }
 
+        public void NotifyLastTrickBonus(Player winner, int points)
+        {
+            AnsiConsole.MarkupLine($"[bold gold]🏅 {winner.Name} wins the last trick bonus! (+{points} points)[/]");
+        }
+
         public void NotifyRoundEnded(Dictionary<Player, int> scores)
         {
             OnRoundEnded?.Invoke(scores);
