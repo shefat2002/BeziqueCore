@@ -26,26 +26,40 @@ namespace BeziqueCore.Resolvers
 
             if (HasJoker(playedCards))
             {
-                var firstPlay = playedCards.First();
-                bool firstIsJoker = firstPlay.Value.IsJoker;
+                // Find any non-joker cards
+                var nonJokerCards = playedCards
+                    .Where(pc => !pc.Value.IsJoker)
+                    .ToList();
 
-                if (firstIsJoker)
+                if (!nonJokerCards.Any())
                 {
-                    var trumpCards = playedCards
-                        .Where(pc => pc.Value.Suit == trumpSuit && !pc.Value.IsJoker)
+                    // All players played jokers - first player wins by default
+                    return playedCards.First().Key;
+                }
+
+                // Check if a joker was played first
+                var firstPlay = playedCards.First();
+                if (firstPlay.Value.IsJoker)
+                {
+                    // Joker played first - only trump can win
+                    var trumpCards = nonJokerCards
+                        .Where(pc => pc.Value.Suit == trumpSuit)
                         .OrderByDescending(pc => (int)pc.Value.Rank)
                         .ToList();
 
                     if (trumpCards.Any())
                     {
+                        // Highest trump wins
                         return trumpCards.First().Key;
                     }
 
-                    var secondPlay = playedCards.Skip(1).First();
-                    return secondPlay.Key;
+                    // No trump played - the first non-joker card wins (joker has no value)
+                    return nonJokerCards.First().Key;
                 }
                 else
                 {
+                    // Normal card played first, joker played later
+                    // First player wins (joker has no value)
                     return firstPlay.Key;
                 }
             }
@@ -82,6 +96,12 @@ namespace BeziqueCore.Resolvers
             if (cardToPlay == null || playerHand == null || !playerHand.Contains(cardToPlay))
             {
                 return false;
+            }
+
+            // Jokers can always be played (they have no suit restrictions)
+            if (cardToPlay.IsJoker)
+            {
+                return true;
             }
 
             if (isLastNineCards)

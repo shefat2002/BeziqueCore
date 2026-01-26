@@ -85,25 +85,54 @@ namespace BeziqueCore.Validators
 
             if (cards.Length == FourOfAKindCount)
             {
-                if (cards.All(c => c.Rank == Rank.Ace))
+                // Check for four-of-a-kind with Joker substitution
+                // A Joker can substitute for any card in a four-of-a-kind
+                var nonJokers = cards.Where(c => !c.IsJoker).ToList();
+                var jokerCount = cards.Count(c => c.IsJoker);
+
+                if (jokerCount > 0)
                 {
-                    return MeldType.FourAces;
+                    // With jokers, check if non-jokers are all the same rank
+                    if (nonJokers.All(c => c.Rank == Rank.Ace))
+                    {
+                        return MeldType.FourAces;
+                    }
+                    if (nonJokers.All(c => c.Rank == Rank.King))
+                    {
+                        return MeldType.FourKings;
+                    }
+                    if (nonJokers.All(c => c.Rank == Rank.Queen))
+                    {
+                        return MeldType.FourQueens;
+                    }
+                    if (nonJokers.All(c => c.Rank == Rank.Jack))
+                    {
+                        return MeldType.FourJacks;
+                    }
                 }
-                if (cards.All(c => c.Rank == Rank.King))
+                else
                 {
-                    return MeldType.FourKings;
-                }
-                if (cards.All(c => c.Rank == Rank.Queen))
-                {
-                    return MeldType.FourQueens;
-                }
-                if (cards.All(c => c.Rank == Rank.Jack))
-                {
-                    return MeldType.FourJacks;
+                    // No jokers - all must be same rank
+                    if (cards.All(c => c.Rank == Rank.Ace))
+                    {
+                        return MeldType.FourAces;
+                    }
+                    if (cards.All(c => c.Rank == Rank.King))
+                    {
+                        return MeldType.FourKings;
+                    }
+                    if (cards.All(c => c.Rank == Rank.Queen))
+                    {
+                        return MeldType.FourQueens;
+                    }
+                    if (cards.All(c => c.Rank == Rank.Jack))
+                    {
+                        return MeldType.FourJacks;
+                    }
                 }
 
-                int spadeQueens = cards.Count(c => c.Suit == Suit.Spades && c.Rank == Rank.Queen);
-                int diamondJacks = cards.Count(c => c.Suit == Suit.Diamonds && c.Rank == Rank.Jack);
+                int spadeQueens = cards.Count(c => !c.IsJoker && c.Suit == Suit.Spades && c.Rank == Rank.Queen);
+                int diamondJacks = cards.Count(c => !c.IsJoker && c.Suit == Suit.Diamonds && c.Rank == Rank.Jack);
 
                 if (spadeQueens == 2 && diamondJacks == 2)
                 {
@@ -183,31 +212,66 @@ namespace BeziqueCore.Validators
                 }
             }
 
-            // Check for Four of a Kind
+            // Check for Four of a Kind (with Joker substitution)
             if (selectedCards.Length == 4)
             {
-                var ranks = selectedCards.Select(c => c.Rank).Distinct().ToList();
-                if (ranks.Count == 1)
-                {
-                    var rank = ranks.First();
-                    MeldType meldType = rank switch
-                    {
-                        Rank.Ace => MeldType.FourAces,
-                        Rank.King => MeldType.FourKings,
-                        Rank.Queen => MeldType.FourQueens,
-                        Rank.Jack => MeldType.FourJacks,
-                        _ => MeldType.InvalidMeld
-                    };
+                var nonJokers = selectedCards.Where(c => !c.IsJoker).ToList();
+                var jokerCount = selectedCards.Count(c => c.IsJoker);
 
-                    if (meldType != MeldType.InvalidMeld)
+                // With jokers, all non-jokers must be the same rank
+                if (jokerCount > 0 && nonJokers.Count > 0)
+                {
+                    var ranks = nonJokers.Select(c => c.Rank).Distinct().ToList();
+                    if (ranks.Count == 1)
                     {
-                        var points = CalculateMeldPoints(new Meld { Type = meldType });
-                        possibleMelds.Add(new Meld
+                        var rank = ranks.First();
+                        MeldType meldType = rank switch
                         {
-                            Type = meldType,
-                            Cards = selectedCards.ToList(),
-                            Points = points
-                        });
+                            Rank.Ace => MeldType.FourAces,
+                            Rank.King => MeldType.FourKings,
+                            Rank.Queen => MeldType.FourQueens,
+                            Rank.Jack => MeldType.FourJacks,
+                            _ => MeldType.InvalidMeld
+                        };
+
+                        if (meldType != MeldType.InvalidMeld)
+                        {
+                            var points = CalculateMeldPoints(new Meld { Type = meldType });
+                            possibleMelds.Add(new Meld
+                            {
+                                Type = meldType,
+                                Cards = selectedCards.ToList(),
+                                Points = points
+                            });
+                        }
+                    }
+                }
+                // No jokers - all must be same rank
+                else if (jokerCount == 0)
+                {
+                    var ranks = selectedCards.Select(c => c.Rank).Distinct().ToList();
+                    if (ranks.Count == 1)
+                    {
+                        var rank = ranks.First();
+                        MeldType meldType = rank switch
+                        {
+                            Rank.Ace => MeldType.FourAces,
+                            Rank.King => MeldType.FourKings,
+                            Rank.Queen => MeldType.FourQueens,
+                            Rank.Jack => MeldType.FourJacks,
+                            _ => MeldType.InvalidMeld
+                        };
+
+                        if (meldType != MeldType.InvalidMeld)
+                        {
+                            var points = CalculateMeldPoints(new Meld { Type = meldType });
+                            possibleMelds.Add(new Meld
+                            {
+                                Type = meldType,
+                                Cards = selectedCards.ToList(),
+                                Points = points
+                            });
+                        }
                     }
                 }
             }
