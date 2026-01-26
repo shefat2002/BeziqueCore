@@ -68,6 +68,12 @@ namespace BeziqueCore.Notifiers
             Console.WriteLine($"{player.Name} switched 7 of trump (+10 points)");
         }
 
+        public void NotifySevenOfTrumpPlayed(Player player)
+        {
+            OnSevenOfTrumpSwitched?.Invoke(player);
+            Console.WriteLine($"{player.Name} played 7 of trump (+10 points)");
+        }
+
         public void NotifyRoundEnded(Dictionary<Player, int> scores)
         {
             OnRoundEnded?.Invoke(scores);

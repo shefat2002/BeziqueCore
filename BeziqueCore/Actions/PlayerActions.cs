@@ -32,6 +32,13 @@ namespace BeziqueCore.Actions
 
             player.Hand.Remove(card);
 
+            // Check if playing 7 of trump - award 10 points
+            if (card.Rank == Rank.Seven && card.Suit == _gameState.TrumpSuit)
+            {
+                player.Score += SevenOfTrumpBonus;
+                _notifier.NotifySevenOfTrumpPlayed(player);
+            }
+
             // Add to current trick
             _gameState.AddCardToTrick(player, card);
 

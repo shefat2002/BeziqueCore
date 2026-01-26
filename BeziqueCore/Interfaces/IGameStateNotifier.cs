@@ -12,6 +12,7 @@ namespace BeziqueCore.Interfaces
         void NotifyTrickWon(Player winner, Card[] cards, int points);
         void NotifyMeldDeclared(Player player, Meld meld, int points);
         void NotifySevenOfTrumpSwitched(Player player);
+        void NotifySevenOfTrumpPlayed(Player player);
         void NotifyRoundEnded(Dictionary<Player, int> scores);
         void NotifyGameOver(Player winner);
         void NotifyPlayerTimeout(Player player);
