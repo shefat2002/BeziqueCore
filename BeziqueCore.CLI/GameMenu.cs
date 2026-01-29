@@ -236,8 +236,8 @@ namespace BeziqueCore.CLI
                     _stateMachine.DispatchMoreCardsAvailable();
                     break;
 
-                case "Last 9 Cards Reached":
-                    _stateMachine.DispatchLastNineReached();
+                case "Check Deck":
+                    _stateMachine.CheckAndDispatchDeckEmpty();
                     break;
 
                 case "Continue Game":

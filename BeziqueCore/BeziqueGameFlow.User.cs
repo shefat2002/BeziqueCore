@@ -65,11 +65,6 @@ public partial class BeziqueGameFlow
         DispatchEvent(EventId.MORECARDSAVAILABLE);
     }
 
-    public void DispatchLastNineReached()
-    {
-        DispatchEvent(EventId.LASTNINEREACHED);
-    }
-
     public void DispatchContinueLastNine()
     {
         DispatchEvent(EventId.CONTINUELASTNINE);
@@ -103,18 +98,6 @@ public partial class BeziqueGameFlow
     public void DispatchTimerReset()
     {
         DispatchEvent(EventId.TIMERRESET);
-    }
-
-    public void CheckAndDispatchLastNineReached()
-    {
-        if (gameAdapter.IsLastNineCardsPhase())
-        {
-            DispatchEvent(EventId.LASTNINEREACHED);
-        }
-        else
-        {
-            DispatchEvent(EventId.MORECARDSAVAILABLE);
-        }
     }
 
     public void CheckAndDispatchDeckEmpty()
