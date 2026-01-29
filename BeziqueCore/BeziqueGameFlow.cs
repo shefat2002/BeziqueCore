@@ -17,19 +17,18 @@ public partial class BeziqueGameFlow
         CONTINUELASTNINE = 6,
         DECKEMPTY = 7,
         INITIALIZED = 8,
-        LASTNINEREACHED = 9,
-        MELDDECLARED = 10,
-        MELDSCORED = 11,
-        MELDSKIPPED = 12,
-        MORECARDSAVAILABLE = 13,
-        TIMEREXPIRED = 14,
-        TIMERRESET = 15,
-        TRICKRESOLVED = 16,
-        TRUMPDETERMINED = 17,
-        WINNINGSCOREREACHED = 18,
+        MELDDECLARED = 9,
+        MELDSCORED = 10,
+        MELDSKIPPED = 11,
+        MORECARDSAVAILABLE = 12,
+        TIMEREXPIRED = 13,
+        TIMERRESET = 14,
+        TRICKRESOLVED = 15,
+        TRUMPDETERMINED = 16,
+        WINNINGSCOREREACHED = 17,
     }
 
-    public const int EventIdCount = 19;
+    public const int EventIdCount = 18;
 
     public enum StateId
     {
@@ -128,10 +127,7 @@ public partial class BeziqueGameFlow
 
             // STATE: GAMEPLAY
             case StateId.GAMEPLAY:
-                switch (eventId)
-                {
-                    case EventId.LASTNINEREACHED: GAMEPLAY_lastninereached(); break;
-                }
+                // No events handled by this state (or its ancestors).
                 break;
 
             // STATE: CARD_DRAW
@@ -139,7 +135,6 @@ public partial class BeziqueGameFlow
                 switch (eventId)
                 {
                     case EventId.CARDSDRAWN: CARD_DRAW_cardsdrawn(); break;
-                    case EventId.LASTNINEREACHED: GAMEPLAY_lastninereached(); break; // First ancestor handler for this event
                 }
                 break;
 
@@ -149,7 +144,6 @@ public partial class BeziqueGameFlow
                 {
                     case EventId.DECKEMPTY: DECK_CHECK_deckempty(); break;
                     case EventId.MORECARDSAVAILABLE: DECK_CHECK_morecardsavailable(); break;
-                    case EventId.LASTNINEREACHED: GAMEPLAY_lastninereached(); break; // First ancestor handler for this event
                 }
                 break;
 
@@ -158,7 +152,6 @@ public partial class BeziqueGameFlow
                 switch (eventId)
                 {
                     case EventId.ALLHANDSEMPTY: LAST_9_CARDS_allhandsempty(); break;
-                    case EventId.LASTNINEREACHED: GAMEPLAY_lastninereached(); break; // First ancestor handler for this event
                 }
                 break;
 
@@ -167,7 +160,6 @@ public partial class BeziqueGameFlow
                 switch (eventId)
                 {
                     case EventId.ALLPLAYERSRESPONDED: L9_OPPONENT_RESPONSE_allplayersresponded(); break;
-                    case EventId.LASTNINEREACHED: GAMEPLAY_lastninereached(); break; // First ancestor handler for this event
                     case EventId.ALLHANDSEMPTY: LAST_9_CARDS_allhandsempty(); break; // First ancestor handler for this event
                 }
                 break;
@@ -178,7 +170,6 @@ public partial class BeziqueGameFlow
                 {
                     case EventId.CARDPLAYED: L9_PLAYER_TURN_cardplayed(); break;
                     case EventId.TIMEREXPIRED: L9_PLAYER_TURN_timerexpired(); break;
-                    case EventId.LASTNINEREACHED: GAMEPLAY_lastninereached(); break; // First ancestor handler for this event
                     case EventId.ALLHANDSEMPTY: LAST_9_CARDS_allhandsempty(); break; // First ancestor handler for this event
                 }
                 break;
@@ -188,7 +179,6 @@ public partial class BeziqueGameFlow
                 switch (eventId)
                 {
                     case EventId.CONTINUELASTNINE: L9_TRICK_RESOLUTION_continuelastnine(); break;
-                    case EventId.LASTNINEREACHED: GAMEPLAY_lastninereached(); break; // First ancestor handler for this event
                     case EventId.ALLHANDSEMPTY: LAST_9_CARDS_allhandsempty(); break; // First ancestor handler for this event
                 }
                 break;
@@ -199,7 +189,6 @@ public partial class BeziqueGameFlow
                 {
                     case EventId.MELDDECLARED: MELD_OPPORTUNITY_melddeclared(); break;
                     case EventId.MELDSKIPPED: MELD_OPPORTUNITY_meldskipped(); break;
-                    case EventId.LASTNINEREACHED: GAMEPLAY_lastninereached(); break; // First ancestor handler for this event
                 }
                 break;
 
@@ -208,7 +197,6 @@ public partial class BeziqueGameFlow
                 switch (eventId)
                 {
                     case EventId.MELDSCORED: MELD_SCORING_meldscored(); break;
-                    case EventId.LASTNINEREACHED: GAMEPLAY_lastninereached(); break; // First ancestor handler for this event
                 }
                 break;
 
@@ -217,7 +205,6 @@ public partial class BeziqueGameFlow
                 switch (eventId)
                 {
                     case EventId.ALLPLAYERSRESPONDED: OPPONENT_RESPONSE_allplayersresponded(); break;
-                    case EventId.LASTNINEREACHED: GAMEPLAY_lastninereached(); break; // First ancestor handler for this event
                 }
                 break;
 
@@ -227,7 +214,6 @@ public partial class BeziqueGameFlow
                 {
                     case EventId.CARDPLAYED: PLAYER_TURN_cardplayed(); break;
                     case EventId.TIMEREXPIRED: PLAYER_TURN_timerexpired(); break;
-                    case EventId.LASTNINEREACHED: GAMEPLAY_lastninereached(); break; // First ancestor handler for this event
                 }
                 break;
 
@@ -236,7 +222,6 @@ public partial class BeziqueGameFlow
                 switch (eventId)
                 {
                     case EventId.TRICKRESOLVED: TRICK_RESOLUTION_trickresolved(); break;
-                    case EventId.LASTNINEREACHED: GAMEPLAY_lastninereached(); break; // First ancestor handler for this event
                 }
                 break;
 
@@ -469,26 +454,6 @@ public partial class BeziqueGameFlow
         this.stateId = StateId.ROOT;
     }
 
-    private void GAMEPLAY_lastninereached()
-    {
-        // GAMEPLAY behavior
-        // uml: LastNineReached TransitionTo(LAST_9_CARDS)
-        {
-            // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
-            ExitUpToStateHandler(StateId.GAMEPLAY);
-
-            // Step 2: Transition action: ``.
-
-            // Step 3: Enter/move towards transition target `LAST_9_CARDS`.
-            LAST_9_CARDS_enter();
-
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
-        } // end of behavior for GAMEPLAY
-
-        // No ancestor handles this event.
-    }
-
 
     ////////////////////////////////////////////////////////////////////////////////
     // event handlers for state CARD_DRAW
@@ -566,8 +531,19 @@ public partial class BeziqueGameFlow
             // Step 3: Enter/move towards transition target `LAST_9_CARDS`.
             LAST_9_CARDS_enter();
 
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
+            // LAST_9_CARDS.<InitialState> behavior
+            // uml: TransitionTo(L9_PLAYER_TURN)
+            {
+                // Step 1: Exit states until we reach `LAST_9_CARDS` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
+
+                // Step 2: Transition action: ``.
+
+                // Step 3: Enter/move towards transition target `L9_PLAYER_TURN`.
+                L9_PLAYER_TURN_enter();
+
+                // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+                return;
+            } // end of behavior for LAST_9_CARDS.<InitialState>
         } // end of behavior for DECK_CHECK
 
         // No ancestor handles this event.
@@ -1259,7 +1235,6 @@ public partial class BeziqueGameFlow
             case EventId.CONTINUELASTNINE: return "CONTINUELASTNINE";
             case EventId.DECKEMPTY: return "DECKEMPTY";
             case EventId.INITIALIZED: return "INITIALIZED";
-            case EventId.LASTNINEREACHED: return "LASTNINEREACHED";
             case EventId.MELDDECLARED: return "MELDDECLARED";
             case EventId.MELDSCORED: return "MELDSCORED";
             case EventId.MELDSKIPPED: return "MELDSKIPPED";

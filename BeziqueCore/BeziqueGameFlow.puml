@@ -100,7 +100,7 @@ state LAST_9_CARDS {
     state L9_TRICK_RESOLUTION {
         L9_TRICK_RESOLUTION: enter / gameAdapter.ResolveL9Trick();
     }
-
+    [*] --> L9_PLAYER_TURN
     L9_PLAYER_TURN -down-> L9_OPPONENT_RESPONSE : CardPlayed
     L9_OPPONENT_RESPONSE -down-> L9_TRICK_RESOLUTION : AllPlayersResponded
     L9_TRICK_RESOLUTION -up-> L9_PLAYER_TURN : ContinueLastNine
@@ -111,7 +111,7 @@ state LAST_9_CARDS {
 GAME_INIT -down-> DEALING : Initialized
 DEALING -down-> TRUMP_SELECTION : CardsDealt
 TRUMP_SELECTION -down-> GAMEPLAY : TrumpDetermined
-GAMEPLAY -down-> LAST_9_CARDS : LastNineReached
+
 LAST_9_CARDS -down-> ROUND_END : AllHandsEmpty
 ROUND_END -left-> GAME_INIT : ContinueGame
 ROUND_END -down-> GAME_OVER : WinningScoreReached
