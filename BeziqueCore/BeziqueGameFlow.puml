@@ -8,9 +8,6 @@ hide empty description
 skinparam linetype ortho
 skinparam stateMessageAlignment center
 
-/'***********************************************************************
- * TOP-LEVEL STATES
- ***********************************************************************'/
 
 state GAME_INIT {
     GAME_INIT: enter / gameAdapter.InitializeGame();
@@ -42,13 +39,9 @@ state TIMER_TIMEOUT {
     TIMER_TIMEOUT: exit / gameAdapter.ResetPlayerTimer();
 }
 
-/'***********************************************************************
- * GAMEPLAY COMPOSITE STATE
- * Normal gameplay phase where players draw cards after each trick
- ***********************************************************************'/
 
 state GAMEPLAY {
-    [*] -> PLAYER_TURN
+    [*] --> PLAYER_TURN
 
     state PLAYER_TURN {
         PLAYER_TURN: enter / gameAdapter.StartPlayerTimer();
@@ -79,8 +72,7 @@ state GAMEPLAY {
         DECK_CHECK: enter / gameAdapter.CheckDeck();
     }
 
-    ' Transitions within GAMEPLAY
-    PLAYER_TURN -down-> OPPONENT_RESPONSE : CardPlayed
+    PLAYER_TURN --> OPPONENT_RESPONSE : CardPlayed
     OPPONENT_RESPONSE -down-> TRICK_RESOLUTION : AllPlayersResponded
     TRICK_RESOLUTION -down-> MELD_OPPORTUNITY : TrickResolved
     MELD_OPPORTUNITY -down-> MELD_SCORING : MeldDeclared
@@ -88,18 +80,11 @@ state GAMEPLAY {
     MELD_SCORING -down-> CARD_DRAW : MeldScored
     CARD_DRAW -down-> DECK_CHECK : CardsDrawn
 
-    ' DECK_CHECK transitions based on remaining cards AFTER drawing
-    ' When deck reaches 0 cards (including flipped trump), move to LAST_9_CARDS
+
     DECK_CHECK -right-> LAST_9_CARDS : DeckEmpty
     DECK_CHECK -up-> PLAYER_TURN : MoreCardsAvailable
 }
 
-/'***********************************************************************
- * LAST_9_CARDS COMPOSITE STATE
- * Final phase when deck is empty - no more drawing
- * Entry condition: After drawing, deck has <= 1 card for 2 players
- *                             or <= 3 cards for 4 players
- ***********************************************************************'/
 
 state LAST_9_CARDS {
     
@@ -120,18 +105,13 @@ state LAST_9_CARDS {
         L9_FINAL_SCORING: enter / gameAdapter.CalculateL9FinalScores();
     }
 
-    ' Transitions within LAST_9_CARDS
     L9_PLAYER_TURN -down-> L9_OPPONENT_RESPONSE : CardPlayed
     L9_OPPONENT_RESPONSE -down-> L9_TRICK_RESOLUTION : AllPlayersResponded
     L9_TRICK_RESOLUTION -down-> L9_FINAL_SCORING : FinalTrickResolved
 
-    ' Continue last 9 cards until all hands are empty
     L9_FINAL_SCORING -up-> L9_PLAYER_TURN : ContinueLastNine
 }
 
-/'***********************************************************************
- * TOP-LEVEL TRANSITIONS
- ***********************************************************************'/
 
 [*] -down-> GAME_INIT
 GAME_INIT -down-> DEALING : Initialized
@@ -141,11 +121,6 @@ GAMEPLAY -down-> LAST_9_CARDS : LastNineReached
 LAST_9_CARDS -down-> ROUND_END : DeckEmpty
 ROUND_END -left-> GAME_INIT : ContinueGame
 ROUND_END -down-> GAME_OVER : WinningScoreReached
-
-/'***********************************************************************
- * TIMER TIMEOUT TRANSITIONS
- * Can be triggered from any PLAYER_TURN state in both phases
- ***********************************************************************'/
 
 PLAYER_TURN -right-> TIMER_TIMEOUT : TimerExpired
 TIMER_TIMEOUT -left-> PLAYER_TURN : TimerReset
