@@ -419,7 +419,7 @@ DECK_CHECK --> LAST_9_CARDS : DeckEmpty
 
 DECK_CHECK --> PLAYER_TURN : MoreCardsAvailable
 
-LAST_9_CARDS --> ROUND_END : DeckEmpty
+LAST_9_CARDS --> ROUND_END : AllHandsEmpty
 
 L9_PLAYER_TURN --> L9_OPPONENT_RESPONSE : CardPlayed
 
@@ -482,29 +482,30 @@ class BeziqueGameFlow
 evaluateGuard = null;
     static EventId = 
     {
-        ALLPLAYERSRESPONDED : 0,
-        CARDPLAYED : 1,
-        CARDSDEALT : 2,
-        CARDSDRAWN : 3,
-        CONTINUEGAME : 4,
-        CONTINUELASTNINE : 5,
-        DECKEMPTY : 6,
-        FINALTRICKRESOLVED : 7,
-        INITIALIZED : 8,
-        LASTNINEREACHED : 9,
-        MELDDECLARED : 10,
-        MELDSCORED : 11,
-        MELDSKIPPED : 12,
-        MORECARDSAVAILABLE : 13,
-        TIMEREXPIRED : 14,
-        TIMERRESET : 15,
-        TRICKRESOLVED : 16,
-        TRUMPDETERMINED : 17,
-        WINNINGSCOREREACHED : 18,
+        ALLHANDSEMPTY : 0,
+        ALLPLAYERSRESPONDED : 1,
+        CARDPLAYED : 2,
+        CARDSDEALT : 3,
+        CARDSDRAWN : 4,
+        CONTINUEGAME : 5,
+        CONTINUELASTNINE : 6,
+        DECKEMPTY : 7,
+        FINALTRICKRESOLVED : 8,
+        INITIALIZED : 9,
+        LASTNINEREACHED : 10,
+        MELDDECLARED : 11,
+        MELDSCORED : 12,
+        MELDSKIPPED : 13,
+        MORECARDSAVAILABLE : 14,
+        TIMEREXPIRED : 15,
+        TIMERRESET : 16,
+        TRICKRESOLVED : 17,
+        TRUMPDETERMINED : 18,
+        WINNINGSCOREREACHED : 19,
     }
     static { Object.freeze(this.EventId); }
     
-    static EventIdCount = 19;
+    static EventIdCount = 20;
     static { Object.freeze(this.EventIdCount); }
     
     static StateId = 
@@ -632,7 +633,7 @@ evaluateGuard = null;
             case BeziqueGameFlow.StateId.LAST_9_CARDS:
                 switch (eventId)
                 {
-                    case BeziqueGameFlow.EventId.DECKEMPTY: this.#LAST_9_CARDS_deckempty(); break;
+                    case BeziqueGameFlow.EventId.ALLHANDSEMPTY: this.#LAST_9_CARDS_allhandsempty(); break;
                     case BeziqueGameFlow.EventId.LASTNINEREACHED: this.#GAMEPLAY_lastninereached(); break; // First ancestor handler for this event
                 }
                 break;
@@ -643,7 +644,7 @@ evaluateGuard = null;
                 {
                     case BeziqueGameFlow.EventId.CONTINUELASTNINE: this.#L9_FINAL_SCORING_continuelastnine(); break;
                     case BeziqueGameFlow.EventId.LASTNINEREACHED: this.#GAMEPLAY_lastninereached(); break; // First ancestor handler for this event
-                    case BeziqueGameFlow.EventId.DECKEMPTY: this.#LAST_9_CARDS_deckempty(); break; // First ancestor handler for this event
+                    case BeziqueGameFlow.EventId.ALLHANDSEMPTY: this.#LAST_9_CARDS_allhandsempty(); break; // First ancestor handler for this event
                 }
                 break;
             
@@ -653,7 +654,7 @@ evaluateGuard = null;
                 {
                     case BeziqueGameFlow.EventId.ALLPLAYERSRESPONDED: this.#L9_OPPONENT_RESPONSE_allplayersresponded(); break;
                     case BeziqueGameFlow.EventId.LASTNINEREACHED: this.#GAMEPLAY_lastninereached(); break; // First ancestor handler for this event
-                    case BeziqueGameFlow.EventId.DECKEMPTY: this.#LAST_9_CARDS_deckempty(); break; // First ancestor handler for this event
+                    case BeziqueGameFlow.EventId.ALLHANDSEMPTY: this.#LAST_9_CARDS_allhandsempty(); break; // First ancestor handler for this event
                 }
                 break;
             
@@ -664,7 +665,7 @@ evaluateGuard = null;
                     case BeziqueGameFlow.EventId.CARDPLAYED: this.#L9_PLAYER_TURN_cardplayed(); break;
                     case BeziqueGameFlow.EventId.TIMEREXPIRED: this.#L9_PLAYER_TURN_timerexpired(); break;
                     case BeziqueGameFlow.EventId.LASTNINEREACHED: this.#GAMEPLAY_lastninereached(); break; // First ancestor handler for this event
-                    case BeziqueGameFlow.EventId.DECKEMPTY: this.#LAST_9_CARDS_deckempty(); break; // First ancestor handler for this event
+                    case BeziqueGameFlow.EventId.ALLHANDSEMPTY: this.#LAST_9_CARDS_allhandsempty(); break; // First ancestor handler for this event
                 }
                 break;
             
@@ -674,7 +675,7 @@ evaluateGuard = null;
                 {
                     case BeziqueGameFlow.EventId.FINALTRICKRESOLVED: this.#L9_TRICK_RESOLUTION_finaltrickresolved(); break;
                     case BeziqueGameFlow.EventId.LASTNINEREACHED: this.#GAMEPLAY_lastninereached(); break; // First ancestor handler for this event
-                    case BeziqueGameFlow.EventId.DECKEMPTY: this.#LAST_9_CARDS_deckempty(); break; // First ancestor handler for this event
+                    case BeziqueGameFlow.EventId.ALLHANDSEMPTY: this.#LAST_9_CARDS_allhandsempty(); break; // First ancestor handler for this event
                 }
                 break;
             
@@ -1199,10 +1200,10 @@ evaluateGuard = null;
         this.stateId = BeziqueGameFlow.StateId.GAMEPLAY;
     }
     
-    #LAST_9_CARDS_deckempty()
+    #LAST_9_CARDS_allhandsempty()
     {
         // LAST_9_CARDS behavior
-        // uml: DeckEmpty / { this.tracer?.edgeTransition("edge18"); } TransitionTo(ROUND_END)
+        // uml: AllHandsEmpty / { this.tracer?.edgeTransition("edge18"); } TransitionTo(ROUND_END)
         {
             // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
             this.#exitUpToStateHandler(BeziqueGameFlow.StateId.ROOT);
@@ -2070,6 +2071,7 @@ evaluateGuard = null;
     {
         switch (id)
         {
+            case BeziqueGameFlow.EventId.ALLHANDSEMPTY: return "ALLHANDSEMPTY";
             case BeziqueGameFlow.EventId.ALLPLAYERSRESPONDED: return "ALLPLAYERSRESPONDED";
             case BeziqueGameFlow.EventId.CARDPLAYED: return "CARDPLAYED";
             case BeziqueGameFlow.EventId.CARDSDEALT: return "CARDSDEALT";
@@ -2127,7 +2129,7 @@ evaluateGuard = null;
             center: true
         });
 
-        const diagramEventNamesArray = ['AllPlayersResponded', 'CardPlayed', 'CardsDealt', 'CardsDrawn', 'ContinueGame', 'ContinueLastNine', 'DeckEmpty', 'FinalTrickResolved', 'Initialized', 'LastNineReached', 'MeldDeclared', 'MeldScored', 'MeldSkipped', 'MoreCardsAvailable', 'TimerExpired', 'TimerReset', 'TrickResolved', 'TrumpDetermined', 'WinningScoreReached', ];
+        const diagramEventNamesArray = ['AllHandsEmpty', 'AllPlayersResponded', 'CardPlayed', 'CardsDealt', 'CardsDrawn', 'ContinueGame', 'ContinueLastNine', 'DeckEmpty', 'FinalTrickResolved', 'Initialized', 'LastNineReached', 'MeldDeclared', 'MeldScored', 'MeldSkipped', 'MoreCardsAvailable', 'TimerExpired', 'TimerReset', 'TrickResolved', 'TrumpDetermined', 'WinningScoreReached', ];
 
         // Mapping from state to available events
         const stateEventsMapping = {
@@ -2183,28 +2185,28 @@ evaluateGuard = null;
     "MoreCardsAvailable"
   ],
   "LAST_9_CARDS": [
-    "DeckEmpty",
+    "AllHandsEmpty",
     "LastNineReached"
   ],
   "L9_PLAYER_TURN": [
+    "AllHandsEmpty",
     "CardPlayed",
-    "DeckEmpty",
     "LastNineReached",
     "TimerExpired"
   ],
   "L9_OPPONENT_RESPONSE": [
+    "AllHandsEmpty",
     "AllPlayersResponded",
-    "DeckEmpty",
     "LastNineReached"
   ],
   "L9_TRICK_RESOLUTION": [
-    "DeckEmpty",
+    "AllHandsEmpty",
     "FinalTrickResolved",
     "LastNineReached"
   ],
   "L9_FINAL_SCORING": [
+    "AllHandsEmpty",
     "ContinueLastNine",
-    "DeckEmpty",
     "LastNineReached"
   ]
 };

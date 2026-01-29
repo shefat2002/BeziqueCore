@@ -118,7 +118,7 @@ GAME_INIT -down-> DEALING : Initialized
 DEALING -down-> TRUMP_SELECTION : CardsDealt
 TRUMP_SELECTION -down-> GAMEPLAY : TrumpDetermined
 GAMEPLAY -down-> LAST_9_CARDS : LastNineReached
-LAST_9_CARDS -down-> ROUND_END : DeckEmpty
+LAST_9_CARDS -down-> ROUND_END : AllHandsEmpty
 ROUND_END -left-> GAME_INIT : ContinueGame
 ROUND_END -down-> GAME_OVER : WinningScoreReached
 

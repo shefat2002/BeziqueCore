@@ -85,6 +85,11 @@ public partial class BeziqueGameFlow
         DispatchEvent(EventId.DECKEMPTY);
     }
 
+    public void DispatchAllHandsEmpty()
+    {
+        DispatchEvent(EventId.ALLHANDSEMPTY);
+    }
+
     public void DispatchContinueGame()
     {
         DispatchEvent(EventId.CONTINUEGAME);
@@ -133,8 +138,8 @@ public partial class BeziqueGameFlow
     {
         if (gameAdapter.AreAllHandsEmpty())
         {
-            // All players have no cards left - this was the final trick
-            DispatchEvent(EventId.FINALTRICKRESOLVED);
+            // All players have no cards left - round ends
+            DispatchEvent(EventId.ALLHANDSEMPTY);
         }
         else
         {
