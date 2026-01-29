@@ -66,7 +66,19 @@ namespace BeziqueCore.Actions
                 throw new InvalidOperationException("Invalid meld.");
             }
 
-            // Check for duplicate meld declaration
+            // Check if any of the cards have already been used in a meld
+            if (player.MeldedCards != null)
+            {
+                foreach (var card in meld.Cards)
+                {
+                    if (player.MeldedCards.Any(mc => mc.Equals(card)))
+                    {
+                        throw new InvalidOperationException($"Card {card} has already been used in a meld and cannot be used again.");
+                    }
+                }
+            }
+
+            // Check for duplicate meld declaration (additional safety check)
             if (player.DeclaredMelds != null)
             {
                 foreach (var declaredMeld in player.DeclaredMelds)
@@ -94,6 +106,20 @@ namespace BeziqueCore.Actions
                 player.DeclaredMelds = new List<Meld>();
             }
             player.DeclaredMelds.Add(meld);
+
+            // Track the melded cards so they can't be used in another meld
+            if (player.MeldedCards == null)
+            {
+                player.MeldedCards = new List<Card>();
+            }
+            foreach (var card in meld.Cards)
+            {
+                // Only add if not already tracked (prevents duplicates)
+                if (!player.MeldedCards.Any(mc => mc.Equals(card)))
+                {
+                    player.MeldedCards.Add(card);
+                }
+            }
 
             _notifier.NotifyMeldDeclared(player, meld, meld.Points);
         }

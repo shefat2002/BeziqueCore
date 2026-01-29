@@ -144,6 +144,7 @@ namespace BeziqueGame.CLI
                 Score = 0,
                 Hand = new List<Card>(),
                 DeclaredMelds = new List<Meld>(),
+                MeldedCards = new List<Card>(),
                 IsDealer = false
             };
             _gameState.AddPlayer(_humanPlayer);
@@ -156,6 +157,7 @@ namespace BeziqueGame.CLI
                 Score = 0,
                 Hand = new List<Card>(),
                 DeclaredMelds = new List<Meld>(),
+                MeldedCards = new List<Card>(),
                 IsDealer = true
             };
 
@@ -199,6 +201,7 @@ namespace BeziqueGame.CLI
                     Score = 0,
                     Hand = new List<Card>(),
                     DeclaredMelds = new List<Meld>(),
+                    MeldedCards = new List<Card>(),
                     IsDealer = (i == playerCount - 1)
                 };
 

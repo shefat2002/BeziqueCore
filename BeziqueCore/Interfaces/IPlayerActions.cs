@@ -82,6 +82,11 @@ namespace BeziqueCore.Interfaces
         public List<Card> Hand { get; set; }
         public bool IsDealer { get; set; }
         public List<Meld> DeclaredMelds { get; set; }
+        /// <summary>
+        /// Tracks cards that have been used in melds and cannot be used again.
+        /// A card can only be part of one meld declaration.
+        /// </summary>
+        public List<Card> MeldedCards { get; set; }
     }
 
     public class Meld
