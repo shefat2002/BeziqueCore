@@ -66,33 +66,41 @@ namespace BeziqueCore.Actions
                 throw new InvalidOperationException("Invalid meld.");
             }
 
-            // Check if any of the cards have already been used in a meld
-            if (player.MeldedCards != null)
+            // According to Bezique rules: at least one card in the meld must be unmelded
+            // This allows reusing previously melded cards as long as there's at least one new card
+            if (player.MeldedCards != null && player.MeldedCards.Count > 0)
             {
+                // Count how many cards in this meld are already melded
+                int alreadyMeldedCount = 0;
                 foreach (var card in meld.Cards)
                 {
                     if (player.MeldedCards.Any(mc => mc.Equals(card)))
                     {
-                        throw new InvalidOperationException($"Card {card} has already been used in a meld and cannot be used again.");
+                        alreadyMeldedCount++;
                     }
+                }
+
+                // If ALL cards are already melded, this is invalid
+                // At least one card must be new (unmelded)
+                if (alreadyMeldedCount == meld.Cards.Count)
+                {
+                    throw new InvalidOperationException("All cards in this meld have already been used. At least one card must be unmelded.");
                 }
             }
 
-            // Check for duplicate meld declaration (additional safety check)
+            // Check for duplicate meld declaration (prevents declaring the EXACT same meld twice)
             if (player.DeclaredMelds != null)
             {
                 foreach (var declaredMeld in player.DeclaredMelds)
                 {
-                    if (declaredMeld.Type == meld.Type)
-                    {
-                        // Check if the same cards are being used (prevents declaring same meld twice)
-                        var declaredCards = declaredMeld.Cards;
-                        var newCards = meld.Cards;
+                    var declaredCards = declaredMeld.Cards;
+                    var newCards = meld.Cards;
 
-                        if (declaredCards.All(newCards.Contains) && declaredCards.Count == newCards.Count)
-                        {
-                            throw new InvalidOperationException("This meld has already been declared.");
-                        }
+                    // Check if it's the exact same meld (same cards in same combination)
+                    if (declaredCards.Count == newCards.Count &&
+                        declaredCards.All(newCards.Contains))
+                    {
+                        throw new InvalidOperationException("This exact meld has already been declared.");
                     }
                 }
             }
@@ -107,7 +115,7 @@ namespace BeziqueCore.Actions
             }
             player.DeclaredMelds.Add(meld);
 
-            // Track the melded cards so they can't be used in another meld
+            // Track all melded cards so we know which cards have been used
             if (player.MeldedCards == null)
             {
                 player.MeldedCards = new List<Card>();

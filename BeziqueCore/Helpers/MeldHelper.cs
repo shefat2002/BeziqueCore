@@ -12,23 +12,19 @@ namespace BeziqueCore.Helpers
     {
         /// <summary>
         /// Finds all possible melds that can be declared from the player's hand.
-        /// Only considers cards that have NOT been used in previous melds.
+        /// According to Bezique rules, a meld can include previously melded cards
+        /// as long as at least one card in the meld is new (unmelded).
         /// Returns a list of all valid melds sorted by points (highest first).
         /// If no melds are available, returns an empty list.
         /// </summary>
         public static List<Meld> FindAllPossibleMelds(Player player, Suit trumpSuit)
         {
             var possibleMelds = new List<Meld>();
-
-            // Get melded cards (if any) to exclude them from new melds
-            var meldedCards = player.MeldedCards ?? new List<Card>();
-
-            // Only consider cards that haven't been melded yet
-            var availableCards = player.Hand.Where(c => !meldedCards.Any(mc => mc.Equals(c))).ToList();
+            var hand = player.Hand.ToList();
 
             // Check for Double Bezique (4 cards: 2x Q♠ + 2x J♦)
-            var spadeQueens = availableCards.Where(c => c.Suit == Suit.Spades && c.Rank == Rank.Queen).ToList();
-            var diamondJacks = availableCards.Where(c => c.Suit == Suit.Diamonds && c.Rank == Rank.Jack).ToList();
+            var spadeQueens = hand.Where(c => c.Suit == Suit.Spades && c.Rank == Rank.Queen).ToList();
+            var diamondJacks = hand.Where(c => c.Suit == Suit.Diamonds && c.Rank == Rank.Jack).ToList();
 
             if (spadeQueens.Count >= 2 && diamondJacks.Count >= 2)
             {
@@ -54,8 +50,8 @@ namespace BeziqueCore.Helpers
             var ranks = new[] { Rank.Ace, Rank.King, Rank.Queen, Rank.Jack };
             foreach (var rank in ranks)
             {
-                var rankCards = availableCards.Where(c => !c.IsJoker && c.Rank == rank).ToList();
-                var jokerCount = availableCards.Count(c => c.IsJoker);
+                var rankCards = hand.Where(c => !c.IsJoker && c.Rank == rank).ToList();
+                var jokerCount = hand.Count(c => c.IsJoker);
                 var totalCards = rankCards.Count + jokerCount;
 
                 if (totalCards >= 4)
@@ -85,7 +81,7 @@ namespace BeziqueCore.Helpers
                         var jokersNeeded = 4 - rankCards.Count;
                         if (jokersNeeded > 0 && jokerCount >= jokersNeeded)
                         {
-                            var jokers = availableCards.Where(c => c.IsJoker).Take(jokersNeeded);
+                            var jokers = hand.Where(c => c.IsJoker).Take(jokersNeeded);
                             meldCards.AddRange(jokers);
                         }
 
@@ -100,7 +96,7 @@ namespace BeziqueCore.Helpers
             }
 
             // Check for Trump Run (5 cards of trump suit: A, 10, K, Q, J)
-            var trumpCards = availableCards.Where(c => c.Suit == trumpSuit).ToList();
+            var trumpCards = hand.Where(c => c.Suit == trumpSuit).ToList();
             if (trumpCards.Count >= 5 &&
                 trumpCards.Any(c => c.Rank == Rank.Ace) &&
                 trumpCards.Any(c => c.Rank == Rank.Ten) &&
@@ -126,8 +122,8 @@ namespace BeziqueCore.Helpers
             // Check for marriages (2 cards: K + Q of same suit)
             foreach (Suit suit in Enum.GetValues(typeof(Suit)))
             {
-                var kings = availableCards.Where(c => c.Suit == suit && c.Rank == Rank.King).ToList();
-                var queens = availableCards.Where(c => c.Suit == suit && c.Rank == Rank.Queen).ToList();
+                var kings = hand.Where(c => c.Suit == suit && c.Rank == Rank.King).ToList();
+                var queens = hand.Where(c => c.Suit == suit && c.Rank == Rank.Queen).ToList();
 
                 if (kings.Any() && queens.Any())
                 {
@@ -142,7 +138,7 @@ namespace BeziqueCore.Helpers
             }
 
             // Check for 7 of Trump (single card)
-            var sevenOfTrump = availableCards.FirstOrDefault(c => c.Suit == trumpSuit && c.Rank == Rank.Seven);
+            var sevenOfTrump = hand.FirstOrDefault(c => c.Suit == trumpSuit && c.Rank == Rank.Seven);
             if (sevenOfTrump != null)
             {
                 possibleMelds.Add(new Meld
