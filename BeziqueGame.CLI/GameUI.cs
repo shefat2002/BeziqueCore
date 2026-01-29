@@ -1,6 +1,7 @@
 using Spectre.Console;
 using BeziqueCore.Models;
 using BeziqueCore.Interfaces;
+using BeziqueCore.Helpers;
 
 namespace BeziqueGame.CLI
 {
@@ -230,40 +231,19 @@ namespace BeziqueGame.CLI
         public List<PossibleMeld> GetAvailableMelds(Player player)
         {
             var melds = new List<PossibleMeld>();
-            var hand = player.Hand;
             var trumpSuit = _gameState.TrumpSuit;
 
-            var meldTypes = new[]
-            {
-                MeldType.DoubleBezique,
-                MeldType.TrumpRun,
-                MeldType.FourAces,
-                MeldType.FourKings,
-                MeldType.FourQueens,
-                MeldType.FourJacks,
-                MeldType.Bezique,
-                MeldType.TrumpMarriage,
-                MeldType.Marriage,
-                MeldType.TrumpSeven
-            };
+            // Find all possible melds from hand using MeldHelper
+            var possibleMelds = MeldHelper.FindAllPossibleMelds(player, trumpSuit);
 
-            foreach (var meldType in meldTypes)
+            foreach (var meld in possibleMelds)
             {
-                var meld = _meldValidator.GetBestPossibleMeld(
-                    hand.ToArray(),
-                    hand,
-                    trumpSuit
-                );
-
-                if (meld != null && meld.Type == meldType)
+                melds.Add(new PossibleMeld
                 {
-                    melds.Add(new PossibleMeld
-                    {
-                        Type = meld.Type,
-                        Points = meld.Points,
-                        Cards = meld.Cards.ToList()
-                    });
-                }
+                    Type = meld.Type,
+                    Points = meld.Points,
+                    Cards = meld.Cards.ToList()
+                });
             }
 
             return melds;

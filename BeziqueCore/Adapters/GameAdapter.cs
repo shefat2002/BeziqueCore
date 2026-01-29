@@ -219,12 +219,14 @@ namespace BeziqueCore.Adapters
         {
             // Give current player opportunity to declare a meld
             // This is handled by the CLI/UI asking the player
+            // The actual meld declaration happens through PlayerActions.DeclareMeld()
         }
 
         public void ScoreMeld()
         {
             // Award points for declared meld
-            // Points are calculated by MeldValidator
+            // Points are calculated by MeldValidator and added in PlayerActions.DeclareMeld()
+            // This is just a notification point in the state machine
         }
 
         public void DrawCards()

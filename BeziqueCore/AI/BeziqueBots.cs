@@ -1,5 +1,6 @@
 using BeziqueCore.Models;
 using BeziqueCore.Interfaces;
+using BeziqueCore.Helpers;
 using System.Linq;
 
 namespace BeziqueCore.AI
@@ -27,60 +28,16 @@ namespace BeziqueCore.AI
 
         public override Meld? DecideMeld(Player bot, Suit trumpSuit)
         {
-            // Easy bot rarely declares melds (30% chance)
-            if (_random.NextDouble() > 0.3)
+            // Easy bot declares melds 70% of the time when available
+            if (_random.NextDouble() > 0.7)
                 return null;
 
-            // Get all possible melds
-            var meldValidator = new Validators.MeldValidator();
-            var possibleMelds = new List<Meld>();
-
-            // Check for simple melds
-            var hand = bot.Hand.ToArray();
-
-            // Check for marriages
-            var marriages = hand
-                .GroupBy(c => c.Suit)
-                .Where(g => g.Count(c => c.Rank == Rank.King || c.Rank == Rank.Queen) >= 2)
-                .Select(g => new Meld
-                {
-                    Type = g.Key == trumpSuit ? MeldType.TrumpMarriage : MeldType.Marriage,
-                    Cards = g.Take(2).ToList(),
-                    Points = g.Key == trumpSuit ? 40 : 20
-                });
-
-            // Check for four of a kinds
-            var fourKinds = hand
-                .GroupBy(c => c.Rank)
-                .Where(g => g.Count() >= 4 && !g.Any(c => c.IsJoker))
-                .Select(g => new Meld
-                {
-                    Type = g.Key switch
-                    {
-                        Rank.Ace => MeldType.FourAces,
-                        Rank.King => MeldType.FourKings,
-                        Rank.Queen => MeldType.FourQueens,
-                        Rank.Jack => MeldType.FourJacks,
-                        _ => MeldType.InvalidMeld
-                    },
-                    Cards = g.Take(4).ToList(),
-                    Points = g.Key switch
-                    {
-                        Rank.Ace => 100,
-                        Rank.King => 80,
-                        Rank.Queen => 60,
-                        Rank.Jack => 40,
-                        _ => 0
-                    }
-                });
-
-            possibleMelds.AddRange(marriages);
-            possibleMelds.AddRange(fourKinds.Where(m => m.Type != MeldType.InvalidMeld));
+            // Find all possible melds from hand and return highest point one
+            var possibleMelds = MeldHelper.FindAllPossibleMelds(bot, trumpSuit);
 
             if (possibleMelds.Any())
             {
-                var bestMeld = possibleMelds.OrderByDescending(m => m.Points).First();
-                return bestMeld;
+                return possibleMelds.First(); // Already sorted by points descending
             }
 
             return null;
@@ -137,20 +94,18 @@ namespace BeziqueCore.AI
 
         public override Meld? DecideMeld(Player bot, Suit trumpSuit)
         {
-            // Medium bot declares melds 70% of the time
-            if (_random.NextDouble() > 0.7)
-                return null;
+            // Medium bot declares melds when available
+            // Find all possible melds from hand and return highest point one
+            var possibleMelds = MeldHelper.FindAllPossibleMelds(bot, trumpSuit);
 
-            var meldValidator = new Validators.MeldValidator();
-            var hand = bot.Hand.ToArray();
-
-            // Get best possible meld
-            var bestMeld = meldValidator.GetBestPossibleMeld(hand, bot.Hand, trumpSuit);
-
-            // Only declare if worth at least 20 points
-            if (bestMeld != null && bestMeld.Points >= 20)
+            if (possibleMelds.Any())
             {
-                return bestMeld;
+                // Only declare if worth at least 20 points
+                var bestMeld = possibleMelds.First(); // Already sorted by points descending
+                if (bestMeld.Points >= 20)
+                {
+                    return bestMeld;
+                }
             }
 
             return null;
@@ -227,16 +182,13 @@ namespace BeziqueCore.AI
         public override Meld? DecideMeld(Player bot, Suit trumpSuit)
         {
             // Hard bot always declares melds when available
-            var meldValidator = new Validators.MeldValidator();
-            var hand = bot.Hand.ToArray();
+            // Find all possible melds from hand and return highest point one
+            var possibleMelds = MeldHelper.FindAllPossibleMelds(bot, trumpSuit);
 
-            // Get best possible meld
-            var bestMeld = meldValidator.GetBestPossibleMeld(hand, bot.Hand, trumpSuit);
-
-            // Declare any meld worth points
-            if (bestMeld != null && bestMeld.Points > 0)
+            if (possibleMelds.Any())
             {
-                return bestMeld;
+                // Declare any meld worth points
+                return possibleMelds.First(); // Already sorted by points descending
             }
 
             return null;
@@ -323,15 +275,13 @@ namespace BeziqueCore.AI
         public override Meld? DecideMeld(Player bot, Suit trumpSuit)
         {
             // Expert bot always melds optimally
-            var meldValidator = new Validators.MeldValidator();
-            var hand = bot.Hand.ToArray();
+            // Find all possible melds from hand and return highest point one
+            var possibleMelds = MeldHelper.FindAllPossibleMelds(bot, trumpSuit);
 
-            var bestMeld = meldValidator.GetBestPossibleMeld(hand, bot.Hand, trumpSuit);
-
-            // Always declare if beneficial
-            if (bestMeld != null && bestMeld.Points > 0)
+            if (possibleMelds.Any())
             {
-                return bestMeld;
+                // Always declare if beneficial
+                return possibleMelds.First(); // Already sorted by points descending
             }
 
             return null;

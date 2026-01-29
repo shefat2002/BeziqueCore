@@ -9,6 +9,7 @@ using BeziqueCore.Validators;
 using BeziqueCore.Resolvers;
 using BeziqueCore.Timers;
 using BeziqueCore.AI;
+using BeziqueCore.Helpers;
 
 namespace BeziqueGame.CLI
 {
@@ -596,45 +597,41 @@ namespace BeziqueGame.CLI
                 {
                     AnsiConsole.MarkupLine($"  [yellow]{meld.Type}[/] - {meld.Points} pts");
                 }
-            }
-            else
-            {
-                AnsiConsole.MarkupLine("\n[dim]No valid melds available.[/]");
-            }
 
-            var choice = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .Title("\n[bold yellow]What would you like to do?[/]")
-                    .AddChoices(new[] { "Declare Meld", "Skip Meld" })
-            );
+                var choice = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("\n[bold yellow]What would you like to do?[/]")
+                        .AddChoices(new[] { "Declare Best Meld", "Skip Meld" })
+                );
 
-            if (choice == "Declare Meld")
-            {
-                if (availableMelds.Count == 0)
+                if (choice == "Declare Best Meld")
                 {
-                    AnsiConsole.MarkupLine("\n[red]No melds available! Skipping...[/]");
-                    Thread.Sleep(1000);
-                    _stateMachine.DispatchMeldSkipped();
-                    return;
+                    // Get best meld (highest points)
+                    var bestMeld = availableMelds.OrderByDescending(m => m.Points).First();
+                    var meld = new Meld
+                    {
+                        Type = bestMeld.Type,
+                        Cards = bestMeld.Cards,
+                        Points = bestMeld.Points
+                    };
+
+                    _playerActions.DeclareMeld(player, meld);
+                    AnsiConsole.MarkupLine($"\n[bold green]✓ Meld declared: {meld.Type} (+{meld.Points} points)[/]");
+                    AnsiConsole.MarkupLine("[dim]Press any key to continue...[/]");
+                    Console.ReadKey(true);
+
+                    _stateMachine.DispatchMeldDeclared();
                 }
-
-                var bestMeld = availableMelds.OrderByDescending(m => m.Points).First();
-                var meld = new Meld
+                else
                 {
-                    Type = bestMeld.Type,
-                    Cards = bestMeld.Cards,
-                    Points = bestMeld.Points
-                };
-
-                _playerActions.DeclareMeld(player, meld);
-                AnsiConsole.MarkupLine($"\n[bold green]✓ Meld declared: {meld.Type} (+{meld.Points} points)[/]");
-                AnsiConsole.MarkupLine("[dim]Press any key to continue...[/]");
-                Console.ReadKey(true);
-
-                _stateMachine.DispatchMeldDeclared();
+                    _stateMachine.DispatchMeldSkipped();
+                }
             }
             else
             {
+                // No melds available - auto skip
+                AnsiConsole.MarkupLine("\n[dim]No valid melds available. Skipping...[/]");
+                Thread.Sleep(1000);
                 _stateMachine.DispatchMeldSkipped();
             }
         }
@@ -656,7 +653,8 @@ namespace BeziqueGame.CLI
             }
             else
             {
-                AnsiConsole.MarkupLine($"\n[dim]{botPlayer.Name} skips meld[/]");
+                // No meld available or bot chose to skip
+                AnsiConsole.MarkupLine($"\n[dim]{botPlayer.Name} skips meld (no valid melds)[/]");
                 Thread.Sleep(1000);
                 _stateMachine.DispatchMeldSkipped();
             }
