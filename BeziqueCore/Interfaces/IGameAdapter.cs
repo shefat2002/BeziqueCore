@@ -26,6 +26,7 @@ namespace BeziqueCore.Interfaces
         // Last 9 cards actions
         void ProcessL9OpponentResponses();
         void ResolveL9Trick();
+        void CheckL9TrickComplete();
         void CalculateL9FinalScores();
 
         // Round and game end

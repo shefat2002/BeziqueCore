@@ -309,6 +309,12 @@ namespace BeziqueCore.CLI
             ResolveTrick();
         }
 
+        public void CheckL9TrickComplete()
+        {
+            // Check if we should continue or end the round
+            // This is handled by the state machine helper
+        }
+
         public void CalculateL9FinalScores()
         {
             AnsiConsole.MarkupLine("[cyan]📊 Calculating final scores (Last 9 Cards)...[/]");

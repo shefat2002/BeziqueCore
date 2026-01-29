@@ -100,10 +100,24 @@ state LAST_9_CARDS {
     state L9_TRICK_RESOLUTION {
         L9_TRICK_RESOLUTION: enter / gameAdapter.ResolveL9Trick();
     }
+
+    state L9_TRICK_CHECK {
+        L9_TRICK_CHECK: enter / gameAdapter.CheckL9TrickComplete();
+    }
+
+    state L9_TIMER_TIMEOUT {
+        L9_TIMER_TIMEOUT: enter / gameAdapter.DeductTimeoutPoints();
+        L9_TIMER_TIMEOUT: exit / gameAdapter.ResetPlayerTimer();
+    }
+
     [*] --> L9_PLAYER_TURN
     L9_PLAYER_TURN -down-> L9_OPPONENT_RESPONSE : CardPlayed
+    L9_PLAYER_TURN -right-> L9_TIMER_TIMEOUT : TimerExpired
     L9_OPPONENT_RESPONSE -down-> L9_TRICK_RESOLUTION : AllPlayersResponded
-    L9_TRICK_RESOLUTION -up-> L9_PLAYER_TURN : ContinueLastNine
+    L9_TRICK_RESOLUTION -down-> L9_TRICK_CHECK : TrickResolved
+
+    L9_TRICK_CHECK -up-> L9_PLAYER_TURN : ContinueLastNine
+    L9_TIMER_TIMEOUT -left-> L9_PLAYER_TURN : TimerReset
 }
 
 
@@ -112,12 +126,12 @@ GAME_INIT -down-> DEALING : Initialized
 DEALING -down-> TRUMP_SELECTION : CardsDealt
 TRUMP_SELECTION -down-> GAMEPLAY : TrumpDetermined
 
-LAST_9_CARDS -down-> ROUND_END : AllHandsEmpty
+
+L9_TRICK_CHECK -down-> ROUND_END : AllHandsEmpty
 ROUND_END -left-> GAME_INIT : ContinueGame
 ROUND_END -down-> GAME_OVER : WinningScoreReached
 
 PLAYER_TURN -right-> TIMER_TIMEOUT : TimerExpired
 TIMER_TIMEOUT -left-> PLAYER_TURN : TimerReset
-L9_PLAYER_TURN -right-> TIMER_TIMEOUT : TimerExpired
 
 @enduml

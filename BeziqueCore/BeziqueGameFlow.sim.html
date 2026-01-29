@@ -369,6 +369,20 @@ state GAMEPLAY {
 
                 L9_TRICK_RESOLUTION : enter / #123; gameAdapter.ResolveL9Trick()#59; #125;
 
+                L9_TRICK_CHECK
+
+                L9_TRICK_CHECK : L9_TRICK_CHECK
+
+                L9_TRICK_CHECK : enter / #123; gameAdapter.CheckL9TrickComplete()#59; #125;
+
+                L9_TIMER_TIMEOUT
+
+                L9_TIMER_TIMEOUT : L9_TIMER_TIMEOUT
+
+                L9_TIMER_TIMEOUT : enter / #123; gameAdapter.DeductTimeoutPoints()#59; #125;
+
+                L9_TIMER_TIMEOUT : exit / #123; gameAdapter.ResetPlayerTimer()#59; #125;
+
                 %% Initial state name as "." so that it fits in black circle shape.
                 %% See https://github.com/StateSmith/StateSmith/issues/404
                 state "." as LAST_9_CARDS.(InitialState)
@@ -415,15 +429,19 @@ DECK_CHECK --> LAST_9_CARDS : DeckEmpty
 
 DECK_CHECK --> PLAYER_TURN : MoreCardsAvailable
 
-LAST_9_CARDS --> ROUND_END : AllHandsEmpty
-
 L9_PLAYER_TURN --> L9_OPPONENT_RESPONSE : CardPlayed
 
-L9_PLAYER_TURN --> TIMER_TIMEOUT : TimerExpired
+L9_PLAYER_TURN --> L9_TIMER_TIMEOUT : TimerExpired
 
 L9_OPPONENT_RESPONSE --> L9_TRICK_RESOLUTION : AllPlayersResponded
 
-L9_TRICK_RESOLUTION --> L9_PLAYER_TURN : ContinueLastNine
+L9_TRICK_RESOLUTION --> L9_TRICK_CHECK : TrickResolved
+
+L9_TRICK_CHECK --> L9_PLAYER_TURN : ContinueLastNine
+
+L9_TRICK_CHECK --> ROUND_END : AllHandsEmpty
+
+L9_TIMER_TIMEOUT --> L9_PLAYER_TURN : TimerReset
 
 LAST_9_CARDS.(InitialState) --> L9_PLAYER_TURN
 
@@ -514,19 +532,21 @@ evaluateGuard = null;
         LAST_9_CARDS : 7,
         L9_OPPONENT_RESPONSE : 8,
         L9_PLAYER_TURN : 9,
-        L9_TRICK_RESOLUTION : 10,
-        MELD_OPPORTUNITY : 11,
-        MELD_SCORING : 12,
-        OPPONENT_RESPONSE : 13,
-        PLAYER_TURN : 14,
-        TRICK_RESOLUTION : 15,
-        ROUND_END : 16,
-        TIMER_TIMEOUT : 17,
-        TRUMP_SELECTION : 18,
+        L9_TIMER_TIMEOUT : 10,
+        L9_TRICK_CHECK : 11,
+        L9_TRICK_RESOLUTION : 12,
+        MELD_OPPORTUNITY : 13,
+        MELD_SCORING : 14,
+        OPPONENT_RESPONSE : 15,
+        PLAYER_TURN : 16,
+        TRICK_RESOLUTION : 17,
+        ROUND_END : 18,
+        TIMER_TIMEOUT : 19,
+        TRUMP_SELECTION : 20,
     }
     static { Object.freeze(this.StateId); }
     
-    static StateIdCount = 19;
+    static StateIdCount = 21;
     static { Object.freeze(this.StateIdCount); }
     
     // Used internally by state machine. Feel free to inspect, but don't modify.
@@ -547,12 +567,12 @@ evaluateGuard = null;
             // ROOT.<InitialState> is a pseudo state and cannot have an `enter` trigger.
             
             // ROOT.<InitialState> behavior
-            // uml: / { this.tracer?.edgeTransition("edge23"); } TransitionTo(GAME_INIT)
+            // uml: / { this.tracer?.edgeTransition("edge25"); } TransitionTo(GAME_INIT)
             {
                 // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
                 
-                // Step 2: Transition action: `this.tracer?.edgeTransition("edge23");`.
-                this.tracer?.edgeTransition("edge23");
+                // Step 2: Transition action: `this.tracer?.edgeTransition("edge25");`.
+                this.tracer?.edgeTransition("edge25");
                 
                 // Step 3: Enter/move towards transition target `GAME_INIT`.
                 this.#GAME_INIT_enter();
@@ -619,10 +639,7 @@ evaluateGuard = null;
             
             // STATE: LAST_9_CARDS
             case BeziqueGameFlow.StateId.LAST_9_CARDS:
-                switch (eventId)
-                {
-                    case BeziqueGameFlow.EventId.ALLHANDSEMPTY: this.#LAST_9_CARDS_allhandsempty(); break;
-                }
+                // No events handled by this state (or its ancestors).
                 break;
             
             // STATE: L9_OPPONENT_RESPONSE
@@ -630,7 +647,6 @@ evaluateGuard = null;
                 switch (eventId)
                 {
                     case BeziqueGameFlow.EventId.ALLPLAYERSRESPONDED: this.#L9_OPPONENT_RESPONSE_allplayersresponded(); break;
-                    case BeziqueGameFlow.EventId.ALLHANDSEMPTY: this.#LAST_9_CARDS_allhandsempty(); break; // First ancestor handler for this event
                 }
                 break;
             
@@ -640,7 +656,23 @@ evaluateGuard = null;
                 {
                     case BeziqueGameFlow.EventId.CARDPLAYED: this.#L9_PLAYER_TURN_cardplayed(); break;
                     case BeziqueGameFlow.EventId.TIMEREXPIRED: this.#L9_PLAYER_TURN_timerexpired(); break;
-                    case BeziqueGameFlow.EventId.ALLHANDSEMPTY: this.#LAST_9_CARDS_allhandsempty(); break; // First ancestor handler for this event
+                }
+                break;
+            
+            // STATE: L9_TIMER_TIMEOUT
+            case BeziqueGameFlow.StateId.L9_TIMER_TIMEOUT:
+                switch (eventId)
+                {
+                    case BeziqueGameFlow.EventId.TIMERRESET: this.#L9_TIMER_TIMEOUT_timerreset(); break;
+                }
+                break;
+            
+            // STATE: L9_TRICK_CHECK
+            case BeziqueGameFlow.StateId.L9_TRICK_CHECK:
+                switch (eventId)
+                {
+                    case BeziqueGameFlow.EventId.CONTINUELASTNINE: this.#L9_TRICK_CHECK_continuelastnine(); break;
+                    case BeziqueGameFlow.EventId.ALLHANDSEMPTY: this.#L9_TRICK_CHECK_allhandsempty(); break;
                 }
                 break;
             
@@ -648,8 +680,7 @@ evaluateGuard = null;
             case BeziqueGameFlow.StateId.L9_TRICK_RESOLUTION:
                 switch (eventId)
                 {
-                    case BeziqueGameFlow.EventId.CONTINUELASTNINE: this.#L9_TRICK_RESOLUTION_continuelastnine(); break;
-                    case BeziqueGameFlow.EventId.ALLHANDSEMPTY: this.#LAST_9_CARDS_allhandsempty(); break; // First ancestor handler for this event
+                    case BeziqueGameFlow.EventId.TRICKRESOLVED: this.#L9_TRICK_RESOLUTION_trickresolved(); break;
                 }
                 break;
             
@@ -748,6 +779,10 @@ evaluateGuard = null;
                 case BeziqueGameFlow.StateId.L9_OPPONENT_RESPONSE: this.#L9_OPPONENT_RESPONSE_exit(); break;
                 
                 case BeziqueGameFlow.StateId.L9_PLAYER_TURN: this.#L9_PLAYER_TURN_exit(); break;
+                
+                case BeziqueGameFlow.StateId.L9_TIMER_TIMEOUT: this.#L9_TIMER_TIMEOUT_exit(); break;
+                
+                case BeziqueGameFlow.StateId.L9_TRICK_CHECK: this.#L9_TRICK_CHECK_exit(); break;
                 
                 case BeziqueGameFlow.StateId.L9_TRICK_RESOLUTION: this.#L9_TRICK_RESOLUTION_exit(); break;
                 
@@ -1090,12 +1125,12 @@ evaluateGuard = null;
             this.#LAST_9_CARDS_enter();
             
             // LAST_9_CARDS.<InitialState> behavior
-            // uml: / { this.tracer?.edgeTransition("edge22"); } TransitionTo(L9_PLAYER_TURN)
+            // uml: / { this.tracer?.edgeTransition("edge24"); } TransitionTo(L9_PLAYER_TURN)
             {
                 // Step 1: Exit states until we reach `LAST_9_CARDS` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
                 
-                // Step 2: Transition action: `this.tracer?.edgeTransition("edge22");`.
-                this.tracer?.edgeTransition("edge22");
+                // Step 2: Transition action: `this.tracer?.edgeTransition("edge24");`.
+                this.tracer?.edgeTransition("edge24");
                 
                 // Step 3: Enter/move towards transition target `L9_PLAYER_TURN`.
                 this.#L9_PLAYER_TURN_enter();
@@ -1158,27 +1193,6 @@ evaluateGuard = null;
         this.stateId = BeziqueGameFlow.StateId.GAMEPLAY;
     }
     
-    #LAST_9_CARDS_allhandsempty()
-    {
-        // LAST_9_CARDS behavior
-        // uml: AllHandsEmpty / { this.tracer?.edgeTransition("edge17"); } TransitionTo(ROUND_END)
-        {
-            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
-            this.#exitUpToStateHandler(BeziqueGameFlow.StateId.ROOT);
-            
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge17");`.
-            this.tracer?.edgeTransition("edge17");
-            
-            // Step 3: Enter/move towards transition target `ROUND_END`.
-            this.#ROUND_END_enter();
-            
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
-        } // end of behavior for LAST_9_CARDS
-        
-        // No ancestor handles this event.
-    }
-    
     
     ////////////////////////////////////////////////////////////////////////////////
     // event handlers for state L9_OPPONENT_RESPONSE
@@ -1218,13 +1232,13 @@ evaluateGuard = null;
     #L9_OPPONENT_RESPONSE_allplayersresponded()
     {
         // L9_OPPONENT_RESPONSE behavior
-        // uml: AllPlayersResponded / { this.tracer?.edgeTransition("edge20"); } TransitionTo(L9_TRICK_RESOLUTION)
+        // uml: AllPlayersResponded / { this.tracer?.edgeTransition("edge19"); } TransitionTo(L9_TRICK_RESOLUTION)
         {
             // Step 1: Exit states until we reach `LAST_9_CARDS` state (Least Common Ancestor for transition).
             this.#L9_OPPONENT_RESPONSE_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge20");`.
-            this.tracer?.edgeTransition("edge20");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge19");`.
+            this.tracer?.edgeTransition("edge19");
             
             // Step 3: Enter/move towards transition target `L9_TRICK_RESOLUTION`.
             this.#L9_TRICK_RESOLUTION_enter();
@@ -1282,13 +1296,13 @@ evaluateGuard = null;
     #L9_PLAYER_TURN_cardplayed()
     {
         // L9_PLAYER_TURN behavior
-        // uml: CardPlayed / { this.tracer?.edgeTransition("edge18"); } TransitionTo(L9_OPPONENT_RESPONSE)
+        // uml: CardPlayed / { this.tracer?.edgeTransition("edge17"); } TransitionTo(L9_OPPONENT_RESPONSE)
         {
             // Step 1: Exit states until we reach `LAST_9_CARDS` state (Least Common Ancestor for transition).
             this.#L9_PLAYER_TURN_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge18");`.
-            this.tracer?.edgeTransition("edge18");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge17");`.
+            this.tracer?.edgeTransition("edge17");
             
             // Step 3: Enter/move towards transition target `L9_OPPONENT_RESPONSE`.
             this.#L9_OPPONENT_RESPONSE_enter();
@@ -1303,20 +1317,162 @@ evaluateGuard = null;
     #L9_PLAYER_TURN_timerexpired()
     {
         // L9_PLAYER_TURN behavior
-        // uml: TimerExpired / { this.tracer?.edgeTransition("edge19"); } TransitionTo(TIMER_TIMEOUT)
+        // uml: TimerExpired / { this.tracer?.edgeTransition("edge18"); } TransitionTo(L9_TIMER_TIMEOUT)
         {
-            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
-            this.#exitUpToStateHandler(BeziqueGameFlow.StateId.ROOT);
+            // Step 1: Exit states until we reach `LAST_9_CARDS` state (Least Common Ancestor for transition).
+            this.#L9_PLAYER_TURN_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge19");`.
-            this.tracer?.edgeTransition("edge19");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge18");`.
+            this.tracer?.edgeTransition("edge18");
             
-            // Step 3: Enter/move towards transition target `TIMER_TIMEOUT`.
-            this.#TIMER_TIMEOUT_enter();
+            // Step 3: Enter/move towards transition target `L9_TIMER_TIMEOUT`.
+            this.#L9_TIMER_TIMEOUT_enter();
             
             // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
             return;
         } // end of behavior for L9_PLAYER_TURN
+        
+        // No ancestor handles this event.
+    }
+    
+    
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state L9_TIMER_TIMEOUT
+    ////////////////////////////////////////////////////////////////////////////////
+    
+    #L9_TIMER_TIMEOUT_enter()
+    {
+        this.stateId = BeziqueGameFlow.StateId.L9_TIMER_TIMEOUT;
+        
+        // L9_TIMER_TIMEOUT behavior
+        // uml: enter / { this.tracer?.enterState('L9_TIMER_TIMEOUT'); }
+        {
+            // Step 1: execute action `this.tracer?.enterState('L9_TIMER_TIMEOUT');`
+            this.tracer?.enterState('L9_TIMER_TIMEOUT');
+        } // end of behavior for L9_TIMER_TIMEOUT
+        
+        // L9_TIMER_TIMEOUT behavior
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.DeductTimeoutPoints();"); }
+        {
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.DeductTimeoutPoints();");`
+            this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.DeductTimeoutPoints();");
+        } // end of behavior for L9_TIMER_TIMEOUT
+    }
+    
+    #L9_TIMER_TIMEOUT_exit()
+    {
+        // L9_TIMER_TIMEOUT behavior
+        // uml: exit / { this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.ResetPlayerTimer();"); }
+        {
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.ResetPlayerTimer();");`
+            this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.ResetPlayerTimer();");
+        } // end of behavior for L9_TIMER_TIMEOUT
+        
+        // L9_TIMER_TIMEOUT behavior
+        // uml: exit / { this.tracer?.exitState('L9_TIMER_TIMEOUT'); }
+        {
+            // Step 1: execute action `this.tracer?.exitState('L9_TIMER_TIMEOUT');`
+            this.tracer?.exitState('L9_TIMER_TIMEOUT');
+        } // end of behavior for L9_TIMER_TIMEOUT
+        
+        this.stateId = BeziqueGameFlow.StateId.LAST_9_CARDS;
+    }
+    
+    #L9_TIMER_TIMEOUT_timerreset()
+    {
+        // L9_TIMER_TIMEOUT behavior
+        // uml: TimerReset / { this.tracer?.edgeTransition("edge23"); } TransitionTo(L9_PLAYER_TURN)
+        {
+            // Step 1: Exit states until we reach `LAST_9_CARDS` state (Least Common Ancestor for transition).
+            this.#L9_TIMER_TIMEOUT_exit();
+            
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge23");`.
+            this.tracer?.edgeTransition("edge23");
+            
+            // Step 3: Enter/move towards transition target `L9_PLAYER_TURN`.
+            this.#L9_PLAYER_TURN_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for L9_TIMER_TIMEOUT
+        
+        // No ancestor handles this event.
+    }
+    
+    
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state L9_TRICK_CHECK
+    ////////////////////////////////////////////////////////////////////////////////
+    
+    #L9_TRICK_CHECK_enter()
+    {
+        this.stateId = BeziqueGameFlow.StateId.L9_TRICK_CHECK;
+        
+        // L9_TRICK_CHECK behavior
+        // uml: enter / { this.tracer?.enterState('L9_TRICK_CHECK'); }
+        {
+            // Step 1: execute action `this.tracer?.enterState('L9_TRICK_CHECK');`
+            this.tracer?.enterState('L9_TRICK_CHECK');
+        } // end of behavior for L9_TRICK_CHECK
+        
+        // L9_TRICK_CHECK behavior
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.CheckL9TrickComplete();"); }
+        {
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.CheckL9TrickComplete();");`
+            this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.CheckL9TrickComplete();");
+        } // end of behavior for L9_TRICK_CHECK
+    }
+    
+    #L9_TRICK_CHECK_exit()
+    {
+        // L9_TRICK_CHECK behavior
+        // uml: exit / { this.tracer?.exitState('L9_TRICK_CHECK'); }
+        {
+            // Step 1: execute action `this.tracer?.exitState('L9_TRICK_CHECK');`
+            this.tracer?.exitState('L9_TRICK_CHECK');
+        } // end of behavior for L9_TRICK_CHECK
+        
+        this.stateId = BeziqueGameFlow.StateId.LAST_9_CARDS;
+    }
+    
+    #L9_TRICK_CHECK_allhandsempty()
+    {
+        // L9_TRICK_CHECK behavior
+        // uml: AllHandsEmpty / { this.tracer?.edgeTransition("edge22"); } TransitionTo(ROUND_END)
+        {
+            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
+            this.#exitUpToStateHandler(BeziqueGameFlow.StateId.ROOT);
+            
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge22");`.
+            this.tracer?.edgeTransition("edge22");
+            
+            // Step 3: Enter/move towards transition target `ROUND_END`.
+            this.#ROUND_END_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for L9_TRICK_CHECK
+        
+        // No ancestor handles this event.
+    }
+    
+    #L9_TRICK_CHECK_continuelastnine()
+    {
+        // L9_TRICK_CHECK behavior
+        // uml: ContinueLastNine / { this.tracer?.edgeTransition("edge21"); } TransitionTo(L9_PLAYER_TURN)
+        {
+            // Step 1: Exit states until we reach `LAST_9_CARDS` state (Least Common Ancestor for transition).
+            this.#L9_TRICK_CHECK_exit();
+            
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge21");`.
+            this.tracer?.edgeTransition("edge21");
+            
+            // Step 3: Enter/move towards transition target `L9_PLAYER_TURN`.
+            this.#L9_PLAYER_TURN_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for L9_TRICK_CHECK
         
         // No ancestor handles this event.
     }
@@ -1357,19 +1513,19 @@ evaluateGuard = null;
         this.stateId = BeziqueGameFlow.StateId.LAST_9_CARDS;
     }
     
-    #L9_TRICK_RESOLUTION_continuelastnine()
+    #L9_TRICK_RESOLUTION_trickresolved()
     {
         // L9_TRICK_RESOLUTION behavior
-        // uml: ContinueLastNine / { this.tracer?.edgeTransition("edge21"); } TransitionTo(L9_PLAYER_TURN)
+        // uml: TrickResolved / { this.tracer?.edgeTransition("edge20"); } TransitionTo(L9_TRICK_CHECK)
         {
             // Step 1: Exit states until we reach `LAST_9_CARDS` state (Least Common Ancestor for transition).
             this.#L9_TRICK_RESOLUTION_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge21");`.
-            this.tracer?.edgeTransition("edge21");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge20");`.
+            this.tracer?.edgeTransition("edge20");
             
-            // Step 3: Enter/move towards transition target `L9_PLAYER_TURN`.
-            this.#L9_PLAYER_TURN_enter();
+            // Step 3: Enter/move towards transition target `L9_TRICK_CHECK`.
+            this.#L9_TRICK_CHECK_enter();
             
             // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
             return;
@@ -1953,6 +2109,8 @@ evaluateGuard = null;
             case BeziqueGameFlow.StateId.LAST_9_CARDS: return "LAST_9_CARDS";
             case BeziqueGameFlow.StateId.L9_OPPONENT_RESPONSE: return "L9_OPPONENT_RESPONSE";
             case BeziqueGameFlow.StateId.L9_PLAYER_TURN: return "L9_PLAYER_TURN";
+            case BeziqueGameFlow.StateId.L9_TIMER_TIMEOUT: return "L9_TIMER_TIMEOUT";
+            case BeziqueGameFlow.StateId.L9_TRICK_CHECK: return "L9_TRICK_CHECK";
             case BeziqueGameFlow.StateId.L9_TRICK_RESOLUTION: return "L9_TRICK_RESOLUTION";
             case BeziqueGameFlow.StateId.MELD_OPPORTUNITY: return "MELD_OPPORTUNITY";
             case BeziqueGameFlow.StateId.MELD_SCORING: return "MELD_SCORING";
@@ -2073,21 +2231,23 @@ evaluateGuard = null;
     "DeckEmpty",
     "MoreCardsAvailable"
   ],
-  "LAST_9_CARDS": [
-    "AllHandsEmpty"
-  ],
+  "LAST_9_CARDS": [],
   "L9_PLAYER_TURN": [
-    "AllHandsEmpty",
     "CardPlayed",
     "TimerExpired"
   ],
   "L9_OPPONENT_RESPONSE": [
-    "AllHandsEmpty",
     "AllPlayersResponded"
   ],
   "L9_TRICK_RESOLUTION": [
+    "TrickResolved"
+  ],
+  "L9_TRICK_CHECK": [
     "AllHandsEmpty",
     "ContinueLastNine"
+  ],
+  "L9_TIMER_TIMEOUT": [
+    "TimerReset"
   ]
 };
 

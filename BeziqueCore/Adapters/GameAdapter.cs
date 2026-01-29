@@ -328,6 +328,12 @@ namespace BeziqueCore.Adapters
             }
         }
 
+        public void CheckL9TrickComplete()
+        {
+            // Check if we should continue or end the round
+            // This is handled by AreAllHandsEmpty() method via the state machine helper
+        }
+
         public void CalculateL9FinalScores()
         {
             // Calculate final scores including any last 9 cards bonuses
