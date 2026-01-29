@@ -143,15 +143,12 @@ namespace BeziqueCore.CLI
         {
             _stateMachine.Start();
 
-            // Initialize the game
-            _gameConsole.InitializeGame();
+            // The state machine handles all initialization via enter actions
+            // GAME_INIT enter action calls InitializeGame()
+            // DEALING enter action calls DealCards()
+            // TRUMP_SELECTION enter action calls FlipTrumpCard()
+            // We just need to dispatch the events to move between states
             _stateMachine.DispatchGameInitialized();
-
-            _gameConsole.DealCards();
-            _stateMachine.DispatchCardsDealt();
-
-            _gameConsole.FlipTrumpCard();
-            _stateMachine.DispatchTrumpDetermined();
 
             while (true)
             {
@@ -165,6 +162,21 @@ namespace BeziqueCore.CLI
 
             switch (currentState)
             {
+                case "GAME_INIT":
+                    // State machine enter action calls InitializeGame()
+                    _stateMachine.DispatchGameInitialized();
+                    break;
+
+                case "DEALING":
+                    // State machine enter action calls DealCards()
+                    _stateMachine.DispatchCardsDealt();
+                    break;
+
+                case "TRUMP_SELECTION":
+                    // State machine enter action calls FlipTrumpCard()
+                    _stateMachine.DispatchTrumpDetermined();
+                    break;
+
                 case "GAMEPLAY_PLAYER_TURN":
                     HandlePlayerTurn();
                     break;
