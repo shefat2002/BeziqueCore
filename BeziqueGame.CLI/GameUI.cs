@@ -46,9 +46,15 @@ namespace BeziqueGame.CLI
             var table = new Table().Border(TableBorder.Rounded);
             table.AddColumn($"[bold]{player.Name}'s Hand[/]");
 
+            var meldedCards = player.MeldedCards ?? new List<Card>();
+
             for (int i = 0; i < player.Hand.Count; i++)
             {
-                table.AddRow($"[dim]{i + 1}.[/] {GetCardDisplay(player.Hand[i])}");
+                var card = player.Hand[i];
+                var isMelded = meldedCards.Any(mc => mc.Equals(card));
+                var meldIndicator = isMelded ? "[dim][[melted]][/]" : "";
+                var cardDisplay = isMelded ? $"[dim]{GetCardDisplay(card)}[/]" : GetCardDisplay(card);
+                table.AddRow($"[dim]{i + 1}.[/] {cardDisplay} {meldIndicator}");
             }
 
             table.Expand();
@@ -232,17 +238,28 @@ namespace BeziqueGame.CLI
         {
             var melds = new List<PossibleMeld>();
             var trumpSuit = _gameState.TrumpSuit;
+            var meldedCards = player.MeldedCards ?? new List<Card>();
 
             // Find all possible melds from hand using MeldHelper
             var possibleMelds = MeldHelper.FindAllPossibleMelds(player, trumpSuit);
 
             foreach (var meld in possibleMelds)
             {
+                // Check which cards in this meld are already melded
+                var newCards = meld.Cards.Where(c => !meldedCards.Any(mc => mc.Equals(c))).ToList();
+                var alreadyMeldedCount = meld.Cards.Count - newCards.Count;
+
+                // Skip if all cards are already melded (shouldn't happen due to validation, but safety check)
+                if (alreadyMeldedCount == meld.Cards.Count)
+                    continue;
+
                 melds.Add(new PossibleMeld
                 {
                     Type = meld.Type,
                     Points = meld.Points,
-                    Cards = meld.Cards.ToList()
+                    Cards = meld.Cards.ToList(),
+                    NewCards = newCards,
+                    AlreadyMeldedCount = alreadyMeldedCount
                 });
             }
 
@@ -307,6 +324,14 @@ namespace BeziqueGame.CLI
             public MeldType Type { get; set; }
             public int Points { get; set; }
             public List<Card> Cards { get; set; } = new();
+            /// <summary>
+            /// Cards in this meld that are NOT previously melded (new cards)
+            /// </summary>
+            public List<Card> NewCards { get; set; } = new();
+            /// <summary>
+            /// Number of cards in this meld that were already used in previous melds
+            /// </summary>
+            public int AlreadyMeldedCount { get; set; }
         }
     }
 }

@@ -595,7 +595,15 @@ namespace BeziqueGame.CLI
                 AnsiConsole.MarkupLine("\n[bold green]Available Melds:[/]");
                 foreach (var meld in availableMelds)
                 {
-                    AnsiConsole.MarkupLine($"  [yellow]{meld.Type}[/] - {meld.Points} pts");
+                    var status = meld.AlreadyMeldedCount > 0
+                        ? $"[dim]({meld.AlreadyMeldedCount} already melded, {meld.NewCards.Count} new)[/]"
+                        : "[green](all new)[/]";
+
+                    AnsiConsole.MarkupLine($"  [yellow]{meld.Type}[/] - {meld.Points} pts {status}");
+
+                    // Show the cards in the meld
+                    var cardList = string.Join(", ", meld.Cards.Select(c => _ui.GetCardDisplay(c)));
+                    AnsiConsole.MarkupLine($"    [dim]Cards: {cardList}[/]");
                 }
 
                 var choice = AnsiConsole.Prompt(
@@ -616,7 +624,12 @@ namespace BeziqueGame.CLI
                     };
 
                     _playerActions.DeclareMeld(player, meld);
-                    AnsiConsole.MarkupLine($"\n[bold green]✓ Meld declared: {meld.Type} (+{meld.Points} points)[/]");
+
+                    var newCardsMsg = bestMeld.AlreadyMeldedCount > 0
+                        ? $" ({bestMeld.NewCards.Count} new card{(bestMeld.NewCards.Count > 1 ? "s" : "")})"
+                        : "";
+
+                    AnsiConsole.MarkupLine($"\n[bold green]✓ Meld declared: {meld.Type} (+{meld.Points} points){newCardsMsg}[/]");
                     AnsiConsole.MarkupLine("[dim]Press any key to continue...[/]");
                     Console.ReadKey(true);
 
