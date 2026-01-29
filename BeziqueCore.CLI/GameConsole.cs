@@ -346,11 +346,7 @@ namespace BeziqueCore.CLI
 
             foreach (var player in _gameState.Players)
             {
-                var hand = string.Join(", ", player.Hand.Take(5).Select(c => GetCardString(c)));
-                if (player.Hand.Count > 5)
-                {
-                    hand += $" +{player.Hand.Count - 5} more";
-                }
+                var hand = string.Join(", ", player.Hand.Select(c => GetCardString(c)));
                 table.AddRow(
                     player.Name,
                     hand,

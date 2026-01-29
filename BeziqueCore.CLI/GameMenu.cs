@@ -177,47 +177,47 @@ namespace BeziqueCore.CLI
                     _stateMachine.DispatchTrumpDetermined();
                     break;
 
-                case "GAMEPLAY_PLAYER_TURN":
+                case "PLAYER_TURN":
                     HandlePlayerTurn();
                     break;
 
-                case "GAMEPLAY_OPPONENT_RESPONSE":
+                case "OPPONENT_RESPONSE":
                     HandleOpponentResponse();
                     break;
 
-                case "GAMEPLAY_TRICK_RESOLUTION":
+                case "TRICK_RESOLUTION":
                     HandleTrickResolution();
                     break;
 
-                case "GAMEPLAY_MELD_OPPORTUNITY":
+                case "MELD_OPPORTUNITY":
                     HandleMeldOpportunity();
                     break;
 
-                case "GAMEPLAY_MELD_SCORING":
+                case "MELD_SCORING":
                     _stateMachine.DispatchMeldScored();
                     break;
 
-                case "GAMEPLAY_CARD_DRAW":
+                case "CARD_DRAW":
                     HandleCardDraw();
                     break;
 
-                case "GAMEPLAY_DECK_CHECK":
+                case "DECK_CHECK":
                     HandleDeckCheck();
                     break;
 
-                case "LAST_9_CARDS_L9_PLAYER_TURN":
+                case "L9_PLAYER_TURN":
                     HandleL9PlayerTurn();
                     break;
 
-                case "LAST_9_CARDS_L9_OPPONENT_RESPONSE":
+                case "L9_OPPONENT_RESPONSE":
                     HandleL9OpponentResponse();
                     break;
 
-                case "LAST_9_CARDS_L9_TRICK_RESOLUTION":
+                case "L9_TRICK_RESOLUTION":
                     HandleL9TrickResolution();
                     break;
 
-                case "LAST_9_CARDS_L9_TRICK_CHECK":
+                case "L9_TRICK_CHECK":
                     HandleL9TrickCheck();
                     break;
 
@@ -713,11 +713,19 @@ namespace BeziqueCore.CLI
         private void DisplayGameInfo()
         {
             var info = new Table().Border(TableBorder.None).Width(Console.WindowWidth - 4);
-            info.AddColumn(new TableColumn("[bold]Trump:[]").Width(20));
-            info.AddColumn(new TableColumn("[bold]Deck:[]").Width(20));
-            info.AddColumn(new TableColumn("[bold]Phase:[]").Width(30));
+            info.AddColumn(new TableColumn(Markup.Escape("Trump:")).Width(20));
+            info.AddColumn(new TableColumn(Markup.Escape("Deck:")).Width(20));
+            info.AddColumn(new TableColumn(Markup.Escape("Phase:")).Width(30));
 
-            var trumpDisplay = GetSuitDisplay(_gameConsole.GameState.TrumpSuit);
+            var trumpSuit = _gameConsole.GameState.TrumpSuit;
+            var trumpDisplay = trumpSuit switch
+            {
+                Suit.Hearts => "[red]♥[/]",
+                Suit.Diamonds => "[red]♦[/]",
+                Suit.Clubs => "[blue]♣[/]",
+                Suit.Spades => "[blue]♠[/]",
+                _ => "?"
+            };
             var deckCount = _gameConsole.DeckOps.GetRemainingCardCount();
             var phase = _gameConsole.IsLastNineCardsPhase() ? "[red]Last 9 Cards[/]" : "[green]Normal[/]";
 
@@ -735,6 +743,8 @@ namespace BeziqueCore.CLI
                 table.AddRow($"[dim]{i + 1}.[/] {GetCardDisplay(player.Hand[i])}");
             }
 
+            // Expand table to show all content without truncation
+            table.Expand();
             AnsiConsole.Write(table);
         }
 
