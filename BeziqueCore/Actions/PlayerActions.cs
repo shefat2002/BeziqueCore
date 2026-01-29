@@ -25,12 +25,20 @@ namespace BeziqueCore.Actions
 
         public void PlayCard(Player player, Card card)
         {
-            if (player.Hand == null || !player.Hand.Contains(card))
+            if (player.Hand == null)
+            {
+                throw new InvalidOperationException("Player hand is null.");
+            }
+
+            // Find the actual card in hand (using value equality)
+            var cardInHand = player.Hand.FirstOrDefault(c => c.Equals(card));
+            if (cardInHand == null)
             {
                 throw new InvalidOperationException("Player does not have this card in hand.");
             }
 
-            player.Hand.Remove(card);
+            // Remove the actual card reference from hand
+            player.Hand.Remove(cardInHand);
 
             // Check if playing 7 of trump - award 10 points
             if (card.Rank == Rank.Seven && card.Suit == _gameState.TrumpSuit)
@@ -40,9 +48,9 @@ namespace BeziqueCore.Actions
             }
 
             // Add to current trick
-            _gameState.AddCardToTrick(player, card);
+            _gameState.AddCardToTrick(player, cardInHand);
 
-            _notifier.NotifyCardPlayed(player, card);
+            _notifier.NotifyCardPlayed(player, cardInHand);
 
             // Check if trick is complete (all players have played)
             if (_gameState.IsTrickComplete())
@@ -110,6 +118,8 @@ namespace BeziqueCore.Actions
             }
 
             player.Score += SevenOfTrumpBonus;
+
+            // Remove the actual card reference from hand
             player.Hand.Remove(sevenOfTrump);
 
             if (_gameState.TrumpCard != null)

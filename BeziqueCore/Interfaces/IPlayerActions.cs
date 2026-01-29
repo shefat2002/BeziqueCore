@@ -1,10 +1,43 @@
 namespace BeziqueCore.Models
 {
-    public class Card
+    public class Card : IEquatable<Card>
     {
         public Suit Suit { get; set; }
         public Rank Rank { get; set; }
         public bool IsJoker { get; set; }
+
+        public bool Equals(Card? other)
+        {
+            if (other is null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Suit == other.Suit && Rank == other.Rank && IsJoker == other.IsJoker;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return Equals(obj as Card);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Suit, Rank, IsJoker);
+        }
+
+        public static bool operator ==(Card? left, Card? right)
+        {
+            if (left is null) return right is null;
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(Card? left, Card? right)
+        {
+            return !(left == right);
+        }
+
+        public override string ToString()
+        {
+            return IsJoker ? "Joker" : $"{Rank} of {Suit}";
+        }
     }
 
     public enum Suit
