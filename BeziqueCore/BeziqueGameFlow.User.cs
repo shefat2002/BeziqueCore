@@ -95,6 +95,16 @@ public partial class BeziqueGameFlow
         DispatchEvent(EventId.TIMERRESET);
     }
 
+    public void DispatchMorePlayersNeedToPlay()
+    {
+        DispatchEvent(EventId.MOREPLAYERSNEEDTOPLAY);
+    }
+
+    public void DispatchTrickComplete()
+    {
+        DispatchEvent(EventId.TRICKCOMPLETE);
+    }
+
     public void CheckAndDispatchDeckEmpty()
     {
         if (gameAdapter.IsDeckEmpty())
@@ -126,13 +136,13 @@ public partial class BeziqueGameFlow
         if (gameAdapter.IsTrickComplete())
         {
             // All players have played their cards - proceed to trick resolution
-            DispatchEvent(EventId.TRICKRESOLVED);
+            DispatchEvent(EventId.TRICKCOMPLETE);
         }
         else
         {
             // Not all players have played yet - need another card play
             // Continue to next player's turn
-            DispatchEvent(EventId.CARDPLAYED);
+            DispatchEvent(EventId.MOREPLAYERSNEEDTOPLAY);
         }
     }
 }
