@@ -283,6 +283,16 @@ namespace BeziqueCore.Adapters
                     winner.Hand.Add(card);
                 }
             }
+            else if (_deckOps.GetTrumpCard() != null)
+            {
+                // Deck is empty, but trump card is available
+                var trumpCard = _deckOps.TakeTrumpCard();
+                if (trumpCard != null)
+                {
+                    winner.Hand.Add(trumpCard);
+                    _notifier.NotifyTrumpCardTaken(winner, trumpCard);
+                }
+            }
 
             // Loser draws next
             if (_deckOps.GetRemainingCardCount() > 0)
@@ -291,6 +301,16 @@ namespace BeziqueCore.Adapters
                 if (card != null)
                 {
                     loser.Hand.Add(card);
+                }
+            }
+            else if (_deckOps.GetTrumpCard() != null)
+            {
+                // Deck is empty, but trump card is available
+                var trumpCard = _deckOps.TakeTrumpCard();
+                if (trumpCard != null)
+                {
+                    loser.Hand.Add(trumpCard);
+                    _notifier.NotifyTrumpCardTaken(loser, trumpCard);
                 }
             }
         }
