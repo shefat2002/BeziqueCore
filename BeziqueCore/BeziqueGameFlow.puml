@@ -73,7 +73,8 @@ state GAMEPLAY {
     }
 
     PLAYER_TURN --> OPPONENT_RESPONSE : CardPlayed
-    OPPONENT_RESPONSE -down-> TRICK_RESOLUTION : AllPlayersResponded
+    OPPONENT_RESPONSE -down-> TRICK_RESOLUTION : TrickComplete
+    OPPONENT_RESPONSE -up-> PLAYER_TURN : MorePlayersNeedToPlay
     TRICK_RESOLUTION -down-> MELD_OPPORTUNITY : TrickResolved
     MELD_OPPORTUNITY -down-> MELD_SCORING : MeldDeclared
     MELD_OPPORTUNITY -right-> CARD_DRAW : MeldSkipped
@@ -113,7 +114,8 @@ state LAST_9_CARDS {
     [*] --> L9_PLAYER_TURN
     L9_PLAYER_TURN -down-> L9_OPPONENT_RESPONSE : CardPlayed
     L9_PLAYER_TURN -right-> L9_TIMER_TIMEOUT : TimerExpired
-    L9_OPPONENT_RESPONSE -down-> L9_TRICK_RESOLUTION : AllPlayersResponded
+    L9_OPPONENT_RESPONSE -down-> L9_TRICK_RESOLUTION : TrickComplete
+    L9_OPPONENT_RESPONSE -up-> L9_PLAYER_TURN : MorePlayersNeedToPlay
     L9_TRICK_RESOLUTION -down-> L9_TRICK_CHECK : TrickResolved
 
     L9_TRICK_CHECK -up-> L9_PLAYER_TURN : ContinueLastNine

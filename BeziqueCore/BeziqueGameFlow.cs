@@ -9,26 +9,27 @@ public partial class BeziqueGameFlow
     public enum EventId
     {
         ALLHANDSEMPTY = 0,
-        ALLPLAYERSRESPONDED = 1,
-        CARDPLAYED = 2,
-        CARDSDEALT = 3,
-        CARDSDRAWN = 4,
-        CONTINUEGAME = 5,
-        CONTINUELASTNINE = 6,
-        DECKEMPTY = 7,
-        INITIALIZED = 8,
-        MELDDECLARED = 9,
-        MELDSCORED = 10,
-        MELDSKIPPED = 11,
-        MORECARDSAVAILABLE = 12,
+        CARDPLAYED = 1,
+        CARDSDEALT = 2,
+        CARDSDRAWN = 3,
+        CONTINUEGAME = 4,
+        CONTINUELASTNINE = 5,
+        DECKEMPTY = 6,
+        INITIALIZED = 7,
+        MELDDECLARED = 8,
+        MELDSCORED = 9,
+        MELDSKIPPED = 10,
+        MORECARDSAVAILABLE = 11,
+        MOREPLAYERSNEEDTOPLAY = 12,
         TIMEREXPIRED = 13,
         TIMERRESET = 14,
-        TRICKRESOLVED = 15,
-        TRUMPDETERMINED = 16,
-        WINNINGSCOREREACHED = 17,
+        TRICKCOMPLETE = 15,
+        TRICKRESOLVED = 16,
+        TRUMPDETERMINED = 17,
+        WINNINGSCOREREACHED = 18,
     }
 
-    public const int EventIdCount = 18;
+    public const int EventIdCount = 19;
 
     public enum StateId
     {
@@ -158,7 +159,8 @@ public partial class BeziqueGameFlow
             case StateId.L9_OPPONENT_RESPONSE:
                 switch (eventId)
                 {
-                    case EventId.ALLPLAYERSRESPONDED: L9_OPPONENT_RESPONSE_allplayersresponded(); break;
+                    case EventId.TRICKCOMPLETE: L9_OPPONENT_RESPONSE_trickcomplete(); break;
+                    case EventId.MOREPLAYERSNEEDTOPLAY: L9_OPPONENT_RESPONSE_moreplayersneedtoplay(); break;
                 }
                 break;
 
@@ -217,7 +219,8 @@ public partial class BeziqueGameFlow
             case StateId.OPPONENT_RESPONSE:
                 switch (eventId)
                 {
-                    case EventId.ALLPLAYERSRESPONDED: OPPONENT_RESPONSE_allplayersresponded(); break;
+                    case EventId.TRICKCOMPLETE: OPPONENT_RESPONSE_trickcomplete(); break;
+                    case EventId.MOREPLAYERSNEEDTOPLAY: OPPONENT_RESPONSE_moreplayersneedtoplay(); break;
                 }
                 break;
 
@@ -623,10 +626,30 @@ public partial class BeziqueGameFlow
         this.stateId = StateId.LAST_9_CARDS;
     }
 
-    private void L9_OPPONENT_RESPONSE_allplayersresponded()
+    private void L9_OPPONENT_RESPONSE_moreplayersneedtoplay()
     {
         // L9_OPPONENT_RESPONSE behavior
-        // uml: AllPlayersResponded TransitionTo(L9_TRICK_RESOLUTION)
+        // uml: MorePlayersNeedToPlay TransitionTo(L9_PLAYER_TURN)
+        {
+            // Step 1: Exit states until we reach `LAST_9_CARDS` state (Least Common Ancestor for transition).
+            L9_OPPONENT_RESPONSE_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `L9_PLAYER_TURN`.
+            L9_PLAYER_TURN_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for L9_OPPONENT_RESPONSE
+
+        // No ancestor handles this event.
+    }
+
+    private void L9_OPPONENT_RESPONSE_trickcomplete()
+    {
+        // L9_OPPONENT_RESPONSE behavior
+        // uml: TrickComplete TransitionTo(L9_TRICK_RESOLUTION)
         {
             // Step 1: Exit states until we reach `LAST_9_CARDS` state (Least Common Ancestor for transition).
             L9_OPPONENT_RESPONSE_exit();
@@ -991,10 +1014,30 @@ public partial class BeziqueGameFlow
         this.stateId = StateId.GAMEPLAY;
     }
 
-    private void OPPONENT_RESPONSE_allplayersresponded()
+    private void OPPONENT_RESPONSE_moreplayersneedtoplay()
     {
         // OPPONENT_RESPONSE behavior
-        // uml: AllPlayersResponded TransitionTo(TRICK_RESOLUTION)
+        // uml: MorePlayersNeedToPlay TransitionTo(PLAYER_TURN)
+        {
+            // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
+            OPPONENT_RESPONSE_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `PLAYER_TURN`.
+            PLAYER_TURN_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for OPPONENT_RESPONSE
+
+        // No ancestor handles this event.
+    }
+
+    private void OPPONENT_RESPONSE_trickcomplete()
+    {
+        // OPPONENT_RESPONSE behavior
+        // uml: TrickComplete TransitionTo(TRICK_RESOLUTION)
         {
             // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
             OPPONENT_RESPONSE_exit();
@@ -1337,7 +1380,6 @@ public partial class BeziqueGameFlow
         switch (id)
         {
             case EventId.ALLHANDSEMPTY: return "ALLHANDSEMPTY";
-            case EventId.ALLPLAYERSRESPONDED: return "ALLPLAYERSRESPONDED";
             case EventId.CARDPLAYED: return "CARDPLAYED";
             case EventId.CARDSDEALT: return "CARDSDEALT";
             case EventId.CARDSDRAWN: return "CARDSDRAWN";
@@ -1349,8 +1391,10 @@ public partial class BeziqueGameFlow
             case EventId.MELDSCORED: return "MELDSCORED";
             case EventId.MELDSKIPPED: return "MELDSKIPPED";
             case EventId.MORECARDSAVAILABLE: return "MORECARDSAVAILABLE";
+            case EventId.MOREPLAYERSNEEDTOPLAY: return "MOREPLAYERSNEEDTOPLAY";
             case EventId.TIMEREXPIRED: return "TIMEREXPIRED";
             case EventId.TIMERRESET: return "TIMERRESET";
+            case EventId.TRICKCOMPLETE: return "TRICKCOMPLETE";
             case EventId.TRICKRESOLVED: return "TRICKRESOLVED";
             case EventId.TRUMPDETERMINED: return "TRUMPDETERMINED";
             case EventId.WINNINGSCOREREACHED: return "WINNINGSCOREREACHED";

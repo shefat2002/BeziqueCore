@@ -229,6 +229,16 @@ namespace BeziqueCore.Adapters
             // This is just a notification point in the state machine
         }
 
+        public bool IsTrickComplete()
+        {
+            return _gameState.CurrentTrick.Count >= _gameState.Players.Count;
+        }
+
+        public bool MorePlayersNeedToPlay()
+        {
+            return _gameState.CurrentTrick.Count < _gameState.Players.Count;
+        }
+
         public void DrawCards()
         {
             // Winner draws first (top card), then loser draws next

@@ -30,11 +30,6 @@ public partial class BeziqueGameFlow
         DispatchEvent(EventId.CARDPLAYED);
     }
 
-    public void DispatchAllPlayersResponded()
-    {
-        DispatchEvent(EventId.ALLPLAYERSRESPONDED);
-    }
-
     public void DispatchTrickResolved()
     {
         DispatchEvent(EventId.TRICKRESOLVED);
@@ -123,6 +118,21 @@ public partial class BeziqueGameFlow
         {
             // Players still have cards - continue last 9 cards phase
             DispatchEvent(EventId.CONTINUELASTNINE);
+        }
+    }
+
+    public void CheckAndDispatchTrickComplete()
+    {
+        if (gameAdapter.IsTrickComplete())
+        {
+            // All players have played their cards - proceed to trick resolution
+            DispatchEvent(EventId.TRICKRESOLVED);
+        }
+        else
+        {
+            // Not all players have played yet - need another card play
+            // Continue to next player's turn
+            DispatchEvent(EventId.CARDPLAYED);
         }
     }
 }

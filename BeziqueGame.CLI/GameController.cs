@@ -246,7 +246,8 @@ namespace BeziqueGame.CLI
                     break;
 
                 case "OPPONENT_RESPONSE":
-                    HandleOpponentResponse();
+                    // Use SDK's built-in trick completion check
+                    _stateMachine.CheckAndDispatchTrickComplete();
                     break;
 
                 case "TRICK_RESOLUTION":
@@ -274,7 +275,8 @@ namespace BeziqueGame.CLI
                     break;
 
                 case "L9_OPPONENT_RESPONSE":
-                    _stateMachine.DispatchAllPlayersResponded();
+                    // Use SDK's built-in trick completion check for Last 9 Cards phase
+                    _stateMachine.CheckAndDispatchTrickComplete();
                     break;
 
                 case "L9_TRICK_RESOLUTION":
@@ -480,11 +482,6 @@ namespace BeziqueGame.CLI
 
             Thread.Sleep(1500);
             _stateMachine.DispatchCardPlayed();
-        }
-
-        private void HandleOpponentResponse()
-        {
-            _stateMachine.DispatchAllPlayersResponded();
         }
 
         private void HandleTrickResolution()
@@ -789,6 +786,41 @@ namespace BeziqueGame.CLI
             }
 
             _gameState.StartNewTrick();
+        }
+
+        private void MoveToNextPlayer()
+        {
+            // Find current player index and move to next
+            var players = _gameState.Players;
+            var currentIndex = players.FindIndex(p => p.Id == _gameState.CurrentPlayer?.Id);
+            if (currentIndex >= 0)
+            {
+                var nextIndex = (currentIndex + 1) % players.Count;
+                _gameState.CurrentPlayer = players[nextIndex];
+            }
+        }
+
+        private void HandleNextPlayerTurn()
+        {
+            // Move to next player
+            MoveToNextPlayer();
+
+            // Get the next player
+            var nextPlayer = _gameState.CurrentPlayer;
+            if (nextPlayer == null) return;
+
+            // Check if this is a bot player
+            if (_bots.ContainsKey(nextPlayer))
+            {
+                // Bot plays immediately
+                HandleBotTurn(nextPlayer);
+            }
+            else
+            {
+                // Human player - their turn will be handled in next loop iteration
+                // The state machine is still in OPPONENT_RESPONSE, but we've updated CurrentPlayer
+                // Next iteration will show the same state but with different player
+            }
         }
 
         private void ShowRules()

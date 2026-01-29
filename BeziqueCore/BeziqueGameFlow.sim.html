@@ -413,7 +413,9 @@ PLAYER_TURN --> OPPONENT_RESPONSE : CardPlayed
 
 PLAYER_TURN --> TIMER_TIMEOUT : TimerExpired
 
-OPPONENT_RESPONSE --> TRICK_RESOLUTION : AllPlayersResponded
+OPPONENT_RESPONSE --> TRICK_RESOLUTION : TrickComplete
+
+OPPONENT_RESPONSE --> PLAYER_TURN : MorePlayersNeedToPlay
 
 TRICK_RESOLUTION --> MELD_OPPORTUNITY : TrickResolved
 
@@ -433,7 +435,9 @@ L9_PLAYER_TURN --> L9_OPPONENT_RESPONSE : CardPlayed
 
 L9_PLAYER_TURN --> L9_TIMER_TIMEOUT : TimerExpired
 
-L9_OPPONENT_RESPONSE --> L9_TRICK_RESOLUTION : AllPlayersResponded
+L9_OPPONENT_RESPONSE --> L9_TRICK_RESOLUTION : TrickComplete
+
+L9_OPPONENT_RESPONSE --> L9_PLAYER_TURN : MorePlayersNeedToPlay
 
 L9_TRICK_RESOLUTION --> L9_TRICK_CHECK : TrickResolved
 
@@ -497,27 +501,28 @@ evaluateGuard = null;
     static EventId = 
     {
         ALLHANDSEMPTY : 0,
-        ALLPLAYERSRESPONDED : 1,
-        CARDPLAYED : 2,
-        CARDSDEALT : 3,
-        CARDSDRAWN : 4,
-        CONTINUEGAME : 5,
-        CONTINUELASTNINE : 6,
-        DECKEMPTY : 7,
-        INITIALIZED : 8,
-        MELDDECLARED : 9,
-        MELDSCORED : 10,
-        MELDSKIPPED : 11,
-        MORECARDSAVAILABLE : 12,
+        CARDPLAYED : 1,
+        CARDSDEALT : 2,
+        CARDSDRAWN : 3,
+        CONTINUEGAME : 4,
+        CONTINUELASTNINE : 5,
+        DECKEMPTY : 6,
+        INITIALIZED : 7,
+        MELDDECLARED : 8,
+        MELDSCORED : 9,
+        MELDSKIPPED : 10,
+        MORECARDSAVAILABLE : 11,
+        MOREPLAYERSNEEDTOPLAY : 12,
         TIMEREXPIRED : 13,
         TIMERRESET : 14,
-        TRICKRESOLVED : 15,
-        TRUMPDETERMINED : 16,
-        WINNINGSCOREREACHED : 17,
+        TRICKCOMPLETE : 15,
+        TRICKRESOLVED : 16,
+        TRUMPDETERMINED : 17,
+        WINNINGSCOREREACHED : 18,
     }
     static { Object.freeze(this.EventId); }
     
-    static EventIdCount = 18;
+    static EventIdCount = 19;
     static { Object.freeze(this.EventIdCount); }
     
     static StateId = 
@@ -567,12 +572,12 @@ evaluateGuard = null;
             // ROOT.<InitialState> is a pseudo state and cannot have an `enter` trigger.
             
             // ROOT.<InitialState> behavior
-            // uml: / { this.tracer?.edgeTransition("edge25"); } TransitionTo(GAME_INIT)
+            // uml: / { this.tracer?.edgeTransition("edge27"); } TransitionTo(GAME_INIT)
             {
                 // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
                 
-                // Step 2: Transition action: `this.tracer?.edgeTransition("edge25");`.
-                this.tracer?.edgeTransition("edge25");
+                // Step 2: Transition action: `this.tracer?.edgeTransition("edge27");`.
+                this.tracer?.edgeTransition("edge27");
                 
                 // Step 3: Enter/move towards transition target `GAME_INIT`.
                 this.#GAME_INIT_enter();
@@ -646,7 +651,8 @@ evaluateGuard = null;
             case BeziqueGameFlow.StateId.L9_OPPONENT_RESPONSE:
                 switch (eventId)
                 {
-                    case BeziqueGameFlow.EventId.ALLPLAYERSRESPONDED: this.#L9_OPPONENT_RESPONSE_allplayersresponded(); break;
+                    case BeziqueGameFlow.EventId.TRICKCOMPLETE: this.#L9_OPPONENT_RESPONSE_trickcomplete(); break;
+                    case BeziqueGameFlow.EventId.MOREPLAYERSNEEDTOPLAY: this.#L9_OPPONENT_RESPONSE_moreplayersneedtoplay(); break;
                 }
                 break;
             
@@ -705,7 +711,8 @@ evaluateGuard = null;
             case BeziqueGameFlow.StateId.OPPONENT_RESPONSE:
                 switch (eventId)
                 {
-                    case BeziqueGameFlow.EventId.ALLPLAYERSRESPONDED: this.#OPPONENT_RESPONSE_allplayersresponded(); break;
+                    case BeziqueGameFlow.EventId.TRICKCOMPLETE: this.#OPPONENT_RESPONSE_trickcomplete(); break;
+                    case BeziqueGameFlow.EventId.MOREPLAYERSNEEDTOPLAY: this.#OPPONENT_RESPONSE_moreplayersneedtoplay(); break;
                 }
                 break;
             
@@ -1056,13 +1063,13 @@ evaluateGuard = null;
     #CARD_DRAW_cardsdrawn()
     {
         // CARD_DRAW behavior
-        // uml: CardsDrawn / { this.tracer?.edgeTransition("edge14"); } TransitionTo(DECK_CHECK)
+        // uml: CardsDrawn / { this.tracer?.edgeTransition("edge15"); } TransitionTo(DECK_CHECK)
         {
             // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
             this.#CARD_DRAW_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge14");`.
-            this.tracer?.edgeTransition("edge14");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge15");`.
+            this.tracer?.edgeTransition("edge15");
             
             // Step 3: Enter/move towards transition target `DECK_CHECK`.
             this.#DECK_CHECK_enter();
@@ -1113,24 +1120,24 @@ evaluateGuard = null;
     #DECK_CHECK_deckempty()
     {
         // DECK_CHECK behavior
-        // uml: DeckEmpty / { this.tracer?.edgeTransition("edge15"); } TransitionTo(LAST_9_CARDS)
+        // uml: DeckEmpty / { this.tracer?.edgeTransition("edge16"); } TransitionTo(LAST_9_CARDS)
         {
             // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
             this.#DECK_CHECK_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge15");`.
-            this.tracer?.edgeTransition("edge15");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge16");`.
+            this.tracer?.edgeTransition("edge16");
             
             // Step 3: Enter/move towards transition target `LAST_9_CARDS`.
             this.#LAST_9_CARDS_enter();
             
             // LAST_9_CARDS.<InitialState> behavior
-            // uml: / { this.tracer?.edgeTransition("edge24"); } TransitionTo(L9_PLAYER_TURN)
+            // uml: / { this.tracer?.edgeTransition("edge26"); } TransitionTo(L9_PLAYER_TURN)
             {
                 // Step 1: Exit states until we reach `LAST_9_CARDS` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
                 
-                // Step 2: Transition action: `this.tracer?.edgeTransition("edge24");`.
-                this.tracer?.edgeTransition("edge24");
+                // Step 2: Transition action: `this.tracer?.edgeTransition("edge26");`.
+                this.tracer?.edgeTransition("edge26");
                 
                 // Step 3: Enter/move towards transition target `L9_PLAYER_TURN`.
                 this.#L9_PLAYER_TURN_enter();
@@ -1146,13 +1153,13 @@ evaluateGuard = null;
     #DECK_CHECK_morecardsavailable()
     {
         // DECK_CHECK behavior
-        // uml: MoreCardsAvailable / { this.tracer?.edgeTransition("edge16"); } TransitionTo(PLAYER_TURN)
+        // uml: MoreCardsAvailable / { this.tracer?.edgeTransition("edge17"); } TransitionTo(PLAYER_TURN)
         {
             // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
             this.#DECK_CHECK_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge16");`.
-            this.tracer?.edgeTransition("edge16");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge17");`.
+            this.tracer?.edgeTransition("edge17");
             
             // Step 3: Enter/move towards transition target `PLAYER_TURN`.
             this.#PLAYER_TURN_enter();
@@ -1229,16 +1236,37 @@ evaluateGuard = null;
         this.stateId = BeziqueGameFlow.StateId.LAST_9_CARDS;
     }
     
-    #L9_OPPONENT_RESPONSE_allplayersresponded()
+    #L9_OPPONENT_RESPONSE_moreplayersneedtoplay()
     {
         // L9_OPPONENT_RESPONSE behavior
-        // uml: AllPlayersResponded / { this.tracer?.edgeTransition("edge19"); } TransitionTo(L9_TRICK_RESOLUTION)
+        // uml: MorePlayersNeedToPlay / { this.tracer?.edgeTransition("edge21"); } TransitionTo(L9_PLAYER_TURN)
         {
             // Step 1: Exit states until we reach `LAST_9_CARDS` state (Least Common Ancestor for transition).
             this.#L9_OPPONENT_RESPONSE_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge19");`.
-            this.tracer?.edgeTransition("edge19");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge21");`.
+            this.tracer?.edgeTransition("edge21");
+            
+            // Step 3: Enter/move towards transition target `L9_PLAYER_TURN`.
+            this.#L9_PLAYER_TURN_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for L9_OPPONENT_RESPONSE
+        
+        // No ancestor handles this event.
+    }
+    
+    #L9_OPPONENT_RESPONSE_trickcomplete()
+    {
+        // L9_OPPONENT_RESPONSE behavior
+        // uml: TrickComplete / { this.tracer?.edgeTransition("edge20"); } TransitionTo(L9_TRICK_RESOLUTION)
+        {
+            // Step 1: Exit states until we reach `LAST_9_CARDS` state (Least Common Ancestor for transition).
+            this.#L9_OPPONENT_RESPONSE_exit();
+            
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge20");`.
+            this.tracer?.edgeTransition("edge20");
             
             // Step 3: Enter/move towards transition target `L9_TRICK_RESOLUTION`.
             this.#L9_TRICK_RESOLUTION_enter();
@@ -1296,13 +1324,13 @@ evaluateGuard = null;
     #L9_PLAYER_TURN_cardplayed()
     {
         // L9_PLAYER_TURN behavior
-        // uml: CardPlayed / { this.tracer?.edgeTransition("edge17"); } TransitionTo(L9_OPPONENT_RESPONSE)
+        // uml: CardPlayed / { this.tracer?.edgeTransition("edge18"); } TransitionTo(L9_OPPONENT_RESPONSE)
         {
             // Step 1: Exit states until we reach `LAST_9_CARDS` state (Least Common Ancestor for transition).
             this.#L9_PLAYER_TURN_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge17");`.
-            this.tracer?.edgeTransition("edge17");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge18");`.
+            this.tracer?.edgeTransition("edge18");
             
             // Step 3: Enter/move towards transition target `L9_OPPONENT_RESPONSE`.
             this.#L9_OPPONENT_RESPONSE_enter();
@@ -1317,13 +1345,13 @@ evaluateGuard = null;
     #L9_PLAYER_TURN_timerexpired()
     {
         // L9_PLAYER_TURN behavior
-        // uml: TimerExpired / { this.tracer?.edgeTransition("edge18"); } TransitionTo(L9_TIMER_TIMEOUT)
+        // uml: TimerExpired / { this.tracer?.edgeTransition("edge19"); } TransitionTo(L9_TIMER_TIMEOUT)
         {
             // Step 1: Exit states until we reach `LAST_9_CARDS` state (Least Common Ancestor for transition).
             this.#L9_PLAYER_TURN_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge18");`.
-            this.tracer?.edgeTransition("edge18");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge19");`.
+            this.tracer?.edgeTransition("edge19");
             
             // Step 3: Enter/move towards transition target `L9_TIMER_TIMEOUT`.
             this.#L9_TIMER_TIMEOUT_enter();
@@ -1381,13 +1409,13 @@ evaluateGuard = null;
     #L9_TIMER_TIMEOUT_timerreset()
     {
         // L9_TIMER_TIMEOUT behavior
-        // uml: TimerReset / { this.tracer?.edgeTransition("edge23"); } TransitionTo(L9_PLAYER_TURN)
+        // uml: TimerReset / { this.tracer?.edgeTransition("edge25"); } TransitionTo(L9_PLAYER_TURN)
         {
             // Step 1: Exit states until we reach `LAST_9_CARDS` state (Least Common Ancestor for transition).
             this.#L9_TIMER_TIMEOUT_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge23");`.
-            this.tracer?.edgeTransition("edge23");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge25");`.
+            this.tracer?.edgeTransition("edge25");
             
             // Step 3: Enter/move towards transition target `L9_PLAYER_TURN`.
             this.#L9_PLAYER_TURN_enter();
@@ -1438,13 +1466,13 @@ evaluateGuard = null;
     #L9_TRICK_CHECK_allhandsempty()
     {
         // L9_TRICK_CHECK behavior
-        // uml: AllHandsEmpty / { this.tracer?.edgeTransition("edge22"); } TransitionTo(ROUND_END)
+        // uml: AllHandsEmpty / { this.tracer?.edgeTransition("edge24"); } TransitionTo(ROUND_END)
         {
             // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
             this.#exitUpToStateHandler(BeziqueGameFlow.StateId.ROOT);
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge22");`.
-            this.tracer?.edgeTransition("edge22");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge24");`.
+            this.tracer?.edgeTransition("edge24");
             
             // Step 3: Enter/move towards transition target `ROUND_END`.
             this.#ROUND_END_enter();
@@ -1459,13 +1487,13 @@ evaluateGuard = null;
     #L9_TRICK_CHECK_continuelastnine()
     {
         // L9_TRICK_CHECK behavior
-        // uml: ContinueLastNine / { this.tracer?.edgeTransition("edge21"); } TransitionTo(L9_PLAYER_TURN)
+        // uml: ContinueLastNine / { this.tracer?.edgeTransition("edge23"); } TransitionTo(L9_PLAYER_TURN)
         {
             // Step 1: Exit states until we reach `LAST_9_CARDS` state (Least Common Ancestor for transition).
             this.#L9_TRICK_CHECK_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge21");`.
-            this.tracer?.edgeTransition("edge21");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge23");`.
+            this.tracer?.edgeTransition("edge23");
             
             // Step 3: Enter/move towards transition target `L9_PLAYER_TURN`.
             this.#L9_PLAYER_TURN_enter();
@@ -1516,13 +1544,13 @@ evaluateGuard = null;
     #L9_TRICK_RESOLUTION_trickresolved()
     {
         // L9_TRICK_RESOLUTION behavior
-        // uml: TrickResolved / { this.tracer?.edgeTransition("edge20"); } TransitionTo(L9_TRICK_CHECK)
+        // uml: TrickResolved / { this.tracer?.edgeTransition("edge22"); } TransitionTo(L9_TRICK_CHECK)
         {
             // Step 1: Exit states until we reach `LAST_9_CARDS` state (Least Common Ancestor for transition).
             this.#L9_TRICK_RESOLUTION_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge20");`.
-            this.tracer?.edgeTransition("edge20");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge22");`.
+            this.tracer?.edgeTransition("edge22");
             
             // Step 3: Enter/move towards transition target `L9_TRICK_CHECK`.
             this.#L9_TRICK_CHECK_enter();
@@ -1573,13 +1601,13 @@ evaluateGuard = null;
     #MELD_OPPORTUNITY_melddeclared()
     {
         // MELD_OPPORTUNITY behavior
-        // uml: MeldDeclared / { this.tracer?.edgeTransition("edge11"); } TransitionTo(MELD_SCORING)
+        // uml: MeldDeclared / { this.tracer?.edgeTransition("edge12"); } TransitionTo(MELD_SCORING)
         {
             // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
             this.#MELD_OPPORTUNITY_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge11");`.
-            this.tracer?.edgeTransition("edge11");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge12");`.
+            this.tracer?.edgeTransition("edge12");
             
             // Step 3: Enter/move towards transition target `MELD_SCORING`.
             this.#MELD_SCORING_enter();
@@ -1594,13 +1622,13 @@ evaluateGuard = null;
     #MELD_OPPORTUNITY_meldskipped()
     {
         // MELD_OPPORTUNITY behavior
-        // uml: MeldSkipped / { this.tracer?.edgeTransition("edge12"); } TransitionTo(CARD_DRAW)
+        // uml: MeldSkipped / { this.tracer?.edgeTransition("edge13"); } TransitionTo(CARD_DRAW)
         {
             // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
             this.#MELD_OPPORTUNITY_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge12");`.
-            this.tracer?.edgeTransition("edge12");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge13");`.
+            this.tracer?.edgeTransition("edge13");
             
             // Step 3: Enter/move towards transition target `CARD_DRAW`.
             this.#CARD_DRAW_enter();
@@ -1651,13 +1679,13 @@ evaluateGuard = null;
     #MELD_SCORING_meldscored()
     {
         // MELD_SCORING behavior
-        // uml: MeldScored / { this.tracer?.edgeTransition("edge13"); } TransitionTo(CARD_DRAW)
+        // uml: MeldScored / { this.tracer?.edgeTransition("edge14"); } TransitionTo(CARD_DRAW)
         {
             // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
             this.#MELD_SCORING_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge13");`.
-            this.tracer?.edgeTransition("edge13");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge14");`.
+            this.tracer?.edgeTransition("edge14");
             
             // Step 3: Enter/move towards transition target `CARD_DRAW`.
             this.#CARD_DRAW_enter();
@@ -1705,10 +1733,31 @@ evaluateGuard = null;
         this.stateId = BeziqueGameFlow.StateId.GAMEPLAY;
     }
     
-    #OPPONENT_RESPONSE_allplayersresponded()
+    #OPPONENT_RESPONSE_moreplayersneedtoplay()
     {
         // OPPONENT_RESPONSE behavior
-        // uml: AllPlayersResponded / { this.tracer?.edgeTransition("edge9"); } TransitionTo(TRICK_RESOLUTION)
+        // uml: MorePlayersNeedToPlay / { this.tracer?.edgeTransition("edge10"); } TransitionTo(PLAYER_TURN)
+        {
+            // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
+            this.#OPPONENT_RESPONSE_exit();
+            
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge10");`.
+            this.tracer?.edgeTransition("edge10");
+            
+            // Step 3: Enter/move towards transition target `PLAYER_TURN`.
+            this.#PLAYER_TURN_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for OPPONENT_RESPONSE
+        
+        // No ancestor handles this event.
+    }
+    
+    #OPPONENT_RESPONSE_trickcomplete()
+    {
+        // OPPONENT_RESPONSE behavior
+        // uml: TrickComplete / { this.tracer?.edgeTransition("edge9"); } TransitionTo(TRICK_RESOLUTION)
         {
             // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
             this.#OPPONENT_RESPONSE_exit();
@@ -1850,13 +1899,13 @@ evaluateGuard = null;
     #TRICK_RESOLUTION_trickresolved()
     {
         // TRICK_RESOLUTION behavior
-        // uml: TrickResolved / { this.tracer?.edgeTransition("edge10"); } TransitionTo(MELD_OPPORTUNITY)
+        // uml: TrickResolved / { this.tracer?.edgeTransition("edge11"); } TransitionTo(MELD_OPPORTUNITY)
         {
             // Step 1: Exit states until we reach `GAMEPLAY` state (Least Common Ancestor for transition).
             this.#TRICK_RESOLUTION_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge10");`.
-            this.tracer?.edgeTransition("edge10");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge11");`.
+            this.tracer?.edgeTransition("edge11");
             
             // Step 3: Enter/move towards transition target `MELD_OPPORTUNITY`.
             this.#MELD_OPPORTUNITY_enter();
@@ -2130,7 +2179,6 @@ evaluateGuard = null;
         switch (id)
         {
             case BeziqueGameFlow.EventId.ALLHANDSEMPTY: return "ALLHANDSEMPTY";
-            case BeziqueGameFlow.EventId.ALLPLAYERSRESPONDED: return "ALLPLAYERSRESPONDED";
             case BeziqueGameFlow.EventId.CARDPLAYED: return "CARDPLAYED";
             case BeziqueGameFlow.EventId.CARDSDEALT: return "CARDSDEALT";
             case BeziqueGameFlow.EventId.CARDSDRAWN: return "CARDSDRAWN";
@@ -2142,8 +2190,10 @@ evaluateGuard = null;
             case BeziqueGameFlow.EventId.MELDSCORED: return "MELDSCORED";
             case BeziqueGameFlow.EventId.MELDSKIPPED: return "MELDSKIPPED";
             case BeziqueGameFlow.EventId.MORECARDSAVAILABLE: return "MORECARDSAVAILABLE";
+            case BeziqueGameFlow.EventId.MOREPLAYERSNEEDTOPLAY: return "MOREPLAYERSNEEDTOPLAY";
             case BeziqueGameFlow.EventId.TIMEREXPIRED: return "TIMEREXPIRED";
             case BeziqueGameFlow.EventId.TIMERRESET: return "TIMERRESET";
+            case BeziqueGameFlow.EventId.TRICKCOMPLETE: return "TRICKCOMPLETE";
             case BeziqueGameFlow.EventId.TRICKRESOLVED: return "TRICKRESOLVED";
             case BeziqueGameFlow.EventId.TRUMPDETERMINED: return "TRUMPDETERMINED";
             case BeziqueGameFlow.EventId.WINNINGSCOREREACHED: return "WINNINGSCOREREACHED";
@@ -2185,7 +2235,7 @@ evaluateGuard = null;
             center: true
         });
 
-        const diagramEventNamesArray = ['AllHandsEmpty', 'AllPlayersResponded', 'CardPlayed', 'CardsDealt', 'CardsDrawn', 'ContinueGame', 'ContinueLastNine', 'DeckEmpty', 'Initialized', 'MeldDeclared', 'MeldScored', 'MeldSkipped', 'MoreCardsAvailable', 'TimerExpired', 'TimerReset', 'TrickResolved', 'TrumpDetermined', 'WinningScoreReached', ];
+        const diagramEventNamesArray = ['AllHandsEmpty', 'CardPlayed', 'CardsDealt', 'CardsDrawn', 'ContinueGame', 'ContinueLastNine', 'DeckEmpty', 'Initialized', 'MeldDeclared', 'MeldScored', 'MeldSkipped', 'MoreCardsAvailable', 'MorePlayersNeedToPlay', 'TimerExpired', 'TimerReset', 'TrickComplete', 'TrickResolved', 'TrumpDetermined', 'WinningScoreReached', ];
 
         // Mapping from state to available events
         const stateEventsMapping = {
@@ -2212,7 +2262,8 @@ evaluateGuard = null;
     "TimerExpired"
   ],
   "OPPONENT_RESPONSE": [
-    "AllPlayersResponded"
+    "MorePlayersNeedToPlay",
+    "TrickComplete"
   ],
   "TRICK_RESOLUTION": [
     "TrickResolved"
@@ -2237,7 +2288,8 @@ evaluateGuard = null;
     "TimerExpired"
   ],
   "L9_OPPONENT_RESPONSE": [
-    "AllPlayersResponded"
+    "MorePlayersNeedToPlay",
+    "TrickComplete"
   ],
   "L9_TRICK_RESOLUTION": [
     "TrickResolved"
