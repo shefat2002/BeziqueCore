@@ -369,12 +369,6 @@ state GAMEPLAY {
 
                 L9_TRICK_RESOLUTION : enter / #123; gameAdapter.ResolveL9Trick()#59; #125;
 
-                L9_FINAL_SCORING
-
-                L9_FINAL_SCORING : L9_FINAL_SCORING
-
-                L9_FINAL_SCORING : enter / #123; gameAdapter.CalculateL9FinalScores()#59; #125;
-
         }
 
 }
@@ -427,9 +421,7 @@ L9_PLAYER_TURN --> TIMER_TIMEOUT : TimerExpired
 
 L9_OPPONENT_RESPONSE --> L9_TRICK_RESOLUTION : AllPlayersResponded
 
-L9_TRICK_RESOLUTION --> L9_FINAL_SCORING : FinalTrickResolved
-
-L9_FINAL_SCORING --> L9_PLAYER_TURN : ContinueLastNine
+L9_TRICK_RESOLUTION --> L9_PLAYER_TURN : ContinueLastNine
 
 ROOT.(InitialState) --> GAME_INIT
 
@@ -490,22 +482,21 @@ evaluateGuard = null;
         CONTINUEGAME : 5,
         CONTINUELASTNINE : 6,
         DECKEMPTY : 7,
-        FINALTRICKRESOLVED : 8,
-        INITIALIZED : 9,
-        LASTNINEREACHED : 10,
-        MELDDECLARED : 11,
-        MELDSCORED : 12,
-        MELDSKIPPED : 13,
-        MORECARDSAVAILABLE : 14,
-        TIMEREXPIRED : 15,
-        TIMERRESET : 16,
-        TRICKRESOLVED : 17,
-        TRUMPDETERMINED : 18,
-        WINNINGSCOREREACHED : 19,
+        INITIALIZED : 8,
+        LASTNINEREACHED : 9,
+        MELDDECLARED : 10,
+        MELDSCORED : 11,
+        MELDSKIPPED : 12,
+        MORECARDSAVAILABLE : 13,
+        TIMEREXPIRED : 14,
+        TIMERRESET : 15,
+        TRICKRESOLVED : 16,
+        TRUMPDETERMINED : 17,
+        WINNINGSCOREREACHED : 18,
     }
     static { Object.freeze(this.EventId); }
     
-    static EventIdCount = 20;
+    static EventIdCount = 19;
     static { Object.freeze(this.EventIdCount); }
     
     static StateId = 
@@ -518,22 +509,21 @@ evaluateGuard = null;
         CARD_DRAW : 5,
         DECK_CHECK : 6,
         LAST_9_CARDS : 7,
-        L9_FINAL_SCORING : 8,
-        L9_OPPONENT_RESPONSE : 9,
-        L9_PLAYER_TURN : 10,
-        L9_TRICK_RESOLUTION : 11,
-        MELD_OPPORTUNITY : 12,
-        MELD_SCORING : 13,
-        OPPONENT_RESPONSE : 14,
-        PLAYER_TURN : 15,
-        TRICK_RESOLUTION : 16,
-        ROUND_END : 17,
-        TIMER_TIMEOUT : 18,
-        TRUMP_SELECTION : 19,
+        L9_OPPONENT_RESPONSE : 8,
+        L9_PLAYER_TURN : 9,
+        L9_TRICK_RESOLUTION : 10,
+        MELD_OPPORTUNITY : 11,
+        MELD_SCORING : 12,
+        OPPONENT_RESPONSE : 13,
+        PLAYER_TURN : 14,
+        TRICK_RESOLUTION : 15,
+        ROUND_END : 16,
+        TIMER_TIMEOUT : 17,
+        TRUMP_SELECTION : 18,
     }
     static { Object.freeze(this.StateId); }
     
-    static StateIdCount = 20;
+    static StateIdCount = 19;
     static { Object.freeze(this.StateIdCount); }
     
     // Used internally by state machine. Feel free to inspect, but don't modify.
@@ -554,12 +544,12 @@ evaluateGuard = null;
             // ROOT.<InitialState> is a pseudo state and cannot have an `enter` trigger.
             
             // ROOT.<InitialState> behavior
-            // uml: / { this.tracer?.edgeTransition("edge24"); } TransitionTo(GAME_INIT)
+            // uml: / { this.tracer?.edgeTransition("edge23"); } TransitionTo(GAME_INIT)
             {
                 // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
                 
-                // Step 2: Transition action: `this.tracer?.edgeTransition("edge24");`.
-                this.tracer?.edgeTransition("edge24");
+                // Step 2: Transition action: `this.tracer?.edgeTransition("edge23");`.
+                this.tracer?.edgeTransition("edge23");
                 
                 // Step 3: Enter/move towards transition target `GAME_INIT`.
                 this.#GAME_INIT_enter();
@@ -638,16 +628,6 @@ evaluateGuard = null;
                 }
                 break;
             
-            // STATE: L9_FINAL_SCORING
-            case BeziqueGameFlow.StateId.L9_FINAL_SCORING:
-                switch (eventId)
-                {
-                    case BeziqueGameFlow.EventId.CONTINUELASTNINE: this.#L9_FINAL_SCORING_continuelastnine(); break;
-                    case BeziqueGameFlow.EventId.LASTNINEREACHED: this.#GAMEPLAY_lastninereached(); break; // First ancestor handler for this event
-                    case BeziqueGameFlow.EventId.ALLHANDSEMPTY: this.#LAST_9_CARDS_allhandsempty(); break; // First ancestor handler for this event
-                }
-                break;
-            
             // STATE: L9_OPPONENT_RESPONSE
             case BeziqueGameFlow.StateId.L9_OPPONENT_RESPONSE:
                 switch (eventId)
@@ -673,7 +653,7 @@ evaluateGuard = null;
             case BeziqueGameFlow.StateId.L9_TRICK_RESOLUTION:
                 switch (eventId)
                 {
-                    case BeziqueGameFlow.EventId.FINALTRICKRESOLVED: this.#L9_TRICK_RESOLUTION_finaltrickresolved(); break;
+                    case BeziqueGameFlow.EventId.CONTINUELASTNINE: this.#L9_TRICK_RESOLUTION_continuelastnine(); break;
                     case BeziqueGameFlow.EventId.LASTNINEREACHED: this.#GAMEPLAY_lastninereached(); break; // First ancestor handler for this event
                     case BeziqueGameFlow.EventId.ALLHANDSEMPTY: this.#LAST_9_CARDS_allhandsempty(); break; // First ancestor handler for this event
                 }
@@ -775,8 +755,6 @@ evaluateGuard = null;
                 case BeziqueGameFlow.StateId.DECK_CHECK: this.#DECK_CHECK_exit(); break;
                 
                 case BeziqueGameFlow.StateId.LAST_9_CARDS: this.#LAST_9_CARDS_exit(); break;
-                
-                case BeziqueGameFlow.StateId.L9_FINAL_SCORING: this.#L9_FINAL_SCORING_exit(); break;
                 
                 case BeziqueGameFlow.StateId.L9_OPPONENT_RESPONSE: this.#L9_OPPONENT_RESPONSE_exit(); break;
                 
@@ -1223,63 +1201,6 @@ evaluateGuard = null;
     
     
     ////////////////////////////////////////////////////////////////////////////////
-    // event handlers for state L9_FINAL_SCORING
-    ////////////////////////////////////////////////////////////////////////////////
-    
-    #L9_FINAL_SCORING_enter()
-    {
-        this.stateId = BeziqueGameFlow.StateId.L9_FINAL_SCORING;
-        
-        // L9_FINAL_SCORING behavior
-        // uml: enter / { this.tracer?.enterState('L9_FINAL_SCORING'); }
-        {
-            // Step 1: execute action `this.tracer?.enterState('L9_FINAL_SCORING');`
-            this.tracer?.enterState('L9_FINAL_SCORING');
-        } // end of behavior for L9_FINAL_SCORING
-        
-        // L9_FINAL_SCORING behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.CalculateL9FinalScores();"); }
-        {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.CalculateL9FinalScores();");`
-            this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.CalculateL9FinalScores();");
-        } // end of behavior for L9_FINAL_SCORING
-    }
-    
-    #L9_FINAL_SCORING_exit()
-    {
-        // L9_FINAL_SCORING behavior
-        // uml: exit / { this.tracer?.exitState('L9_FINAL_SCORING'); }
-        {
-            // Step 1: execute action `this.tracer?.exitState('L9_FINAL_SCORING');`
-            this.tracer?.exitState('L9_FINAL_SCORING');
-        } // end of behavior for L9_FINAL_SCORING
-        
-        this.stateId = BeziqueGameFlow.StateId.LAST_9_CARDS;
-    }
-    
-    #L9_FINAL_SCORING_continuelastnine()
-    {
-        // L9_FINAL_SCORING behavior
-        // uml: ContinueLastNine / { this.tracer?.edgeTransition("edge23"); } TransitionTo(L9_PLAYER_TURN)
-        {
-            // Step 1: Exit states until we reach `LAST_9_CARDS` state (Least Common Ancestor for transition).
-            this.#L9_FINAL_SCORING_exit();
-            
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge23");`.
-            this.tracer?.edgeTransition("edge23");
-            
-            // Step 3: Enter/move towards transition target `L9_PLAYER_TURN`.
-            this.#L9_PLAYER_TURN_enter();
-            
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
-        } // end of behavior for L9_FINAL_SCORING
-        
-        // No ancestor handles this event.
-    }
-    
-    
-    ////////////////////////////////////////////////////////////////////////////////
     // event handlers for state L9_OPPONENT_RESPONSE
     ////////////////////////////////////////////////////////////////////////////////
     
@@ -1456,10 +1377,10 @@ evaluateGuard = null;
         this.stateId = BeziqueGameFlow.StateId.LAST_9_CARDS;
     }
     
-    #L9_TRICK_RESOLUTION_finaltrickresolved()
+    #L9_TRICK_RESOLUTION_continuelastnine()
     {
         // L9_TRICK_RESOLUTION behavior
-        // uml: FinalTrickResolved / { this.tracer?.edgeTransition("edge22"); } TransitionTo(L9_FINAL_SCORING)
+        // uml: ContinueLastNine / { this.tracer?.edgeTransition("edge22"); } TransitionTo(L9_PLAYER_TURN)
         {
             // Step 1: Exit states until we reach `LAST_9_CARDS` state (Least Common Ancestor for transition).
             this.#L9_TRICK_RESOLUTION_exit();
@@ -1467,8 +1388,8 @@ evaluateGuard = null;
             // Step 2: Transition action: `this.tracer?.edgeTransition("edge22");`.
             this.tracer?.edgeTransition("edge22");
             
-            // Step 3: Enter/move towards transition target `L9_FINAL_SCORING`.
-            this.#L9_FINAL_SCORING_enter();
+            // Step 3: Enter/move towards transition target `L9_PLAYER_TURN`.
+            this.#L9_PLAYER_TURN_enter();
             
             // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
             return;
@@ -2050,7 +1971,6 @@ evaluateGuard = null;
             case BeziqueGameFlow.StateId.CARD_DRAW: return "CARD_DRAW";
             case BeziqueGameFlow.StateId.DECK_CHECK: return "DECK_CHECK";
             case BeziqueGameFlow.StateId.LAST_9_CARDS: return "LAST_9_CARDS";
-            case BeziqueGameFlow.StateId.L9_FINAL_SCORING: return "L9_FINAL_SCORING";
             case BeziqueGameFlow.StateId.L9_OPPONENT_RESPONSE: return "L9_OPPONENT_RESPONSE";
             case BeziqueGameFlow.StateId.L9_PLAYER_TURN: return "L9_PLAYER_TURN";
             case BeziqueGameFlow.StateId.L9_TRICK_RESOLUTION: return "L9_TRICK_RESOLUTION";
@@ -2079,7 +1999,6 @@ evaluateGuard = null;
             case BeziqueGameFlow.EventId.CONTINUEGAME: return "CONTINUEGAME";
             case BeziqueGameFlow.EventId.CONTINUELASTNINE: return "CONTINUELASTNINE";
             case BeziqueGameFlow.EventId.DECKEMPTY: return "DECKEMPTY";
-            case BeziqueGameFlow.EventId.FINALTRICKRESOLVED: return "FINALTRICKRESOLVED";
             case BeziqueGameFlow.EventId.INITIALIZED: return "INITIALIZED";
             case BeziqueGameFlow.EventId.LASTNINEREACHED: return "LASTNINEREACHED";
             case BeziqueGameFlow.EventId.MELDDECLARED: return "MELDDECLARED";
@@ -2129,7 +2048,7 @@ evaluateGuard = null;
             center: true
         });
 
-        const diagramEventNamesArray = ['AllHandsEmpty', 'AllPlayersResponded', 'CardPlayed', 'CardsDealt', 'CardsDrawn', 'ContinueGame', 'ContinueLastNine', 'DeckEmpty', 'FinalTrickResolved', 'Initialized', 'LastNineReached', 'MeldDeclared', 'MeldScored', 'MeldSkipped', 'MoreCardsAvailable', 'TimerExpired', 'TimerReset', 'TrickResolved', 'TrumpDetermined', 'WinningScoreReached', ];
+        const diagramEventNamesArray = ['AllHandsEmpty', 'AllPlayersResponded', 'CardPlayed', 'CardsDealt', 'CardsDrawn', 'ContinueGame', 'ContinueLastNine', 'DeckEmpty', 'Initialized', 'LastNineReached', 'MeldDeclared', 'MeldScored', 'MeldSkipped', 'MoreCardsAvailable', 'TimerExpired', 'TimerReset', 'TrickResolved', 'TrumpDetermined', 'WinningScoreReached', ];
 
         // Mapping from state to available events
         const stateEventsMapping = {
@@ -2200,11 +2119,6 @@ evaluateGuard = null;
     "LastNineReached"
   ],
   "L9_TRICK_RESOLUTION": [
-    "AllHandsEmpty",
-    "FinalTrickResolved",
-    "LastNineReached"
-  ],
-  "L9_FINAL_SCORING": [
     "AllHandsEmpty",
     "ContinueLastNine",
     "LastNineReached"

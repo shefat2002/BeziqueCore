@@ -87,7 +87,7 @@ state GAMEPLAY {
 
 
 state LAST_9_CARDS {
-    
+
     state L9_PLAYER_TURN {
         L9_PLAYER_TURN: enter / gameAdapter.StartPlayerTimer();
         L9_PLAYER_TURN: exit / gameAdapter.StopPlayerTimer();
@@ -101,15 +101,9 @@ state LAST_9_CARDS {
         L9_TRICK_RESOLUTION: enter / gameAdapter.ResolveL9Trick();
     }
 
-    state L9_FINAL_SCORING {
-        L9_FINAL_SCORING: enter / gameAdapter.CalculateL9FinalScores();
-    }
-
     L9_PLAYER_TURN -down-> L9_OPPONENT_RESPONSE : CardPlayed
     L9_OPPONENT_RESPONSE -down-> L9_TRICK_RESOLUTION : AllPlayersResponded
-    L9_TRICK_RESOLUTION -down-> L9_FINAL_SCORING : FinalTrickResolved
-
-    L9_FINAL_SCORING -up-> L9_PLAYER_TURN : ContinueLastNine
+    L9_TRICK_RESOLUTION -up-> L9_PLAYER_TURN : ContinueLastNine
 }
 
 

@@ -70,11 +70,6 @@ public partial class BeziqueGameFlow
         DispatchEvent(EventId.LASTNINEREACHED);
     }
 
-    public void DispatchFinalTrickResolved()
-    {
-        DispatchEvent(EventId.FINALTRICKRESOLVED);
-    }
-
     public void DispatchContinueLastNine()
     {
         DispatchEvent(EventId.CONTINUELASTNINE);
