@@ -195,6 +195,7 @@ public partial class BeziqueGameFlow
                 switch (eventId)
                 {
                     case EventId.TRICKRESOLVED: L9_TRICK_RESOLUTION_trickresolved(); break;
+                    case EventId.WINNINGSCOREREACHED: L9_TRICK_RESOLUTION_winningscorereached(); break;
                 }
                 break;
 
@@ -212,6 +213,7 @@ public partial class BeziqueGameFlow
                 switch (eventId)
                 {
                     case EventId.MELDSCORED: MELD_SCORING_meldscored(); break;
+                    case EventId.WINNINGSCOREREACHED: MELD_SCORING_winningscorereached(); break;
                 }
                 break;
 
@@ -238,6 +240,7 @@ public partial class BeziqueGameFlow
                 switch (eventId)
                 {
                     case EventId.TRICKRESOLVED: TRICK_RESOLUTION_trickresolved(); break;
+                    case EventId.WINNINGSCOREREACHED: TRICK_RESOLUTION_winningscorereached(); break;
                 }
                 break;
 
@@ -246,7 +249,6 @@ public partial class BeziqueGameFlow
                 switch (eventId)
                 {
                     case EventId.CONTINUEGAME: ROUND_END_continuegame(); break;
-                    case EventId.WINNINGSCOREREACHED: ROUND_END_winningscorereached(); break;
                 }
                 break;
 
@@ -888,6 +890,26 @@ public partial class BeziqueGameFlow
         // No ancestor handles this event.
     }
 
+    private void L9_TRICK_RESOLUTION_winningscorereached()
+    {
+        // L9_TRICK_RESOLUTION behavior
+        // uml: WinningScoreReached TransitionTo(GAME_OVER)
+        {
+            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
+            ExitUpToStateHandler(StateId.ROOT);
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `GAME_OVER`.
+            GAME_OVER_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for L9_TRICK_RESOLUTION
+
+        // No ancestor handles this event.
+    }
+
 
     ////////////////////////////////////////////////////////////////////////////////
     // event handlers for state MELD_OPPORTUNITY
@@ -984,6 +1006,26 @@ public partial class BeziqueGameFlow
 
             // Step 3: Enter/move towards transition target `CARD_DRAW`.
             CARD_DRAW_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for MELD_SCORING
+
+        // No ancestor handles this event.
+    }
+
+    private void MELD_SCORING_winningscorereached()
+    {
+        // MELD_SCORING behavior
+        // uml: WinningScoreReached TransitionTo(GAME_OVER)
+        {
+            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
+            ExitUpToStateHandler(StateId.ROOT);
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `GAME_OVER`.
+            GAME_OVER_enter();
 
             // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
             return;
@@ -1165,6 +1207,26 @@ public partial class BeziqueGameFlow
         // No ancestor handles this event.
     }
 
+    private void TRICK_RESOLUTION_winningscorereached()
+    {
+        // TRICK_RESOLUTION behavior
+        // uml: WinningScoreReached TransitionTo(GAME_OVER)
+        {
+            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
+            ExitUpToStateHandler(StateId.ROOT);
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `GAME_OVER`.
+            GAME_OVER_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for TRICK_RESOLUTION
+
+        // No ancestor handles this event.
+    }
+
 
     ////////////////////////////////////////////////////////////////////////////////
     // event handlers for state ROUND_END
@@ -1213,26 +1275,6 @@ public partial class BeziqueGameFlow
 
             // Step 3: Enter/move towards transition target `GAME_INIT`.
             GAME_INIT_enter();
-
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
-        } // end of behavior for ROUND_END
-
-        // No ancestor handles this event.
-    }
-
-    private void ROUND_END_winningscorereached()
-    {
-        // ROUND_END behavior
-        // uml: WinningScoreReached TransitionTo(GAME_OVER)
-        {
-            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
-            ROUND_END_exit();
-
-            // Step 2: Transition action: ``.
-
-            // Step 3: Enter/move towards transition target `GAME_OVER`.
-            GAME_OVER_enter();
 
             // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
             return;

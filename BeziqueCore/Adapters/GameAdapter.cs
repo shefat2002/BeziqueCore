@@ -409,5 +409,10 @@ namespace BeziqueCore.Adapters
                 }
             }
         }
+
+        public bool HasPlayerReachedWinningScore()
+        {
+            return _gameState.Players.Any(p => p.Score >= GameConstants.WinningScore);
+        }
     }
 }

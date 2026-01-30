@@ -77,9 +77,11 @@ state GAMEPLAY {
     OPPONENT_RESPONSE -down-> TRICK_RESOLUTION : TrickComplete
     OPPONENT_RESPONSE -up-> PLAYER_TURN : MorePlayersNeedToPlay
     TRICK_RESOLUTION -down-> MELD_OPPORTUNITY : TrickResolved
+    TRICK_RESOLUTION -left-> GAME_OVER : WinningScoreReached
     MELD_OPPORTUNITY -down-> MELD_SCORING : MeldDeclared
     MELD_OPPORTUNITY -right-> CARD_DRAW : MeldSkipped
     MELD_SCORING -down-> CARD_DRAW : MeldScored
+    MELD_SCORING -left-> GAME_OVER : WinningScoreReached
     CARD_DRAW -down-> DECK_CHECK : CardsDrawn
 
 
@@ -118,6 +120,7 @@ state LAST_9_CARDS {
     L9_OPPONENT_RESPONSE -down-> L9_TRICK_RESOLUTION : TrickComplete
     L9_OPPONENT_RESPONSE -up-> L9_PLAYER_TURN : MorePlayersNeedToPlay
     L9_TRICK_RESOLUTION -down-> L9_TRICK_CHECK : TrickResolved
+    L9_TRICK_RESOLUTION -left-> GAME_OVER : WinningScoreReached
 
     L9_TRICK_CHECK -up-> L9_PLAYER_TURN : ContinueLastNine
     L9_TIMER_TIMEOUT -left-> L9_PLAYER_TURN : TimerReset
@@ -132,8 +135,6 @@ TRUMP_SELECTION -down-> GAMEPLAY : TrumpDetermined
 
 L9_TRICK_CHECK -down-> ROUND_END : AllHandsEmpty
 ROUND_END -left-> GAME_INIT : ContinueGame
-ROUND_END -down-> GAME_OVER : WinningScoreReached
-
 PLAYER_TURN -right-> TIMER_TIMEOUT : TimerExpired
 TIMER_TIMEOUT -left-> PLAYER_TURN : TimerReset
 

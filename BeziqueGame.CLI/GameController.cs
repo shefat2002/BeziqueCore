@@ -1,5 +1,6 @@
 using BeziqueCore.Models;
 using BeziqueCore.Interfaces;
+using BeziqueCore.Constants;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,7 @@ namespace BeziqueGame.CLI
     /// </summary>
     public class GameController
     {
+        private const int WinningScore = 1000;
         private readonly List<Player> _players = new();
         private readonly List<Card> _deck = new();
         private Suit _trumpSuit;
@@ -20,6 +22,7 @@ namespace BeziqueGame.CLI
         private readonly Dictionary<Player, Card> _currentTrick = new();
         private GameMode _gameMode;
         private readonly Random _random = new();
+        private bool _gameOver = false;
 
         public void StartTwoPlayerGame(string playerName, GameMode mode)
         {
@@ -92,8 +95,8 @@ namespace BeziqueGame.CLI
 
             _currentPlayerIndex = 0;
 
-            // Game loop
-            while (AllHandsHaveCards())
+            // Game loop - continues until hands are empty OR someone wins
+            while (AllHandsHaveCards() && !_gameOver)
             {
                 PlayRound();
             }
@@ -299,6 +302,13 @@ namespace BeziqueGame.CLI
                             bot.MeldedCards.Add(card);
                         }
                     }
+
+                    // Check if bot has reached winning score - game ends immediately
+                    if (bot.Score >= WinningScore)
+                    {
+                        _gameOver = true;
+                        Console.WriteLine($"\n*** {bot.Name} has reached {bot.Score} points and wins the game! ***\n");
+                    }
                 }
             }
         }
@@ -406,6 +416,13 @@ namespace BeziqueGame.CLI
                         }
                     }
                     Console.WriteLine($"\nDeclared {meld.Type}! +{meld.Points} points\n");
+
+                    // Check if player has reached winning score - game ends immediately
+                    if (player.Score >= WinningScore)
+                    {
+                        _gameOver = true;
+                        Console.WriteLine($"*** {player.Name} has reached {player.Score} points and wins the game! ***\n");
+                    }
                 }
             }
             else
@@ -459,6 +476,13 @@ namespace BeziqueGame.CLI
 
                 winner.Score += trickPoints;
                 Console.WriteLine($"\n{winner.Name} wins the trick! (+{trickPoints} points)");
+
+                // Check if winner has reached winning score - game ends immediately
+                if (winner.Score >= WinningScore)
+                {
+                    _gameOver = true;
+                    Console.WriteLine($"\n*** {winner.Name} has reached {winner.Score} points and wins the game! ***\n");
+                }
             }
 
             _currentTrick.Clear();

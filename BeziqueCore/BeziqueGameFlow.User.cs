@@ -145,4 +145,57 @@ public partial class BeziqueGameFlow
             DispatchEvent(EventId.MOREPLAYERSNEEDTOPLAY);
         }
     }
+
+    /// <summary>
+    /// Checks if any player has reached the winning score after trick resolution.
+    /// If so, dispatches WinningScoreReached event to transition to GAME_OVER.
+    /// This ensures the game ends immediately when someone wins.
+    /// </summary>
+    public void CheckAndDispatchWinningScoreAfterTrick()
+    {
+        if (gameAdapter.HasPlayerReachedWinningScore())
+        {
+            DispatchEvent(EventId.WINNINGSCOREREACHED);
+        }
+        else
+        {
+            // No one has won yet, continue to meld opportunity
+            DispatchEvent(EventId.TRICKRESOLVED);
+        }
+    }
+
+    /// <summary>
+    /// Checks if any player has reached the winning score after meld scoring.
+    /// If so, dispatches WinningScoreReached event to transition to GAME_OVER.
+    /// This ensures the game ends immediately when someone wins from meld points.
+    /// </summary>
+    public void CheckAndDispatchWinningScoreAfterMeld()
+    {
+        if (gameAdapter.HasPlayerReachedWinningScore())
+        {
+            DispatchEvent(EventId.WINNINGSCOREREACHED);
+        }
+        else
+        {
+            // No one has won yet, continue to card draw
+            DispatchEvent(EventId.MELDSCORED);
+        }
+    }
+
+    /// <summary>
+    /// Checks if any player has reached the winning score during last 9 cards phase.
+    /// If so, dispatches WinningScoreReached event to transition to GAME_OVER.
+    /// </summary>
+    public void CheckAndDispatchL9WinningScore()
+    {
+        if (gameAdapter.HasPlayerReachedWinningScore())
+        {
+            DispatchEvent(EventId.WINNINGSCOREREACHED);
+        }
+        else
+        {
+            // No one has won yet, continue last 9 cards phase
+            DispatchEvent(EventId.TRICKRESOLVED);
+        }
+    }
 }

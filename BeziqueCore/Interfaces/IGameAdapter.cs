@@ -39,6 +39,7 @@ namespace BeziqueCore.Interfaces
         bool IsLastNineCardsPhase();
         bool IsDeckEmpty();
         bool AreAllHandsEmpty();
+        bool HasPlayerReachedWinningScore();
 
         // Turn-based gameplay helpers
         bool IsTrickComplete();
