@@ -8,29 +8,28 @@ public partial class BeziqueGameFlow
 {
     public enum EventId
     {
-        DO = 0, // The `do` event is special. State event handlers do not consume this event (ancestors all get it too) unless a transition occurs.
-        ALLHANDSEMPTY = 1,
-        CARDPLAYED = 2,
-        CARDSDEALT = 3,
-        CARDSDRAWN = 4,
-        CONTINUEGAME = 5,
-        CONTINUELASTNINE = 6,
-        DECKEMPTY = 7,
-        INITIALIZED = 8,
-        MELDDECLARED = 9,
-        MELDSCORED = 10,
-        MELDSKIPPED = 11,
-        MORECARDSAVAILABLE = 12,
-        MOREPLAYERSNEEDTOPLAY = 13,
-        TIMEREXPIRED = 14,
-        TIMERRESET = 15,
-        TRICKCOMPLETE = 16,
-        TRICKRESOLVED = 17,
-        TRUMPDETERMINED = 18,
-        WINNINGSCOREREACHED = 19,
+        ALLHANDSEMPTY = 0,
+        CARDPLAYED = 1,
+        CARDSDEALT = 2,
+        CARDSDRAWN = 3,
+        CONTINUEGAME = 4,
+        CONTINUELASTNINE = 5,
+        DECKEMPTY = 6,
+        INITIALIZED = 7,
+        MELDDECLARED = 8,
+        MELDSCORED = 9,
+        MELDSKIPPED = 10,
+        MORECARDSAVAILABLE = 11,
+        MOREPLAYERSNEEDTOPLAY = 12,
+        TIMEREXPIRED = 13,
+        TIMERRESET = 14,
+        TRICKCOMPLETE = 15,
+        TRICKRESOLVED = 16,
+        TRUMPDETERMINED = 17,
+        WINNINGSCOREREACHED = 18,
     }
 
-    public const int EventIdCount = 20;
+    public const int EventIdCount = 19;
 
     public enum StateId
     {
@@ -246,7 +245,6 @@ public partial class BeziqueGameFlow
             case StateId.ROUND_END:
                 switch (eventId)
                 {
-                    case EventId.DO: ROUND_END_do(); break;
                     case EventId.CONTINUEGAME: ROUND_END_continuegame(); break;
                     case EventId.WINNINGSCOREREACHED: ROUND_END_winningscorereached(); break;
                 }
@@ -1177,6 +1175,13 @@ public partial class BeziqueGameFlow
         this.stateId = StateId.ROUND_END;
 
         // ROUND_END behavior
+        // uml: enter / { gameAdapter.CalculateAcesAndTens(); }
+        {
+            // Step 1: execute action `gameAdapter.CalculateAcesAndTens();`
+            gameAdapter.CalculateAcesAndTens();
+        } // end of behavior for ROUND_END
+
+        // ROUND_END behavior
         // uml: enter / { gameAdapter.CalculateRoundScores(); }
         {
             // Step 1: execute action `gameAdapter.CalculateRoundScores();`
@@ -1211,18 +1216,6 @@ public partial class BeziqueGameFlow
 
             // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
             return;
-        } // end of behavior for ROUND_END
-
-        // No ancestor handles this event.
-    }
-
-    private void ROUND_END_do()
-    {
-        // ROUND_END behavior
-        // uml: do / { gameAdapter.CalculateAcesAndTens(); }
-        {
-            // Step 1: execute action `gameAdapter.CalculateAcesAndTens();`
-            gameAdapter.CalculateAcesAndTens();
         } // end of behavior for ROUND_END
 
         // No ancestor handles this event.
@@ -1400,7 +1393,6 @@ public partial class BeziqueGameFlow
             case EventId.CONTINUEGAME: return "CONTINUEGAME";
             case EventId.CONTINUELASTNINE: return "CONTINUELASTNINE";
             case EventId.DECKEMPTY: return "DECKEMPTY";
-            case EventId.DO: return "DO";
             case EventId.INITIALIZED: return "INITIALIZED";
             case EventId.MELDDECLARED: return "MELDDECLARED";
             case EventId.MELDSCORED: return "MELDSCORED";

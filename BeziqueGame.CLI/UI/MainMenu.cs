@@ -1,10 +1,12 @@
-using Spectre.Console;
+using BeziqueGame.CLI;
+using System;
 using BeziqueCore.Models;
 
 namespace BeziqueGame.CLI.UI
 {
     /// <summary>
-    /// Main menu UI matching Figma design with game mode cards
+    /// Main menu for the Bezique CLI game.
+    /// Supports game mode selection (2-player vs 4-player) and rules display.
     /// </summary>
     public class MainMenu
     {
@@ -19,29 +21,35 @@ namespace BeziqueGame.CLI.UI
         {
             while (true)
             {
-                AnsiConsole.Clear();
+                Console.Clear();
                 DisplayHeader();
-                DisplayGameModeCards();
 
-                var choice = AnsiConsole.Prompt(
-                    new SelectionPrompt<string>()
-                        .Title("")
-                        .AddChoices(new[] { "1 vs 1", "4 Player", "Show Rules", "Exit" })
-                );
+                Console.WriteLine("\n=== BEZIQUE CARD GAME ===\n");
+                Console.WriteLine("1. 2-Player Game (vs AI)");
+                Console.WriteLine("2. 4-Player Game (Local Multiplayer)");
+                Console.WriteLine("3. Show Rules");
+                Console.WriteLine("4. Exit\n");
+
+                Console.Write("Select option: ");
+                var choice = Console.ReadLine();
 
                 switch (choice)
                 {
-                    case "1 vs 1":
-                        ShowModeSelection(singlePlayer: true);
+                    case "1":
+                        StartTwoPlayerGame();
                         break;
-                    case "4 Player":
-                        ShowModeSelection(singlePlayer: false);
+                    case "2":
+                        StartFourPlayerGame();
                         break;
-                    case "Show Rules":
+                    case "3":
                         ShowRules();
                         break;
-                    case "Exit":
+                    case "4":
                         Environment.Exit(0);
+                        break;
+                    default:
+                        Console.WriteLine("\nInvalid option. Press any key to try again...");
+                        Console.ReadKey(true);
                         break;
                 }
             }
@@ -49,114 +57,78 @@ namespace BeziqueGame.CLI.UI
 
         private void DisplayHeader()
         {
-            // Deep navy blue background with teal-green accent
-            AnsiConsole.Clear();
+            Console.WriteLine();
+            Console.WriteLine("╔═══════════════════════════════════╗");
+            Console.WriteLine("║                                   ║");
+            Console.WriteLine("║           ♠ BEZIQUE ♠            ║");
+            Console.WriteLine("║         Classic Card Game          ║");
+            Console.WriteLine("║                                   ║");
+            Console.WriteLine("╚═══════════════════════════════════╝");
+        }
 
-            var header = new FigletText("BEZIQUE")
+        private void StartTwoPlayerGame()
+        {
+            Console.Clear();
+            Console.WriteLine("=== 2-PLAYER GAME ===\n");
+
+            Console.Write("Enter your name: ");
+            var playerName = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(playerName))
             {
-                Justification = Justify.Center
-            };
-            AnsiConsole.Write(header);
-
-            AnsiConsole.MarkupLine("\n[bold teal]  CARD GAME  [/]\n");
-        }
-
-        private void DisplayGameModeCards()
-        {
-            // Display game mode cards as per Figma design
-            var grid = new Grid()
-                .Centered()
-                .AddColumn()
-                .AddColumn()
-                .AddColumn();
-
-            // 1 vs 1 Card (Blue) and 4 Player Card (Green)
-            grid.AddRow(
-                CreateCard("1 VS 1", "blue"),
-                new Text("    "),
-                CreateCard("4 PLAYER", "green")
-            );
-
-            AnsiConsole.Write(grid);
-            AnsiConsole.WriteLine();
-
-            // Version info at bottom right
-            AnsiConsole.MarkupLine("[dim grey23]VERSION 1.0.0[/]");
-        }
-
-        private Markup CreateCard(string title, string colorName)
-        {
-            var cardDisplay = $"[bold {colorName}]   ♠   [/]\n\n[bold white]{title}[/]";
-            return new Markup(cardDisplay);
-        }
-
-        private void ShowModeSelection(bool singlePlayer)
-        {
-            var mode = ShowModeModal();
-
-            if (singlePlayer)
-            {
-                var playerName = GetPlayerName();
-                _controller.StartSinglePlayerGame(playerName, mode);
+                playerName = "Player 1";
             }
-            else
+
+            var mode = SelectGameMode();
+
+            try
             {
-                _controller.StartMultiplayerGame(4, mode);
+                _controller.StartTwoPlayerGame(playerName, mode);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"\nError: {ex.Message}");
+                Console.WriteLine("\nPress any key to return to menu...");
+                Console.ReadKey(true);
             }
         }
 
-        private GameMode ShowModeModal()
+        private void StartFourPlayerGame()
         {
-            // Dark blue-grey background for modal
-            AnsiConsole.Clear();
+            Console.Clear();
+            Console.WriteLine("=== 4-PLAYER LOCAL GAME ===\n");
+            Console.WriteLine("All players will play on this device.\n");
 
-            DisplayHeader();
+            var mode = SelectGameMode();
 
-            // Card decoration
-            var cardArt = "[bold purple]    ╭─────╮  ╭─────╮[/]\n" +
-                           "[bold purple]    │♠    │  │    ♠│[/]\n" +
-                           "[bold purple]    │     │  │     │[/]\n" +
-                           "[bold purple]    │  ♠  │  │  ♠  │[/]\n" +
-                           "[bold purple]    │     │  │     │[/]\n" +
-                           "[bold purple]    │♠    │  │    ♠│[/]\n" +
-                           "[bold purple]    ╰─────╯  ╰─────╯[/]";
-
-            AnsiConsole.MarkupLine(cardArt);
-            AnsiConsole.MarkupLine("\n[bold white]WHICH MODE DO YOU WANT TO PLAY?[/]\n");
-
-            var choice = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .Title("")
-                    .HighlightStyle(new Style(Color.White))
-                    .AddChoices(new[] { "STANDARD", "ADVANCED" })
-            );
-
-            return choice == "ADVANCED" ? GameMode.Advanced : GameMode.Standard;
+            try
+            {
+                _controller.StartFourPlayerGame(mode);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"\nError: {ex.Message}");
+                Console.WriteLine("\nPress any key to return to menu...");
+                Console.ReadKey(true);
+            }
         }
 
-        private string GetPlayerName()
+        private GameMode SelectGameMode()
         {
-            AnsiConsole.MarkupLine("\n[bold yellow]Enter your name:[/]");
-            var name = AnsiConsole.Ask<string>("> ");
-            return string.IsNullOrWhiteSpace(name) ? "Player 1" : name;
+            Console.WriteLine("\nSelect Game Mode:");
+            Console.WriteLine("1. Standard Mode");
+            Console.WriteLine("2. Advanced Mode (with Aces & Tens bonus)\n");
+
+            Console.Write("Select mode: ");
+            var choice = Console.ReadLine();
+
+            return choice == "2" ? GameMode.Advanced : GameMode.Standard;
         }
 
         private void ShowRules()
         {
-            AnsiConsole.Clear();
-
-            DisplayHeader();
-
-            var rules = new Panel(_controller.GetRulesText())
-            {
-                Border = BoxBorder.Rounded,
-                BorderStyle = new Style(Color.Teal),
-                Padding = new Padding(2, 2, 2, 2),
-                Expand = true
-            };
-
-            AnsiConsole.Write(rules);
-            AnsiConsole.MarkupLine("\n[dim]Press any key to return...[/]");
+            Console.Clear();
+            Console.WriteLine(_controller.GetRulesText());
+            Console.WriteLine("\nPress any key to return...");
             Console.ReadKey(true);
         }
     }

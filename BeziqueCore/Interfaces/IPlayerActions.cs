@@ -130,6 +130,7 @@ namespace BeziqueCore.Interfaces
         public int Score { get; set; }
         public List<Card> Hand { get; set; }
         public bool IsDealer { get; set; }
+        public bool IsBot { get; set; }
         public List<Meld> DeclaredMelds { get; set; }
         /// <summary>
         /// Tracks cards that have been used in melds and cannot be used again.

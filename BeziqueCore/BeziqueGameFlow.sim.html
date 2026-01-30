@@ -277,9 +277,9 @@ ROUND_END
 
 ROUND_END : ROUND_END
 
-ROUND_END : enter / #123; gameAdapter.CalculateRoundScores()#59; #125;
+ROUND_END : enter / #123; gameAdapter.CalculateAcesAndTens()#59; #125;
 
-ROUND_END : do / #123; gameAdapter.CalculateAcesAndTens()#59; #125;
+ROUND_END : enter / #123; gameAdapter.CalculateRoundScores()#59; #125;
 
 ROUND_END : exit / #123; gameAdapter.NotifyRoundEnded()#59; #125;
 
@@ -502,30 +502,29 @@ class BeziqueGameFlow
 evaluateGuard = null;
     static EventId = 
     {
-        DO : 0, // The `do` event is special. State event handlers do not consume this event (ancestors all get it too) unless a transition occurs.
-        ALLHANDSEMPTY : 1,
-        CARDPLAYED : 2,
-        CARDSDEALT : 3,
-        CARDSDRAWN : 4,
-        CONTINUEGAME : 5,
-        CONTINUELASTNINE : 6,
-        DECKEMPTY : 7,
-        INITIALIZED : 8,
-        MELDDECLARED : 9,
-        MELDSCORED : 10,
-        MELDSKIPPED : 11,
-        MORECARDSAVAILABLE : 12,
-        MOREPLAYERSNEEDTOPLAY : 13,
-        TIMEREXPIRED : 14,
-        TIMERRESET : 15,
-        TRICKCOMPLETE : 16,
-        TRICKRESOLVED : 17,
-        TRUMPDETERMINED : 18,
-        WINNINGSCOREREACHED : 19,
+        ALLHANDSEMPTY : 0,
+        CARDPLAYED : 1,
+        CARDSDEALT : 2,
+        CARDSDRAWN : 3,
+        CONTINUEGAME : 4,
+        CONTINUELASTNINE : 5,
+        DECKEMPTY : 6,
+        INITIALIZED : 7,
+        MELDDECLARED : 8,
+        MELDSCORED : 9,
+        MELDSKIPPED : 10,
+        MORECARDSAVAILABLE : 11,
+        MOREPLAYERSNEEDTOPLAY : 12,
+        TIMEREXPIRED : 13,
+        TIMERRESET : 14,
+        TRICKCOMPLETE : 15,
+        TRICKRESOLVED : 16,
+        TRUMPDETERMINED : 17,
+        WINNINGSCOREREACHED : 18,
     }
     static { Object.freeze(this.EventId); }
     
-    static EventIdCount = 20;
+    static EventIdCount = 19;
     static { Object.freeze(this.EventIdCount); }
     
     static StateId = 
@@ -740,7 +739,6 @@ evaluateGuard = null;
             case BeziqueGameFlow.StateId.ROUND_END:
                 switch (eventId)
                 {
-                    case BeziqueGameFlow.EventId.DO: this.#ROUND_END_do(); break;
                     case BeziqueGameFlow.EventId.CONTINUEGAME: this.#ROUND_END_continuegame(); break;
                     case BeziqueGameFlow.EventId.WINNINGSCOREREACHED: this.#ROUND_END_winningscorereached(); break;
                 }
@@ -1938,6 +1936,13 @@ evaluateGuard = null;
         } // end of behavior for ROUND_END
         
         // ROUND_END behavior
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.CalculateAcesAndTens();"); }
+        {
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.CalculateAcesAndTens();");`
+            this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.CalculateAcesAndTens();");
+        } // end of behavior for ROUND_END
+        
+        // ROUND_END behavior
         // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.CalculateRoundScores();"); }
         {
             // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.CalculateRoundScores();");`
@@ -1980,18 +1985,6 @@ evaluateGuard = null;
             
             // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
             return;
-        } // end of behavior for ROUND_END
-        
-        // No ancestor handles this event.
-    }
-    
-    #ROUND_END_do()
-    {
-        // ROUND_END behavior
-        // uml: do / { this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.CalculateAcesAndTens();"); }
-        {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.CalculateAcesAndTens();");`
-            this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.CalculateAcesAndTens();");
         } // end of behavior for ROUND_END
         
         // No ancestor handles this event.
@@ -2201,7 +2194,6 @@ evaluateGuard = null;
             case BeziqueGameFlow.EventId.CONTINUEGAME: return "CONTINUEGAME";
             case BeziqueGameFlow.EventId.CONTINUELASTNINE: return "CONTINUELASTNINE";
             case BeziqueGameFlow.EventId.DECKEMPTY: return "DECKEMPTY";
-            case BeziqueGameFlow.EventId.DO: return "DO";
             case BeziqueGameFlow.EventId.INITIALIZED: return "INITIALIZED";
             case BeziqueGameFlow.EventId.MELDDECLARED: return "MELDDECLARED";
             case BeziqueGameFlow.EventId.MELDSCORED: return "MELDSCORED";
@@ -2252,7 +2244,7 @@ evaluateGuard = null;
             center: true
         });
 
-        const diagramEventNamesArray = ['do', 'AllHandsEmpty', 'CardPlayed', 'CardsDealt', 'CardsDrawn', 'ContinueGame', 'ContinueLastNine', 'DeckEmpty', 'Initialized', 'MeldDeclared', 'MeldScored', 'MeldSkipped', 'MoreCardsAvailable', 'MorePlayersNeedToPlay', 'TimerExpired', 'TimerReset', 'TrickComplete', 'TrickResolved', 'TrumpDetermined', 'WinningScoreReached', ];
+        const diagramEventNamesArray = ['AllHandsEmpty', 'CardPlayed', 'CardsDealt', 'CardsDrawn', 'ContinueGame', 'ContinueLastNine', 'DeckEmpty', 'Initialized', 'MeldDeclared', 'MeldScored', 'MeldSkipped', 'MoreCardsAvailable', 'MorePlayersNeedToPlay', 'TimerExpired', 'TimerReset', 'TrickComplete', 'TrickResolved', 'TrumpDetermined', 'WinningScoreReached', ];
 
         // Mapping from state to available events
         const stateEventsMapping = {
@@ -2267,7 +2259,6 @@ evaluateGuard = null;
   ],
   "ROUND_END": [
     "ContinueGame",
-    "do",
     "WinningScoreReached"
   ],
   "GAME_OVER": [],

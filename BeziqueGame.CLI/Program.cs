@@ -1,12 +1,18 @@
-using BeziqueGame.CLI;
 using BeziqueGame.CLI.UI;
-using Spectre.Console;
 
-var controller = new GameController();
+namespace BeziqueGame.CLI
+{
+    /// <summary>
+    /// Entry point for the Bezique CLI game application.
+    /// </summary>
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var controller = new GameController();
+            var menu = new MainMenu(controller);
 
-AnsiConsole.MarkupLine("[bold yellow]🎴 Welcome to Bezique Card Game![/]");
-AnsiConsole.MarkupLine("[dim]Initializing SDK... Please wait.[/]\n");
-
-// Show Figma-designed main menu
-var mainMenu = new MainMenu(controller);
-mainMenu.Show();
+            menu.Show();
+        }
+    }
+}
