@@ -17,6 +17,9 @@ namespace BeziqueCore.Interfaces
         Dictionary<Player, Card> CurrentTrick { get; set; }
         Suit? LeadSuit { get; set; }
 
+        // Game mode
+        GameMode Mode { get; set; }
+
         void Reset();
         void AddPlayer(Player player);
         void StartNewTrick();

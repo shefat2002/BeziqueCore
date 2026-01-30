@@ -100,8 +100,17 @@ namespace BeziqueGame.CLI
             if (string.IsNullOrWhiteSpace(playerName))
                 playerName = "Player 1";
 
+            // Select game mode
+            var gameMode = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("[bold yellow]Select Game Mode:[/]")
+                    .AddChoices(new[] { "Standard Mode", "Advanced Mode" })
+            );
+
+            var mode = gameMode == "Advanced Mode" ? GameMode.Advanced : GameMode.Standard;
+
             // Initialize game with 1 human + 1 bot
-            InitializeSinglePlayerGame(playerName);
+            InitializeSinglePlayerGame(playerName, mode);
 
             // Start game loop
             RunGameLoop();
@@ -118,16 +127,28 @@ namespace BeziqueGame.CLI
                     .AddChoices(new[] { 2, 4 })
             );
 
-            InitializeMultiplayerGame(playerCount);
+            // Select game mode
+            var gameMode = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("[bold yellow]Select Game Mode:[/]")
+                    .AddChoices(new[] { "Standard Mode", "Advanced Mode" })
+            );
+
+            var mode = gameMode == "Advanced Mode" ? GameMode.Advanced : GameMode.Standard;
+
+            InitializeMultiplayerGame(playerCount, mode);
             RunGameLoop();
         }
 
-        private void InitializeSinglePlayerGame(string humanName)
+        private void InitializeSinglePlayerGame(string humanName, GameMode mode)
         {
             // Reset and initialize
             _deckOps.InitializeDeck();
             _gameState.Reset();
             _bots.Clear();
+
+            // Set game mode
+            _gameState.Mode = mode;
 
             // Create human player
             _humanPlayer = new Player
@@ -166,11 +187,14 @@ namespace BeziqueGame.CLI
             _stateMachine.DispatchGameInitialized();
         }
 
-        private void InitializeMultiplayerGame(int playerCount)
+        private void InitializeMultiplayerGame(int playerCount, GameMode mode)
         {
             _deckOps.InitializeDeck();
             _gameState.Reset();
             _bots.Clear();
+
+            // Set game mode
+            _gameState.Mode = mode;
 
             for (int i = 0; i < playerCount; i++)
             {

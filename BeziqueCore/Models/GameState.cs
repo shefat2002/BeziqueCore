@@ -2,6 +2,17 @@ using BeziqueCore.Interfaces;
 
 namespace BeziqueCore.Models
 {
+    /// <summary>
+    /// Game mode for Bezique - Standard or Advanced
+    /// </summary>
+    public enum GameMode
+    {
+        /// <summary>Standard Bezique rules</summary>
+        Standard,
+        /// <summary>Advanced Bezique with additional Aces and Tens scoring</summary>
+        Advanced
+    }
+
     public class GameState : IGameState
     {
         public List<Player> Players { get; }
@@ -16,6 +27,9 @@ namespace BeziqueCore.Models
         // Trick tracking
         public Dictionary<Player, Card> CurrentTrick { get; set; }
         public Suit? LeadSuit { get; set; }
+
+        // Game mode - Standard or Advanced
+        public GameMode Mode { get; set; } = GameMode.Standard;
 
         public GameState(IPlayerTimer playerTimer)
         {

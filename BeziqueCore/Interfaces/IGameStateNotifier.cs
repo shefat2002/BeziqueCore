@@ -20,5 +20,6 @@ namespace BeziqueCore.Interfaces
         void NotifyPlayerTimeout(Player player);
         void NotifyLastNineCardsStarted();
         void NotifyCardsDealt(Dictionary<Player, List<Card>> hands);
+        void NotifyAcesAndTensBonus(Player player, int bonusPoints);
     }
 }

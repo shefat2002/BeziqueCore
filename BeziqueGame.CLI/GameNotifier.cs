@@ -88,5 +88,10 @@ namespace BeziqueGame.CLI
         {
             AnsiConsole.MarkupLine("[bold yellow]⚠️ Last 9 cards phase started! Strict rules apply.[/]");
         }
+
+        public void NotifyAcesAndTensBonus(Player player, int bonusPoints)
+        {
+            AnsiConsole.MarkupLine($"[bold magenta]✨ {player.Name} gets Aces & Tens bonus! (+{bonusPoints} points)[/]");
+        }
     }
 }

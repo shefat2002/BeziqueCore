@@ -376,5 +376,49 @@ namespace BeziqueCore.Adapters
                 _gameState.RoundScores[player] = player.Score;
             }
         }
+
+        public void CalcluateAcesAndTens()
+        {
+            // ADVANCED MODE ONLY: Calculate additional points for Aces and Tens
+            // This method is called by the ROUND_END state's 'do' action
+            if (_gameState.Mode != GameMode.Advanced)
+            {
+                // Skip for Standard mode
+                return;
+            }
+
+            // In Advanced mode, players get bonus points for:
+            // - Each Ace: 10 points
+            // - Each Ten: 10 points
+            // This is calculated at the end of each round
+
+            foreach (var player in _gameState.Players)
+            {
+                int bonusPoints = 0;
+
+                // Count Aces and Tens in the player's declared melds
+                // These are cards the player has "shown" during the game
+                if (player.DeclaredMelds != null)
+                {
+                    foreach (var meld in player.DeclaredMelds)
+                    {
+                        foreach (var card in meld.Cards)
+                        {
+                            if (card.Rank == Rank.Ace || card.Rank == Rank.Ten)
+                            {
+                                bonusPoints += 10;
+                            }
+                        }
+                    }
+                }
+
+                // Add bonus to player's score
+                if (bonusPoints > 0)
+                {
+                    player.Score += bonusPoints;
+                    _notifier.NotifyAcesAndTensBonus(player, bonusPoints);
+                }
+            }
+        }
     }
 }

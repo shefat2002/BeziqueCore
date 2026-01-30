@@ -118,5 +118,10 @@ namespace BeziqueCore.Notifiers
             OnCardsDealt?.Invoke(hands);
             Console.WriteLine("Cards dealt to all players");
         }
+
+        public void NotifyAcesAndTensBonus(Player player, int bonusPoints)
+        {
+            Console.WriteLine($"{player.Name} gets Aces & Tens bonus (+{bonusPoints} points)");
+        }
     }
 }
