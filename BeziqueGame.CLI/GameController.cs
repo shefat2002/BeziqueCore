@@ -100,15 +100,8 @@ namespace BeziqueGame.CLI
             if (string.IsNullOrWhiteSpace(playerName))
                 playerName = "Player 1";
 
-            // Select bot difficulty
-            var botDifficulty = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .Title("[bold yellow]Select AI difficulty:[/]")
-                    .AddChoices(new[] { "Easy", "Medium", "Hard", "Expert" })
-            );
-
             // Initialize game with 1 human + 1 bot
-            InitializeSinglePlayerGame(playerName, botDifficulty);
+            InitializeSinglePlayerGame(playerName);
 
             // Start game loop
             RunGameLoop();
@@ -129,7 +122,7 @@ namespace BeziqueGame.CLI
             RunGameLoop();
         }
 
-        private void InitializeSinglePlayerGame(string humanName, string difficulty)
+        private void InitializeSinglePlayerGame(string humanName)
         {
             // Reset and initialize
             _deckOps.InitializeDeck();
@@ -153,7 +146,7 @@ namespace BeziqueGame.CLI
             var bot = new Player
             {
                 Id = Guid.NewGuid().ToString(),
-                Name = $"{difficulty} AI",
+                Name = "AI",
                 Score = 0,
                 Hand = new List<Card>(),
                 DeclaredMelds = new List<Meld>(),
@@ -161,17 +154,8 @@ namespace BeziqueGame.CLI
                 IsDealer = true
             };
 
-            // Create bot AI based on difficulty
-            IBeziqueBot botAI = difficulty switch
-            {
-                "Easy" => new EasyBot(),
-                "Medium" => new MediumBot(),
-                "Hard" => new HardBot(),
-                "Expert" => new ExpertBot(),
-                _ => new MediumBot()
-            };
-
-            _bots[bot] = botAI;
+            // Create unified AI
+            _bots[bot] = new BeziqueBot();
             _gameState.AddPlayer(bot);
 
             // Set current player (non-dealer human leads first)

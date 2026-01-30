@@ -2,7 +2,7 @@
 
 ## Overview
 
-The BeziqueCore SDK now includes a complete AI bot system for single-player offline gameplay. The bot system demonstrates how game AI can be implemented using the SDK's interfaces.
+The BeziqueCore SDK includes a unified AI bot system for single-player offline gameplay. The bot implements maximum difficulty strategies, combining optimal card play with intelligent meld decisions.
 
 ## Architecture
 
@@ -17,91 +17,94 @@ public interface IBeziqueBot
 }
 ```
 
-### Base Class
+### Unified Bot
 
 ```csharp
-public abstract class BeziqueBotBase : IBeziqueBot
+public class BeziqueBot : IBeziqueBot
 {
-    protected readonly Random _random;
-    protected List<Card> GetValidCards(...);
-    protected int GetCardPower(Card card, Suit trumpSuit);
-    protected int GetRankValue(Rank rank);
+    public string BotName => "AI";
+
+    public Card SelectCardToPlay(...);
+    public Meld? DecideMeld(...);
 }
 ```
 
-## Bot Difficulty Levels
+## Bot Strategy
 
-### 1. EasyBot
+### Leading Strategy
 
-**Behavior:**
-- Plays randomly from valid cards
-- Rarely declares melds (30% chance)
-- Good for beginners learning the game
+When leading a trick, the AI uses intelligent card selection:
 
-**Card Selection:** Random valid card
+**Trump Lead:**
+- Leads trump when holding 3+ trump cards
+- Uses low trump to force opponent to waste high trumps
 
-**Meld Strategy:** Simple marriages and four-of-a-kinds
+**Suit Lead:**
+- Analyzes all suits to find strongest holding
+- Leads highest card from strongest suit
+- Avoids leading from weak suits
 
----
+**Card Power Calculation:**
+```csharp
+protected int GetCardPower(Card card, Suit trumpSuit)
+{
+    if (card.IsJoker) return 100;
+    if (card.Suit == trumpSuit) return 50 + GetRankValue(card.Rank);
+    return GetRankValue(card.Rank);
+}
+```
 
-### 2. MediumBot
+### Following Strategy
 
-**Behavior:**
-- Plays strategically but not optimally
-- Leading: Plays low cards to save high cards
-- Following: Tries to win with lowest winning card
-- Can't win: Dumps lowest card
-- Declares melds 70% of the time
+When following in a trick:
 
-**Card Selection:** Strategic based on card power
+**Winning Situation:**
+- Calculates if it can win the trick
+- Uses lowest card that wins (saves high cards)
+- Efficient card management
 
-**Meld Strategy:** Uses SDK's meld validator, declares melds worth ≥20 points
+**Can't Win Situation:**
+- Dumps 7 of trump (to get +10 bonus)
+- Dumps lowest non-point cards (avoids Aces/Tens)
+- Strategic card disposal
 
----
+**Example:**
+```csharp
+if (winningCards.Any())
+{
+    // Win with lowest card that wins
+    return winningCards.OrderBy(c => GetCardPower(c, trumpSuit)).First();
+}
 
-### 3. HardBot
+// Can't win - dump strategically
+var sevenOfTrump = validCards.FirstOrDefault(c => c.Rank == Rank.Seven && c.Suit == trumpSuit);
+if (sevenOfTrump != null) return sevenOfTrump;
+```
 
-**Behavior:**
-- Plays optimally with advanced strategy
-- Leading: Leads trump if has 3+ trumps
-- Following: Wins efficiently with lowest winning card
-- Can't win: Dumps strategically (7 of trump, then low cards)
-- Always declares available melds
+### Meld Strategy
 
-**Card Selection:** Calculated optimal play
+**Always Declares:**
+- Finds all possible melds using `MeldHelper.FindAllPossibleMelds()`
+- Returns highest point meld (sorted by points descending)
+- No hesitation - optimal meld declaration
 
-**Meld Strategy:** Always declares any beneficial meld
-
----
-
-### 4. ExpertBot
-
-**Behavior:**
-- Uses minimax-style thinking
-- Leading: Leads with high card from strongest suit
-- Following: Calculates optimal winning strategy
-- Can't win: Dumps to minimize opponent's advantage
-- Always melds optimally
-
-**Card Selection:** Advanced probability calculations
-
-**Meld Strategy:** Optimal meld declaration
+**Meld Tracking:**
+- Respects melded cards tracking
+- Can reuse melded cards if at least one new card is included
+- Follows Bezique rules correctly
 
 ## Integration in GameController
 
 ```csharp
-// Create bot based on difficulty
-IBeziqueBot botAI = difficulty switch
+// Create unified AI bot
+var bot = new Player
 {
-    "Easy" => new EasyBot(),
-    "Medium" => new MediumBot(),
-    "Hard" => new HardBot(),
-    "Expert" => new ExpertBot(),
-    _ => new MediumBot()
+    Name = "AI",
+    // ... other properties
 };
 
-// Map bot to player
-_bots[botPlayer] = botAI;
+// Map bot to AI
+_bots[bot] = new BeziqueBot();
 
 // Bot plays card during its turn
 var cardToPlay = bot.SelectCardToPlay(
@@ -125,44 +128,71 @@ if (meld != null)
 
 ### 1. Rule Compliance
 
-All bots respect game rules:
-- Follow last 9 cards strict rules
-- Only play valid cards from hand
-- Properly calculate card power
+The AI respects all game rules:
+- **Last 9 Cards Strict Rules:** Must follow suit with higher card if possible
+- **Valid Card Detection:** Only plays valid cards from hand
+- **Meld Rules:** Properly handles melded card tracking
 
-### 2. Card Power Calculation
+### 2. Valid Card Detection
 
 ```csharp
-protected int GetCardPower(Card card, Suit trumpSuit)
+private List<Card> GetValidCards(Player bot, Dictionary<Player, Card> currentTrick,
+                                   Suit trumpSuit, bool isLastNineCardsPhase)
 {
-    if (card.IsJoker) return 100;
-    if (card.Suit == trumpSuit) return 50 + GetRankValue(card.Rank);
-    return GetRankValue(card.Rank);
+    if (!isLastNineCardsPhase)
+        return bot.Hand.ToList();
+
+    // Last 9 cards strict rules apply
+    // 1. Must follow suit with higher card if possible
+    // 2. Otherwise play lower card of same suit
+    // 3. Otherwise any card is valid
 }
 ```
 
-### 3. Valid Card Detection
+### 3. Strategic Thinking
 
-Bots automatically detect valid plays based on:
-- Current trick state
-- Trump suit
-- Last 9 cards phase rules
+**Trump Management:**
+- Counts trumps before leading
+- Forces opponent to waste trumps
+- Preserves high trumps for critical moments
+
+**Suit Control:**
+- Identifies strongest suits
+- Leads from strength when possible
+- Avoids leading from weak suits
+
+**Point Optimization:**
+- Saves high point cards (Aces, Tens)
+- Dumps low value cards when can't win
+- Maximizes trick points
 
 ### 4. Meld Decision Making
 
-Bots use the SDK's `MeldValidator` to:
-- Find all possible melds
+The AI uses the SDK's `MeldHelper` to:
+- Find all possible melds from current hand
 - Select highest-point meld
-- Decide whether to declare based on difficulty
+- Always declare when beneficial
+
+```csharp
+public Meld? DecideMeld(Player bot, Suit trumpSuit)
+{
+    var possibleMelds = MeldHelper.FindAllPossibleMelds(bot, trumpSuit);
+    if (possibleMelds.Any())
+    {
+        return possibleMelds.First(); // Already sorted by points descending
+    }
+    return null;
+}
+```
 
 ## Usage Example
 
 ```csharp
 // In single-player mode
 var humanPlayer = new Player { Name = "Alice" };
-var botPlayer = new Player { Name = "Medium AI" };
+var botPlayer = new Player { Name = "AI" };
 
-var bot = new MediumBot();
+var bot = new BeziqueBot();
 _bots[botPlayer] = bot;
 
 // Bot automatically plays during its turn
@@ -172,66 +202,70 @@ if (_bots.ContainsKey(currentPlayer))
 }
 ```
 
-## Extending the Bot System
+## Creating Custom Bots
 
-### Custom Bot Implementation
+You can extend the bot system by implementing `IBeziqueBot`:
 
 ```csharp
-public class CustomBot : BeziqueBotBase
+public class CustomBot : IBeziqueBot
 {
-    public override string BotName => "My Custom AI";
+    public string BotName => "My Custom AI";
 
-    public override Card SelectCardToPlay(...)
+    public Card SelectCardToPlay(
+        Player bot,
+        Dictionary<Player, Card> currentTrick,
+        Suit trumpSuit,
+        bool isLastNineCardsPhase)
     {
         // Your custom logic here
         return validCards.First();
     }
 
-    public override Meld? DecideMeld(...)
+    public Meld? DecideMeld(Player bot, Suit trumpSuit)
     {
         // Your meld strategy here
         return null;
     }
 }
+
+// Use in GameController
+_bots[botPlayer] = new CustomBot();
 ```
-
-### Adding to GameController
-
-```csharp
-var customBot = new CustomBot();
-_bots[botPlayer] = customBot;
-```
-
-## Bot Behavior Summary
-
-| Difficulty | Win Rate | Meld Frequency | Strategy |
-|-----------|----------|-----------------|----------|
-| Easy | 30-40% | Low | Random valid moves |
-| Medium | 45-55% | Medium | Strategic play |
-| Hard | 60-70% | High | Optimal play |
-| Expert | 70-80% | High | Advanced strategy |
 
 ## Technical Notes
 
-- All bots inherit from `BeziqueBotBase` for common functionality
-- Bots use the same SDK as human players
-- No cheating - bots have same information as human players
-- Bot delay is simulated with `Thread.Sleep()` for realistic pacing
+- **Fair Play:** Bot has same information as human players (no cheating)
+- **SDK Integration:** Uses same SDK interfaces as human players
+- **Realistic Pacing:** Bot delay simulated with `Thread.Sleep()`
+- **No Base Class:** Direct implementation of `IBeziqueBot` interface
 
-## Future Enhancements
+## AI Strengths
 
-Potential improvements for bot AI:
-- **Memory system**: Track played cards to make better decisions
-- **Probability calculations**: Calculate odds of opponent having certain cards
-- **Adaptive strategy**: Adjust play style based on game state
-- **Learning**: Implement reinforcement learning for improving over time
-- **Personality**: Different bot personalities (aggressive, defensive, etc.)
+| Aspect | Strategy |
+|--------|----------|
+| **Card Play** | Optimal - considers trump, suits, and game state |
+| **Meld Frequency** | Always declares when beneficial |
+| **Trick Winning** | Efficient - uses lowest winning card |
+| **Card Dumping** | Strategic - prioritizes bonus cards and low values |
+| **Last 9 Cards** | Fully compliant with strict rules |
+| **Trump Management** | Advanced - forces opponent waste |
 
 ## Testing
 
-Test the bots by running the CLI:
+Test the AI by running the CLI:
+
 ```bash
 dotnet run --project BeziqueGame.CLI
 ```
 
-Select "Single Player (vs AI)" and choose your preferred difficulty.
+Select "Single Player (vs AI)" to play against the unified AI bot.
+
+## Future Enhancements
+
+Potential improvements for the AI:
+
+- **Card Memory:** Track played cards to make better informed decisions
+- **Probability Calculations:** Calculate odds of opponent holding specific cards
+- **Adaptive Strategy:** Adjust play style based on score difference
+- **Pattern Recognition:** Detect opponent playing patterns
+- **Endgame Optimization:** Specialized strategies for close games

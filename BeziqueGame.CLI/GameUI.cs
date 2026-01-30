@@ -310,12 +310,6 @@ namespace BeziqueGame.CLI
 • [yellow]Last Trick Bonus:[/] +10 points for winning the final trick
 
 [bold]Winning:[/] First player to reach 1500 points wins!
-
-[bold cyan]🤖 AI Opponents:[/]
-• [yellow]Easy AI:[/] Plays randomly, good for learning
-• [yellow]Medium AI:[/] Plays strategically, fair challenge
-• [yellow]Hard AI:[/] Plays optimally, tough opponent
-• [yellow]Expert AI:[/] Uses advanced strategy, ultimate challenge
 ";
         }
 
