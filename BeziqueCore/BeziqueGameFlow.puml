@@ -26,6 +26,7 @@ state TRUMP_SELECTION {
 
 state ROUND_END {
     ROUND_END: enter / gameAdapter.CalculateRoundScores();
+    ROUND_END: do / gameAdapter.CalcluateAcesAndTens();
     ROUND_END: exit / gameAdapter.NotifyRoundEnded();
 }
 
