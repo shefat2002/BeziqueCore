@@ -1,5 +1,6 @@
 using BeziqueCore.Interfaces;
 using BeziqueCore.Models;
+using BeziqueCore.Constants;
 
 namespace BeziqueCore.Actions
 {
@@ -9,7 +10,6 @@ namespace BeziqueCore.Actions
         private readonly IMeldValidator _meldValidator;
         private readonly IGameStateNotifier _notifier;
         private readonly IGameState _gameState;
-        private const int SevenOfTrumpBonus = 10;
 
         public PlayerActions(
             IDeckOperations deckOps,
@@ -40,10 +40,10 @@ namespace BeziqueCore.Actions
             // Remove the actual card reference from hand
             player.Hand.Remove(cardInHand);
 
-            // Check if playing 7 of trump - award 10 points
+            // Check if playing 7 of trump - award bonus points
             if (card.Rank == Rank.Seven && card.Suit == _gameState.TrumpSuit)
             {
-                player.Score += SevenOfTrumpBonus;
+                player.Score += GameConstants.SevenOfTrumpBonus;
                 _notifier.NotifySevenOfTrumpPlayed(player);
             }
 
@@ -151,7 +151,7 @@ namespace BeziqueCore.Actions
                 throw new InvalidOperationException("Player does not have 7 of trump.");
             }
 
-            player.Score += SevenOfTrumpBonus;
+            player.Score += GameConstants.SevenOfTrumpBonus;
 
             // Remove the actual card reference from hand
             player.Hand.Remove(sevenOfTrump);

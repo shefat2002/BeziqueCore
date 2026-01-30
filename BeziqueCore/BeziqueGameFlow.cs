@@ -1219,10 +1219,10 @@ public partial class BeziqueGameFlow
     private void ROUND_END_do()
     {
         // ROUND_END behavior
-        // uml: do / { gameAdapter.CalcluateAcesAndTens(); }
+        // uml: do / { gameAdapter.CalculateAcesAndTens(); }
         {
-            // Step 1: execute action `gameAdapter.CalcluateAcesAndTens();`
-            gameAdapter.CalcluateAcesAndTens();
+            // Step 1: execute action `gameAdapter.CalculateAcesAndTens();`
+            gameAdapter.CalculateAcesAndTens();
         } // end of behavior for ROUND_END
 
         // No ancestor handles this event.

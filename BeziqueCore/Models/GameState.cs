@@ -1,4 +1,5 @@
 using BeziqueCore.Interfaces;
+using BeziqueCore.Constants;
 
 namespace BeziqueCore.Models
 {
@@ -15,6 +16,8 @@ namespace BeziqueCore.Models
 
     public class GameState : IGameState
     {
+        private readonly object _lock = new();
+
         public List<Player> Players { get; }
         public Player CurrentPlayer { get; set; }
         public Player Winner { get; set; }
@@ -47,34 +50,46 @@ namespace BeziqueCore.Models
 
         public void Reset()
         {
-            RoundScores.Clear();
-            Winner = null;
-            CurrentPlayer = null;
-            LastTrickWinner = null;
-            TrumpSuit = default;
-            TrumpCard = null;
-            CurrentTrick = new Dictionary<Player, Card>();
-            LeadSuit = null;
+            lock (_lock)
+            {
+                RoundScores.Clear();
+                Winner = null;
+                CurrentPlayer = null;
+                LastTrickWinner = null;
+                TrumpSuit = default;
+                TrumpCard = null;
+                CurrentTrick = new Dictionary<Player, Card>();
+                LeadSuit = null;
+            }
         }
 
         public void StartNewTrick()
         {
-            CurrentTrick = new Dictionary<Player, Card>();
-            LeadSuit = null;
+            lock (_lock)
+            {
+                CurrentTrick = new Dictionary<Player, Card>();
+                LeadSuit = null;
+            }
         }
 
         public void AddCardToTrick(Player player, Card card)
         {
-            CurrentTrick[player] = card;
-            if (!LeadSuit.HasValue && !card.IsJoker)
+            lock (_lock)
             {
-                LeadSuit = card.Suit;
+                CurrentTrick[player] = card;
+                if (!LeadSuit.HasValue && !card.IsJoker)
+                {
+                    LeadSuit = card.Suit;
+                }
             }
         }
 
         public bool IsTrickComplete()
         {
-            return CurrentTrick.Count == Players.Count;
+            lock (_lock)
+            {
+                return CurrentTrick.Count == Players.Count;
+            }
         }
     }
 }

@@ -31,7 +31,7 @@ namespace BeziqueCore.Interfaces
 
         // Round and game end
         void CalculateRoundScores();
-        void CalcluateAcesAndTens();
+        void CalculateAcesAndTens();
         void NotifyRoundEnded();
         void DeclareWinner();
         void NotifyGameOver();

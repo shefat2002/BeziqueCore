@@ -1,10 +1,38 @@
 namespace BeziqueCore.Models
 {
-    public class Card : IEquatable<Card>
+    /// <summary>
+    /// Represents a playing card with value equality and comparison support.
+    /// Card is immutable for thread safety and predictability.
+    /// </summary>
+    public sealed class Card : IEquatable<Card>, IComparable<Card>
     {
-        public Suit Suit { get; set; }
-        public Rank Rank { get; set; }
-        public bool IsJoker { get; set; }
+        public Suit Suit { get; }
+        public Rank Rank { get; }
+        public bool IsJoker { get; }
+
+        // Private constructor for normal cards
+        private Card(Suit suit, Rank rank, bool isJoker)
+        {
+            Suit = suit;
+            Rank = rank;
+            IsJoker = isJoker;
+        }
+
+        /// <summary>
+        /// Creates a normal playing card.
+        /// </summary>
+        public static Card Create(Suit suit, Rank rank)
+        {
+            return new Card(suit, rank, false);
+        }
+
+        /// <summary>
+        /// Creates a Joker card. Suit and rank are ignored for jokers.
+        /// </summary>
+        public static Card CreateJoker(Suit suit = Suit.Spades, Rank rank = Rank.Ace)
+        {
+            return new Card(suit, rank, true);
+        }
 
         public bool Equals(Card? other)
         {
@@ -23,6 +51,17 @@ namespace BeziqueCore.Models
             return HashCode.Combine(Suit, Rank, IsJoker);
         }
 
+        public int CompareTo(Card? other)
+        {
+            if (other is null) return 1;
+            if (IsJoker && !other.IsJoker) return 1;
+            if (!IsJoker && other.IsJoker) return -1;
+            if (IsJoker && other.IsJoker) return 0;
+
+            var rankComparison = Rank.CompareTo(other.Rank);
+            return rankComparison != 0 ? rankComparison : Suit.CompareTo(other.Suit);
+        }
+
         public static bool operator ==(Card? left, Card? right)
         {
             if (left is null) return right is null;
@@ -34,6 +73,16 @@ namespace BeziqueCore.Models
             return !(left == right);
         }
 
+        public static bool operator <(Card? left, Card? right)
+        {
+            return left is null ? right is not null : left.CompareTo(right) < 0;
+        }
+
+        public static bool operator >(Card? left, Card? right)
+        {
+            return left is null ? false : left.CompareTo(right) > 0;
+        }
+
         public override string ToString()
         {
             return IsJoker ? "Joker" : $"{Rank} of {Suit}";
@@ -42,10 +91,10 @@ namespace BeziqueCore.Models
 
     public enum Suit
     {
-        Hearts,
-        Diamonds,
         Clubs,
-        Spades
+        Diamonds,
+        Spades,
+        Hearts
     }
 
     public enum Rank

@@ -279,7 +279,7 @@ ROUND_END : ROUND_END
 
 ROUND_END : enter / #123; gameAdapter.CalculateRoundScores()#59; #125;
 
-ROUND_END : do / #123; gameAdapter.CalcluateAcesAndTens()#59; #125;
+ROUND_END : do / #123; gameAdapter.CalculateAcesAndTens()#59; #125;
 
 ROUND_END : exit / #123; gameAdapter.NotifyRoundEnded()#59; #125;
 
@@ -1988,10 +1988,10 @@ evaluateGuard = null;
     #ROUND_END_do()
     {
         // ROUND_END behavior
-        // uml: do / { this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.CalcluateAcesAndTens();"); }
+        // uml: do / { this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.CalculateAcesAndTens();"); }
         {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.CalcluateAcesAndTens();");`
-            this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.CalcluateAcesAndTens();");
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.CalculateAcesAndTens();");`
+            this.tracer?.log("⚡ FSM would execute action: " + "gameAdapter.CalculateAcesAndTens();");
         } // end of behavior for ROUND_END
         
         // No ancestor handles this event.

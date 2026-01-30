@@ -1,5 +1,6 @@
 using BeziqueCore.Interfaces;
 using BeziqueCore.Models;
+using BeziqueCore.Constants;
 
 namespace BeziqueCore.Adapters
 {
@@ -10,9 +11,6 @@ namespace BeziqueCore.Adapters
         private readonly IGameStateNotifier _notifier;
         private readonly IGameState _gameState;
         private readonly ITrickResolver _trickResolver;
-        private const int CardsPerPlayer = 9;
-        private const int DealSetSize = 3;
-        private const int TimeoutPenalty = 10;
 
         public GameAdapter(
             IDeckOperations deckOps,
@@ -53,13 +51,13 @@ namespace BeziqueCore.Adapters
         public void DealCards()
         {
             var players = _gameState.Players;
-            int totalCardsToDeal = players.Count * CardsPerPlayer;
+            int totalCardsToDeal = players.Count * GameConstants.CardsPerPlayer;
 
-            for (int i = 0; i < CardsPerPlayer; i += DealSetSize)
+            for (int i = 0; i < GameConstants.CardsPerPlayer; i += GameConstants.DealSetSize)
             {
                 foreach (var player in players)
                 {
-                    for (int j = 0; j < DealSetSize && _deckOps.GetRemainingCardCount() > 1; j++)
+                    for (int j = 0; j < GameConstants.DealSetSize && _deckOps.GetRemainingCardCount() > 1; j++)
                     {
                         var card = _deckOps.DrawTopCard();
                         if (card != null)
@@ -94,7 +92,7 @@ namespace BeziqueCore.Adapters
                 var dealer = _gameState.Players.FirstOrDefault(p => p.IsDealer);
                 if (dealer != null)
                 {
-                    dealer.Score += 10;
+                    dealer.Score += GameConstants.SevenOfTrumpBonus;
                 }
             }
         }
@@ -124,7 +122,7 @@ namespace BeziqueCore.Adapters
             var currentPlayer = _gameState.CurrentPlayer;
             if (currentPlayer != null)
             {
-                currentPlayer.Score = Math.Max(0, currentPlayer.Score - TimeoutPenalty);
+                currentPlayer.Score = Math.Max(0, currentPlayer.Score - GameConstants.TimeoutPenalty);
                 _notifier.NotifyPlayerTimeout(currentPlayer);
             }
         }
@@ -350,12 +348,12 @@ namespace BeziqueCore.Adapters
 
             if (allHandsEmpty)
             {
-                // Award 10 points for winning the last trick
+                // Award bonus points for winning the last trick
                 var winner = _gameState.LastTrickWinner;
                 if (winner != null)
                 {
-                    winner.Score += 10;
-                    _notifier.NotifyLastTrickBonus(winner, 10);
+                    winner.Score += GameConstants.LastTrickBonusPoints;
+                    _notifier.NotifyLastTrickBonus(winner, GameConstants.LastTrickBonusPoints);
                 }
             }
         }
@@ -377,27 +375,19 @@ namespace BeziqueCore.Adapters
             }
         }
 
-        public void CalcluateAcesAndTens()
+        public void CalculateAcesAndTens()
         {
             // ADVANCED MODE ONLY: Calculate additional points for Aces and Tens
             // This method is called by the ROUND_END state's 'do' action
             if (_gameState.Mode != GameMode.Advanced)
             {
-                // Skip for Standard mode
                 return;
             }
-
-            // In Advanced mode, players get bonus points for:
-            // - Each Ace: 10 points
-            // - Each Ten: 10 points
-            // This is calculated at the end of each round
 
             foreach (var player in _gameState.Players)
             {
                 int bonusPoints = 0;
 
-                // Count Aces and Tens in the player's declared melds
-                // These are cards the player has "shown" during the game
                 if (player.DeclaredMelds != null)
                 {
                     foreach (var meld in player.DeclaredMelds)
@@ -406,13 +396,12 @@ namespace BeziqueCore.Adapters
                         {
                             if (card.Rank == Rank.Ace || card.Rank == Rank.Ten)
                             {
-                                bonusPoints += 10;
+                                bonusPoints += GameConstants.AceAndTenBonusPoints;
                             }
                         }
                     }
                 }
 
-                // Add bonus to player's score
                 if (bonusPoints > 0)
                 {
                     player.Score += bonusPoints;

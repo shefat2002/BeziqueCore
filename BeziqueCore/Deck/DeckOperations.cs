@@ -3,45 +3,48 @@ using BeziqueCore.Models;
 
 namespace BeziqueCore.Deck
 {
+    /// <summary>
+    /// Optimized deck operations using array-based storage for better performance.
+    /// Array-based approach eliminates Stack<T> overhead and reduces allocations during shuffling.
+    /// </summary>
     public class DeckOperations : IDeckOperations
     {
-        private Stack<Card> _deck;
+        // Array-based storage for O(1) random access and better cache locality
+        private Card[] _deckArray;
+        private int _deckIndex;
         private Card? _trumpCard;
         private const int TotalDecks = 4;
+        private const int CardsPerDeck = 52; // Standard deck
+        private const int JokersPerDeck = 1;
         private const int LastNineCardCount = 9;
+        private const int TotalCards = TotalDecks * (CardsPerDeck + JokersPerDeck);
         private readonly Random _random;
 
         public DeckOperations()
         {
-            _deck = new Stack<Card>();
+            _deckArray = Array.Empty<Card>();
+            _deckIndex = 0;
             _random = new Random();
         }
 
         public void InitializeDeck()
         {
-            _deck.Clear();
+            // Pre-allocate exact size needed
+            _deckArray = new Card[TotalCards];
+            _deckIndex = 0;
 
+            // Fill array directly - more efficient than Stack.Push
             for (int deck = 0; deck < TotalDecks; deck++)
             {
                 foreach (Suit suit in Enum.GetValues(typeof(Suit)))
                 {
                     foreach (Rank rank in Enum.GetValues(typeof(Rank)))
                     {
-                        _deck.Push(new Card
-                        {
-                            Suit = suit,
-                            Rank = rank,
-                            IsJoker = false
-                        });
+                        _deckArray[_deckIndex++] = Card.Create(suit, rank);
                     }
                 }
 
-                _deck.Push(new Card
-                {
-                    Suit = Suit.Spades,
-                    Rank = Rank.Ace,
-                    IsJoker = true
-                });
+                _deckArray[_deckIndex++] = Card.CreateJoker();
             }
 
             ShuffleDeck();
@@ -49,22 +52,22 @@ namespace BeziqueCore.Deck
 
         public Card? DrawTopCard()
         {
-            if (_deck.Count == 0)
+            if (_deckIndex <= 0)
             {
                 return null;
             }
 
-            return _deck.Pop();
+            return _deckArray[--_deckIndex];
         }
 
         public int GetRemainingCardCount()
         {
-            return _deck.Count;
+            return _deckIndex;
         }
 
         public bool IsLastNineCards()
         {
-            return _deck.Count <= LastNineCardCount;
+            return _deckIndex <= LastNineCardCount;
         }
 
         public Card? FlipTrumpCard()
@@ -75,15 +78,13 @@ namespace BeziqueCore.Deck
 
         public void ShuffleDeck()
         {
-            var cards = _deck.ToList();
-
-            for (int i = cards.Count - 1; i > 0; i--)
+            // Fisher-Yates shuffle directly on array - no intermediate allocations
+            // Start from current index to only shuffle remaining cards
+            for (int i = _deckIndex - 1; i > 0; i--)
             {
                 int j = _random.Next(0, i + 1);
-                (cards[i], cards[j]) = (cards[j], cards[i]);
+                (_deckArray[i], _deckArray[j]) = (_deckArray[j], _deckArray[i]);
             }
-
-            _deck = new Stack<Card>(cards);
         }
 
         public Card? GetTrumpCard()

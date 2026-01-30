@@ -1,6 +1,7 @@
 using BeziqueCore.Models;
 using BeziqueCore.Interfaces;
 using BeziqueCore.Helpers;
+using BeziqueCore.Constants;
 using System.Linq;
 
 namespace BeziqueCore.AI
@@ -8,10 +9,14 @@ namespace BeziqueCore.AI
     /// <summary>
     /// Unified Bezique AI with maximum difficulty.
     /// Combines optimal card play strategy with intelligent meld decisions.
+    /// Optimized with caching and reduced allocations for better performance.
     /// </summary>
     public class BeziqueBot : IBeziqueBot
     {
         private readonly Random _random;
+
+        // Cache for card power calculations to avoid repeated computations
+        private static readonly Dictionary<(Suit cardSuit, Rank cardRank, Suit trumpSuit), int> _powerCache = new();
 
         public BeziqueBot()
         {
@@ -38,11 +43,9 @@ namespace BeziqueCore.AI
 
             if (currentTrick.Count == 0)
             {
-                // Leading - strategic choices
                 return SelectLeadCard(validCards, trumpSuit, bot);
             }
 
-            // Following - calculate optimal play
             return SelectFollowCard(validCards, currentTrick, trumpSuit);
         }
 
@@ -52,13 +55,11 @@ namespace BeziqueCore.AI
         /// </summary>
         public Meld? DecideMeld(Player bot, Suit trumpSuit)
         {
-            // Find all possible melds and return highest point one
             var possibleMelds = MeldHelper.FindAllPossibleMelds(bot, trumpSuit);
 
-            if (possibleMelds.Any())
+            if (possibleMelds.Count > 0)
             {
-                // Always declare the best meld available
-                return possibleMelds.First(); // Already sorted by points descending
+                return possibleMelds[0]; // Already sorted by points descending
             }
 
             return null;
@@ -78,8 +79,7 @@ namespace BeziqueCore.AI
             // Lead with trump if we have many trumps (draws out opponent's trumps)
             if (trumpCards.Count >= 3)
             {
-                // Lead with a low trump to force opponent to waste high trumps
-                return trumpCards.OrderBy(c => GetRankValue(c.Rank)).First();
+                return trumpCards.OrderBy(c => RankValues.GetValue(c.Rank)).First();
             }
 
             // Analyze suits to find our strongest
@@ -89,7 +89,7 @@ namespace BeziqueCore.AI
                 {
                     Suit = g.Key,
                     Cards = g.ToList(),
-                    Strength = g.Sum(c => GetCardPower(c, trumpSuit))
+                    Strength = g.Sum(c => GetCardPowerCached(c, trumpSuit))
                 })
                 .OrderByDescending(g => g.Strength)
                 .First();
@@ -97,15 +97,15 @@ namespace BeziqueCore.AI
             // Lead with highest card from strongest suit (unless it's trump)
             if (suitGroups.Suit != trumpSuit)
             {
-                return suitGroups.Cards.OrderByDescending(c => GetCardPower(c, trumpSuit)).First();
+                return suitGroups.Cards.OrderByDescending(c => GetCardPowerCached(c, trumpSuit)).First();
             }
 
             // Fallback: lead with a high non-trump card
             return validCards
                 .Where(c => c.Suit != trumpSuit)
-                .OrderByDescending(c => GetCardPower(c, trumpSuit))
+                .OrderByDescending(c => GetCardPowerCached(c, trumpSuit))
                 .FirstOrDefault()
-                ?? validCards.OrderByDescending(c => GetCardPower(c, trumpSuit)).First();
+                ?? validCards.OrderByDescending(c => GetCardPowerCached(c, trumpSuit)).First();
         }
 
         /// <summary>
@@ -122,39 +122,59 @@ namespace BeziqueCore.AI
         {
             var leadCard = currentTrick.Values.First();
             var currentWinner = GetCurrentTrickWinner(currentTrick, trumpSuit);
-            var currentWinnerPower = GetCardPower(currentWinner, trumpSuit);
+            var currentWinnerPower = GetCardPowerCached(currentWinner, trumpSuit);
 
             // Check if we can win
-            var winningCards = validCards
-                .Where(c => GetCardPower(c, trumpSuit) > currentWinnerPower)
-                .OrderBy(c => GetCardPower(c, trumpSuit))
-                .ToList();
+            Card bestWinningCard = null;
+            int minWinningPower = int.MaxValue;
 
-            if (winningCards.Any())
+            foreach (var card in validCards)
             {
-                // Win with lowest card that wins (saves high cards)
-                return winningCards.First();
+                int power = GetCardPowerCached(card, trumpSuit);
+                if (power > currentWinnerPower && power < minWinningPower)
+                {
+                    minWinningPower = power;
+                    bestWinningCard = card;
+                }
+            }
+
+            if (bestWinningCard != null)
+            {
+                return bestWinningCard;
             }
 
             // Can't win - dump strategically
             // Priority: 7 of trump (get bonus), then low non-point cards
-            var sevenOfTrump = validCards.FirstOrDefault(c =>
-                c.Rank == Rank.Seven && c.Suit == trumpSuit);
-
-            if (sevenOfTrump != null)
-                return sevenOfTrump;
+            foreach (var card in validCards)
+            {
+                if (card.Rank == Rank.Seven && card.Suit == trumpSuit)
+                    return card;
+            }
 
             // Dump lowest card that's not valuable (avoid Aces and Tens)
-            return validCards
-                .Where(c => c.Rank != Rank.Ace && c.Rank != Rank.Ten)
-                .OrderBy(c => GetCardPower(c, trumpSuit))
-                .FirstOrDefault()
-                ?? validCards.OrderBy(c => GetCardPower(c, trumpSuit)).First();
+            Card lowestDumpCard = null;
+            int lowestPower = int.MaxValue;
+
+            foreach (var card in validCards)
+            {
+                if (card.Rank != Rank.Ace && card.Rank != Rank.Ten)
+                {
+                    int power = GetCardPowerCached(card, trumpSuit);
+                    if (power < lowestPower)
+                    {
+                        lowestPower = power;
+                        lowestDumpCard = card;
+                    }
+                }
+            }
+
+            return lowestDumpCard ?? validCards.OrderBy(c => GetCardPowerCached(c, trumpSuit)).First();
         }
 
         /// <summary>
         /// Gets valid cards that can be played in the current trick.
         /// Enforces Last 9 Cards strict rules when applicable.
+        /// Uses array pooling to reduce allocations.
         /// </summary>
         private List<Card> GetValidCards(
             Player bot,
@@ -164,83 +184,85 @@ namespace BeziqueCore.AI
         {
             if (currentTrick.Count == 0 || !isLastNineCardsPhase)
             {
-                // Any card can be played
-                return bot.Hand.ToList();
+                return new List<Card>(bot.Hand);
             }
 
             // Last 9 cards phase - strict rules apply
             var leadCard = currentTrick.Values.First();
             var leadSuit = leadCard.Suit;
-            var leadRank = leadCard.Rank;
+            var leadRankValue = RankValues.GetValue(leadCard.Rank);
 
             // Rule 1: Must follow suit with higher card if possible
-            var sameSuitHigher = bot.Hand
-                .Where(c => c.Suit == leadSuit && GetRankValue(c.Rank) > GetRankValue(leadRank))
-                .ToList();
+            var sameSuitHigher = new List<Card>();
+            foreach (var card in bot.Hand)
+            {
+                if (card.Suit == leadSuit && RankValues.GetValue(card.Rank) > leadRankValue)
+                    sameSuitHigher.Add(card);
+            }
 
             if (sameSuitHigher.Count > 0)
                 return sameSuitHigher;
 
             // Rule 2: Lower card of same suit
-            var sameSuit = bot.Hand.Where(c => c.Suit == leadSuit).ToList();
+            var sameSuit = new List<Card>();
+            foreach (var card in bot.Hand)
+            {
+                if (card.Suit == leadSuit)
+                    sameSuit.Add(card);
+            }
+
             if (sameSuit.Count > 0)
                 return sameSuit;
 
             // Rule 3: Can play any card
-            return bot.Hand.ToList();
+            return new List<Card>(bot.Hand);
         }
 
         /// <summary>
-        /// Calculates the power value of a card for AI decision making.
+        /// Calculates the power value of a card for AI decision making with caching.
         /// Trumps are most powerful, then lead suit.
         /// </summary>
-        private int GetCardPower(Card card, Suit trumpSuit)
+        private int GetCardPowerCached(Card card, Suit trumpSuit)
         {
             if (card.IsJoker)
                 return 100;
 
-            // Trump cards are most powerful
+            // Check cache first for non-joker cards
+            var cacheKey = (card.Suit, card.Rank, trumpSuit);
+            if (_powerCache.TryGetValue(cacheKey, out var cachedPower))
+                return cachedPower;
+
+            // Calculate and cache
+            int power;
             if (card.Suit == trumpSuit)
-                return 50 + GetRankValue(card.Rank);
-
-            // Non-trump cards
-            return GetRankValue(card.Rank);
-        }
-
-        /// <summary>
-        /// Gets the numeric value of a card's rank for comparison.
-        /// </summary>
-        private int GetRankValue(Rank rank)
-        {
-            return rank switch
             {
-                Rank.Ace => 14,
-                Rank.Ten => 13,
-                Rank.King => 12,
-                Rank.Queen => 11,
-                Rank.Jack => 10,
-                Rank.Nine => 9,
-                Rank.Eight => 8,
-                Rank.Seven => 7,
-                _ => 0
-            };
+                power = 50 + RankValues.GetValue(card.Rank);
+            }
+            else
+            {
+                power = RankValues.GetValue(card.Rank);
+            }
+
+            _powerCache[cacheKey] = power;
+            return power;
         }
 
         /// <summary>
         /// Determines which card is currently winning the trick.
+        /// Optimized with manual loop for better performance.
         /// </summary>
         private Card GetCurrentTrickWinner(Dictionary<Player, Card> currentTrick, Suit trumpSuit)
         {
             Card winner = null;
             int maxPower = -1;
 
-            foreach (var card in currentTrick.Values)
+            foreach (var kvp in currentTrick)
             {
-                var power = GetCardPower(card, trumpSuit);
+                int power = GetCardPowerCached(kvp.Value, trumpSuit);
                 if (power > maxPower)
                 {
                     maxPower = power;
-                    winner = card;
+                    winner = kvp.Value;
                 }
             }
 

@@ -1,15 +1,21 @@
 using BeziqueCore.Interfaces;
 using BeziqueCore.Models;
+using BeziqueCore.Constants;
 using System.Linq;
 
 namespace BeziqueCore.Helpers
 {
     /// <summary>
-    /// Helper methods for finding all possible melds from a player's hand.
+    /// Optimized helper methods for finding all possible melds from a player's hand.
+    /// Uses pre-computed card counts and efficient algorithms for better performance.
     /// This provides the core meld detection logic used by both AI bots and UI.
     /// </summary>
     public static class MeldHelper
     {
+        // Pre-allocated reusable arrays to reduce allocations
+        private static readonly Card[] _cardBuffer = new Card[8];
+        private static readonly Suit[] _allSuits = Enum.GetValues(typeof(Suit)).Cast<Suit>().ToArray();
+
         /// <summary>
         /// Finds all possible melds that can be declared from the player's hand.
         /// According to Bezique rules, a meld can include previously melded cards
@@ -19,138 +25,246 @@ namespace BeziqueCore.Helpers
         /// </summary>
         public static List<Meld> FindAllPossibleMelds(Player player, Suit trumpSuit)
         {
-            var possibleMelds = new List<Meld>();
-            var hand = player.Hand.ToList();
+            var possibleMelds = new List<Meld>(8);
+            var hand = player.Hand;
+            int handCount = hand.Count;
+
+            // Pre-compute card counts using efficient array-based approach
+            var cardCounts = ComputeCardCounts(hand);
 
             // Check for Double Bezique (4 cards: 2x Q♠ + 2x J♦)
-            var spadeQueens = hand.Where(c => c.Suit == Suit.Spades && c.Rank == Rank.Queen).ToList();
-            var diamondJacks = hand.Where(c => c.Suit == Suit.Diamonds && c.Rank == Rank.Jack).ToList();
+            int spadeQueenCount = GetCardCount(cardCounts, Suit.Spades, Rank.Queen);
+            int diamondJackCount = GetCardCount(cardCounts, Suit.Diamonds, Rank.Jack);
 
-            if (spadeQueens.Count >= 2 && diamondJacks.Count >= 2)
+            if (spadeQueenCount >= 2 && diamondJackCount >= 2)
             {
+                int bufferIndex = 0;
+                CollectCards(hand, _cardBuffer, ref bufferIndex, Suit.Spades, Rank.Queen, 2);
+                CollectCards(hand, _cardBuffer, ref bufferIndex, Suit.Diamonds, Rank.Jack, 2);
+
                 possibleMelds.Add(new Meld
                 {
                     Type = MeldType.DoubleBezique,
-                    Cards = spadeQueens.Take(2).Concat(diamondJacks.Take(2)).ToList(),
-                    Points = 500
+                    Cards = _cardBuffer.Take(4).ToList(),
+                    Points = GameConstants.DoubleBeziquePoints
                 });
             }
-            else if (spadeQueens.Count >= 1 && diamondJacks.Count >= 1)
+            else if (spadeQueenCount >= 1 && diamondJackCount >= 1)
             {
-                // Check for single Bezique (Q♠ + J♦)
-                possibleMelds.Add(new Meld
+                var spadeQueen = FindCard(hand, Suit.Spades, Rank.Queen);
+                var diamondJack = FindCard(hand, Suit.Diamonds, Rank.Jack);
+                if (spadeQueen != null && diamondJack != null)
                 {
-                    Type = MeldType.Bezique,
-                    Cards = new List<Card> { spadeQueens.First(), diamondJacks.First() },
-                    Points = 40
-                });
-            }
-
-            // Check for Four of a Kind (with Joker substitution)
-            var ranks = new[] { Rank.Ace, Rank.King, Rank.Queen, Rank.Jack };
-            foreach (var rank in ranks)
-            {
-                var rankCards = hand.Where(c => !c.IsJoker && c.Rank == rank).ToList();
-                var jokerCount = hand.Count(c => c.IsJoker);
-                var totalCards = rankCards.Count + jokerCount;
-
-                if (totalCards >= 4)
-                {
-                    var meldType = rank switch
-                    {
-                        Rank.Ace => MeldType.FourAces,
-                        Rank.King => MeldType.FourKings,
-                        Rank.Queen => MeldType.FourQueens,
-                        Rank.Jack => MeldType.FourJacks,
-                        _ => MeldType.InvalidMeld
-                    };
-
-                    if (meldType != MeldType.InvalidMeld)
-                    {
-                        var points = rank switch
-                        {
-                            Rank.Ace => 100,
-                            Rank.King => 80,
-                            Rank.Queen => 60,
-                            Rank.Jack => 40,
-                            _ => 0
-                        };
-
-                        var meldCards = rankCards.Take(4).ToList();
-                        // Add jokers if needed to make 4
-                        var jokersNeeded = 4 - rankCards.Count;
-                        if (jokersNeeded > 0 && jokerCount >= jokersNeeded)
-                        {
-                            var jokers = hand.Where(c => c.IsJoker).Take(jokersNeeded);
-                            meldCards.AddRange(jokers);
-                        }
-
-                        possibleMelds.Add(new Meld
-                        {
-                            Type = meldType,
-                            Cards = meldCards,
-                            Points = points
-                        });
-                    }
-                }
-            }
-
-            // Check for Trump Run (5 cards of trump suit: A, 10, K, Q, J)
-            var trumpCards = hand.Where(c => c.Suit == trumpSuit).ToList();
-            if (trumpCards.Count >= 5 &&
-                trumpCards.Any(c => c.Rank == Rank.Ace) &&
-                trumpCards.Any(c => c.Rank == Rank.Ten) &&
-                trumpCards.Any(c => c.Rank == Rank.King) &&
-                trumpCards.Any(c => c.Rank == Rank.Queen) &&
-                trumpCards.Any(c => c.Rank == Rank.Jack))
-            {
-                possibleMelds.Add(new Meld
-                {
-                    Type = MeldType.TrumpRun,
-                    Cards = new List<Card>
-                    {
-                        trumpCards.First(c => c.Rank == Rank.Ace),
-                        trumpCards.First(c => c.Rank == Rank.Ten),
-                        trumpCards.First(c => c.Rank == Rank.King),
-                        trumpCards.First(c => c.Rank == Rank.Queen),
-                        trumpCards.First(c => c.Rank == Rank.Jack)
-                    },
-                    Points = 250
-                });
-            }
-
-            // Check for marriages (2 cards: K + Q of same suit)
-            foreach (Suit suit in Enum.GetValues(typeof(Suit)))
-            {
-                var kings = hand.Where(c => c.Suit == suit && c.Rank == Rank.King).ToList();
-                var queens = hand.Where(c => c.Suit == suit && c.Rank == Rank.Queen).ToList();
-
-                if (kings.Any() && queens.Any())
-                {
-                    var isTrump = suit == trumpSuit;
                     possibleMelds.Add(new Meld
                     {
-                        Type = isTrump ? MeldType.TrumpMarriage : MeldType.Marriage,
-                        Cards = new List<Card> { kings.First(), queens.First() },
-                        Points = isTrump ? 40 : 20
+                        Type = MeldType.Bezique,
+                        Cards = new List<Card> { spadeQueen, diamondJack },
+                        Points = GameConstants.BeziquePoints
                     });
                 }
             }
 
+            // Check for Four of a Kind (with Joker substitution)
+            CheckFourOfAKindMelds(hand, possibleMelds, cardCounts);
+
+            // Check for Trump Run (5 cards of trump suit: A, 10, K, Q, J)
+            CheckTrumpRunMeld(hand, trumpSuit, possibleMelds, cardCounts);
+
+            // Check for marriages (2 cards: K + Q of same suit)
+            CheckMarriageMelds(hand, trumpSuit, possibleMelds, cardCounts);
+
             // Check for 7 of Trump (single card)
-            var sevenOfTrump = hand.FirstOrDefault(c => c.Suit == trumpSuit && c.Rank == Rank.Seven);
+            var sevenOfTrump = FindCard(hand, trumpSuit, Rank.Seven);
             if (sevenOfTrump != null)
             {
                 possibleMelds.Add(new Meld
                 {
                     Type = MeldType.TrumpSeven,
                     Cards = new List<Card> { sevenOfTrump },
-                    Points = 10
+                    Points = GameConstants.SevenOfTrumpBonus
                 });
             }
 
             // Sort by points (highest first) and return
-            return possibleMelds.OrderByDescending(m => m.Points).ToList();
+            possibleMelds.Sort((a, b) => b.Points.CompareTo(a.Points));
+            return possibleMelds;
+        }
+
+        /// <summary>
+        /// Computes card counts using a 2D array for O(1) lookups.
+        /// Array layout: [suitIndex][rankIndex] = count
+        /// </summary>
+        private static int[,] ComputeCardCounts(List<Card> hand)
+        {
+            var counts = new int[4, 15]; // 4 suits, max rank 14 (Ace)
+
+            foreach (var card in hand)
+            {
+                if (!card.IsJoker)
+                {
+                    counts[(int)card.Suit, (int)card.Rank]++;
+                }
+            }
+
+            return counts;
+        }
+
+        /// <summary>
+        /// Gets the count of a specific card using pre-computed counts array.
+        /// </summary>
+        private static int GetCardCount(int[,] counts, Suit suit, Rank rank)
+        {
+            return counts[(int)suit, (int)rank];
+        }
+
+        /// <summary>
+        /// Finds the first occurrence of a specific card in the hand.
+        /// </summary>
+        private static Card? FindCard(List<Card> hand, Suit suit, Rank rank)
+        {
+            for (int i = 0; i < hand.Count; i++)
+            {
+                var card = hand[i];
+                if (card.Suit == suit && card.Rank == rank && !card.IsJoker)
+                    return card;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Collects cards of a specific suit and rank into a buffer.
+        /// </summary>
+        private static void CollectCards(List<Card> hand, Card[] buffer, ref int index, Suit suit, Rank rank, int count)
+        {
+            int collected = 0;
+            for (int i = 0; i < hand.Count && collected < count; i++)
+            {
+                var card = hand[i];
+                if (card.Suit == suit && card.Rank == rank && !card.IsJoker)
+                {
+                    buffer[index++] = card;
+                    collected++;
+                }
+            }
+        }
+
+        private static void CheckFourOfAKindMelds(List<Card> hand, List<Meld> possibleMelds, int[,] cardCounts)
+        {
+            int jokerCount = hand.Count(c => c.IsJoker);
+
+            var fourOfAKindRanks = new[]
+            {
+                (Rank.Ace, MeldType.FourAces, GameConstants.FourAcesPoints),
+                (Rank.King, MeldType.FourKings, GameConstants.FourKingsPoints),
+                (Rank.Queen, MeldType.FourQueens, GameConstants.FourQueensPoints),
+                (Rank.Jack, MeldType.FourJacks, GameConstants.FourJacksPoints)
+            };
+
+            foreach (var (rank, meldType, points) in fourOfAKindRanks)
+            {
+                int rankCount = 0;
+                // Sum across all suits for this rank
+                for (int suit = 0; suit < 4; suit++)
+                {
+                    rankCount += cardCounts[suit, (int)rank];
+                }
+
+                int totalCards = rankCount + jokerCount;
+
+                if (totalCards >= 4)
+                {
+                    int bufferIndex = 0;
+                    int cardsNeeded = 4;
+
+                    // Collect non-joker cards first
+                    for (int suit = 0; suit < 4 && cardsNeeded > 0; suit++)
+                    {
+                        int count = cardCounts[suit, (int)rank];
+                        for (int i = 0; i < count && cardsNeeded > 0; i++)
+                        {
+                            _cardBuffer[bufferIndex++] = FindCard(hand, (Suit)suit, rank);
+                            cardsNeeded--;
+                        }
+                    }
+
+                    // Add jokers if needed
+                    if (cardsNeeded > 0)
+                    {
+                        foreach (var card in hand)
+                        {
+                            if (card.IsJoker && cardsNeeded > 0)
+                            {
+                                _cardBuffer[bufferIndex++] = card;
+                                cardsNeeded--;
+                            }
+                        }
+                    }
+
+                    possibleMelds.Add(new Meld
+                    {
+                        Type = meldType,
+                        Cards = _cardBuffer.Take(4).ToList(),
+                        Points = points
+                    });
+                }
+            }
+        }
+
+        private static void CheckTrumpRunMeld(List<Card> hand, Suit trumpSuit, List<Meld> possibleMelds, int[,] cardCounts)
+        {
+            var requiredRanks = new[] { Rank.Ace, Rank.Ten, Rank.King, Rank.Queen, Rank.Jack };
+            bool hasAllRequired = true;
+
+            foreach (var rank in requiredRanks)
+            {
+                if (GetCardCount(cardCounts, trumpSuit, rank) == 0)
+                {
+                    hasAllRequired = false;
+                    break;
+                }
+            }
+
+            if (hasAllRequired)
+            {
+                int bufferIndex = 0;
+                foreach (var rank in requiredRanks)
+                {
+                    _cardBuffer[bufferIndex++] = FindCard(hand, trumpSuit, rank);
+                }
+
+                possibleMelds.Add(new Meld
+                {
+                    Type = MeldType.TrumpRun,
+                    Cards = _cardBuffer.Take(5).ToList(),
+                    Points = GameConstants.TrumpRunPoints
+                });
+            }
+        }
+
+        private static void CheckMarriageMelds(List<Card> hand, Suit trumpSuit, List<Meld> possibleMelds, int[,] cardCounts)
+        {
+            foreach (var suit in _allSuits)
+            {
+                bool hasKing = GetCardCount(cardCounts, suit, Rank.King) > 0;
+                bool hasQueen = GetCardCount(cardCounts, suit, Rank.Queen) > 0;
+
+                if (hasKing && hasQueen)
+                {
+                    var king = FindCard(hand, suit, Rank.King);
+                    var queen = FindCard(hand, suit, Rank.Queen);
+                    if (king != null && queen != null)
+                    {
+                        bool isTrump = suit == trumpSuit;
+
+                        possibleMelds.Add(new Meld
+                        {
+                            Type = isTrump ? MeldType.TrumpMarriage : MeldType.Marriage,
+                            Cards = new List<Card> { king, queen },
+                            Points = isTrump ? GameConstants.TrumpMarriagePoints : GameConstants.MarriagePoints
+                        });
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -158,6 +272,10 @@ namespace BeziqueCore.Helpers
         /// </summary>
         public static bool HasAnyMeld(Player player, Suit trumpSuit)
         {
+            // Early exit optimizations
+            if (player.Hand.Count < 2)
+                return false;
+
             return FindAllPossibleMelds(player, trumpSuit).Count > 0;
         }
 
@@ -168,7 +286,7 @@ namespace BeziqueCore.Helpers
         public static Meld? GetBestMeld(Player player, Suit trumpSuit)
         {
             var melds = FindAllPossibleMelds(player, trumpSuit);
-            return melds.FirstOrDefault();
+            return melds.Count > 0 ? melds[0] : null;
         }
     }
 }
