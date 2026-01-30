@@ -249,6 +249,7 @@ public partial class BeziqueGameFlow
                 switch (eventId)
                 {
                     case EventId.CONTINUEGAME: ROUND_END_continuegame(); break;
+                    case EventId.WINNINGSCOREREACHED: ROUND_END_winningscorereached(); break;
                 }
                 break;
 
@@ -1275,6 +1276,26 @@ public partial class BeziqueGameFlow
 
             // Step 3: Enter/move towards transition target `GAME_INIT`.
             GAME_INIT_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for ROUND_END
+
+        // No ancestor handles this event.
+    }
+
+    private void ROUND_END_winningscorereached()
+    {
+        // ROUND_END behavior
+        // uml: WinningScoreReached TransitionTo(GAME_OVER)
+        {
+            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
+            ROUND_END_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `GAME_OVER`.
+            GAME_OVER_enter();
 
             // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
             return;

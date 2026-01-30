@@ -198,4 +198,22 @@ public partial class BeziqueGameFlow
             DispatchEvent(EventId.TRICKRESOLVED);
         }
     }
+
+    /// <summary>
+    /// Checks if any player has reached the winning score after round ends.
+    /// This is called after CalculateAcesAndTens in Advanced mode,
+    /// as the bonus points could push a player over the winning threshold.
+    /// </summary>
+    public void CheckAndDispatchWinningScoreAfterRound()
+    {
+        if (gameAdapter.HasPlayerReachedWinningScore())
+        {
+            DispatchEvent(EventId.WINNINGSCOREREACHED);
+        }
+        else
+        {
+            // No one has won yet, continue to new round
+            DispatchEvent(EventId.CONTINUEGAME);
+        }
+    }
 }
