@@ -10,6 +10,7 @@ using BeziqueCore.Resolvers;
 using BeziqueCore.Timers;
 using BeziqueCore.AI;
 using BeziqueCore.Helpers;
+using BeziqueGame.CLI.UI;
 
 namespace BeziqueGame.CLI
 {
@@ -61,54 +62,12 @@ namespace BeziqueGame.CLI
 
         public void ShowMainMenu()
         {
-            while (true)
-            {
-                AnsiConsole.Clear();
-                PrintHeader();
-
-                var choice = AnsiConsole.Prompt(
-                    new SelectionPrompt<string>()
-                        .Title("[bold green]What would you like to do?[/]")
-                        .AddChoices(new[] { "Single Player (vs AI)", "Multiplayer (Local)", "Show Rules", "Exit" })
-                );
-
-                switch (choice)
-                {
-                    case "Single Player (vs AI)":
-                        StartSinglePlayerGame();
-                        break;
-                    case "Multiplayer (Local)":
-                        StartMultiplayerGame();
-                        break;
-                    case "Show Rules":
-                        ShowRules();
-                        break;
-                    case "Exit":
-                        Environment.Exit(0);
-                        break;
-                }
-            }
+            var mainMenu = new MainMenu(this);
+            mainMenu.Show();
         }
 
-        private void StartSinglePlayerGame()
+        public void StartSinglePlayerGame(string playerName, GameMode mode)
         {
-            AnsiConsole.Clear();
-            PrintHeader();
-
-            // Get player name
-            var playerName = AnsiConsole.Ask<string>("Enter your name:");
-            if (string.IsNullOrWhiteSpace(playerName))
-                playerName = "Player 1";
-
-            // Select game mode
-            var gameMode = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .Title("[bold yellow]Select Game Mode:[/]")
-                    .AddChoices(new[] { "Standard Mode", "Advanced Mode" })
-            );
-
-            var mode = gameMode == "Advanced Mode" ? GameMode.Advanced : GameMode.Standard;
-
             // Initialize game with 1 human + 1 bot
             InitializeSinglePlayerGame(playerName, mode);
 
@@ -116,26 +75,8 @@ namespace BeziqueGame.CLI
             RunGameLoop();
         }
 
-        private void StartMultiplayerGame()
+        public void StartMultiplayerGame(int playerCount, GameMode mode)
         {
-            AnsiConsole.Clear();
-            PrintHeader();
-
-            var playerCount = AnsiConsole.Prompt(
-                new SelectionPrompt<int>()
-                    .Title("[bold yellow]How many players?[/]")
-                    .AddChoices(new[] { 2, 4 })
-            );
-
-            // Select game mode
-            var gameMode = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .Title("[bold yellow]Select Game Mode:[/]")
-                    .AddChoices(new[] { "Standard Mode", "Advanced Mode" })
-            );
-
-            var mode = gameMode == "Advanced Mode" ? GameMode.Advanced : GameMode.Standard;
-
             InitializeMultiplayerGame(playerCount, mode);
             RunGameLoop();
         }
@@ -869,6 +810,11 @@ namespace BeziqueGame.CLI
 
             var rule = new Rule("[yellow]Card Game SDK[/]");
             AnsiConsole.Write(rule);
+        }
+
+        public string GetRulesText()
+        {
+            return _ui.GetRulesText();
         }
     }
 }
