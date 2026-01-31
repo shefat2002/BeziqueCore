@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="BeziqueCore/BeziqueCore.csproj" />
   <Project Path="BeziqueCore.Tests/BeziqueCore.Tests.csproj" />
+  <Project Path="GrpcService/GrpcService.csproj" />
 
 </Solution>

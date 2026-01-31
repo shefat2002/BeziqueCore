@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcService";
+
+package bezique;
+
+service Bezique {
+  rpc GameInit (CreateRequest) returns (GameInitReply);
+}
+
+message CreateRequest {
+  int32 playerCount = 1;
+}
+
+message GameInitReply {
+  string message = 1;
+}
