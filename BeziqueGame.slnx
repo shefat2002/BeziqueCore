@@ -1,5 +1,4 @@
 <Solution>
   <Project Path="BeziqueCore/BeziqueCore.csproj" />
-  <Project Path="BeziqueGame.CLI/BeziqueGame.CLI.csproj" />
   <Project Path="BeziqueGame.Tests/BeziqueGame.Tests.csproj" />
 </Solution>

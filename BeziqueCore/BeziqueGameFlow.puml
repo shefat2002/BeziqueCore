@@ -9,6 +9,25 @@ skinparam linetype ortho
 skinparam stateMessageAlignment center
 
 
+'state PLAYER_TURN
+'state OPPONENT_RESPONSE
+'state TRICK_RESOLUTION
+'state PLAYER_TURN
+'state MELD_OPPORTUNITY
+'state GAME_OVER
+'state MELD_SCORING
+'state CARD_DRAW
+'state DECK_CHECK
+'state L9_PLAYER_TURN
+'state L9_OPPONENT_RESPONSE
+'state L9_TIMER_TIMEOUT
+'state L9_TRICK_RESOLUTION
+'state L9_TRICK_CHECK
+'state GAME_INIT
+'state DEALING
+'state TRUMP_SELECTION
+'state ROUND_END
+
 state GAME_INIT {
     GAME_INIT: enter / gameAdapter.InitializeGame();
     GAME_INIT: exit / gameAdapter.NotifyGameInitialized();
@@ -73,6 +92,9 @@ state GAMEPLAY {
         DECK_CHECK: enter / gameAdapter.CheckDeck();
     }
 
+
+
+
     PLAYER_TURN --> OPPONENT_RESPONSE : CardPlayed
     OPPONENT_RESPONSE -down-> TRICK_RESOLUTION : TrickComplete
     OPPONENT_RESPONSE -up-> PLAYER_TURN : MorePlayersNeedToPlay
@@ -88,6 +110,7 @@ state GAMEPLAY {
     DECK_CHECK -right-> LAST_9_CARDS : DeckEmpty
     DECK_CHECK -up-> PLAYER_TURN : MoreCardsAvailable
 }
+
 
 
 state LAST_9_CARDS {
@@ -113,6 +136,8 @@ state LAST_9_CARDS {
         L9_TIMER_TIMEOUT: enter / gameAdapter.DeductTimeoutPoints();
         L9_TIMER_TIMEOUT: exit / gameAdapter.ResetPlayerTimer();
     }
+
+
 
     [*] --> L9_PLAYER_TURN
     L9_PLAYER_TURN -down-> L9_OPPONENT_RESPONSE : CardPlayed
