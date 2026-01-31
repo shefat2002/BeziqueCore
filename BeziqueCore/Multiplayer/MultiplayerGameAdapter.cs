@@ -1,7 +1,6 @@
 using BeziqueCore.Interfaces;
 using BeziqueCore.Models;
-using BeziqueCore.Multiplayer.Models;
-using BeziqueCore.Multiplayer.Models.Events;
+using BeziqueCore.Models.Events;
 using BeziqueCore.Constants;
 
 namespace BeziqueCore.Multiplayer;
@@ -17,7 +16,6 @@ public class MultiplayerGameAdapter : IMultiplayerGameAdapter
     private readonly IMeldValidator _meldValidator;
     private readonly object _lock = new();
 
-    private IMultiplayerEventHandler? _eventHandler;
     private readonly List<IMultiplayerEventHandler> _eventHandlers = new();
 
     public MultiplayerGameAdapter(
@@ -310,7 +308,6 @@ public class MultiplayerGameAdapter : IMultiplayerGameAdapter
         lock (_lock)
         {
             _eventHandlers.Add(eventHandler);
-            _eventHandler = eventHandler;
         }
     }
 

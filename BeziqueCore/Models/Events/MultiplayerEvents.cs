@@ -1,4 +1,4 @@
-namespace BeziqueCore.Multiplayer.Models.Events;
+namespace BeziqueCore.Models.Events;
 
 public record GameEvent
 {

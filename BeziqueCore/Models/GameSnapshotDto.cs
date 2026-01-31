@@ -1,6 +1,4 @@
-using BeziqueCore.Interfaces;
-
-namespace BeziqueCore.Multiplayer.Models;
+namespace BeziqueCore.Models;
 
 public record GameSnapshotDto
 {

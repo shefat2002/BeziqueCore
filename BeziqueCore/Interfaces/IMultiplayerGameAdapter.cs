@@ -1,7 +1,6 @@
-using BeziqueCore.Interfaces;
-using BeziqueCore.Multiplayer.Models;
+using BeziqueCore.Models;
 
-namespace BeziqueCore.Multiplayer;
+namespace BeziqueCore.Interfaces;
 
 public interface IMultiplayerGameAdapter : IGameAdapter
 {

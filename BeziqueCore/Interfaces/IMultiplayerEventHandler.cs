@@ -1,6 +1,6 @@
-using BeziqueCore.Multiplayer.Models.Events;
+using BeziqueCore.Models.Events;
 
-namespace BeziqueCore.Multiplayer;
+namespace BeziqueCore.Interfaces;
 
 public interface IMultiplayerEventHandler
 {
