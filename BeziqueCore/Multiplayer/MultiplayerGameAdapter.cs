@@ -6,10 +6,6 @@ using BeziqueCore.Constants;
 
 namespace BeziqueCore.Multiplayer;
 
-/// <summary>
-/// Multiplayer-aware game adapter that wraps the base GameAdapter with network functionality.
-/// Handles player commands, generates game snapshots, and fires multiplayer events.
-/// </summary>
 public class MultiplayerGameAdapter : IMultiplayerGameAdapter
 {
     private readonly IGameAdapter _baseAdapter;
@@ -42,8 +38,6 @@ public class MultiplayerGameAdapter : IMultiplayerGameAdapter
         _meldValidator = meldValidator;
     }
 
-    #region IMultiplayerGameAdapter Implementation
-
     public GameSnapshotDto GetSnapshot()
     {
         lock (_lock)
@@ -59,7 +53,7 @@ public class MultiplayerGameAdapter : IMultiplayerGameAdapter
                     IsDealer = p.IsDealer,
                     IsBot = p.IsBot,
                     HandCardCount = p.Hand?.Count ?? 0,
-                    Hand = null, // Hand is not included in general snapshot for security
+                    Hand = null,
                     DeclaredMelds = (p.DeclaredMelds ?? Enumerable.Empty<Meld>()).Select(m => new MeldDto
                     {
                         MeldType = m.Type.ToString(),
@@ -106,16 +100,12 @@ public class MultiplayerGameAdapter : IMultiplayerGameAdapter
         }
     }
 
-    /// <summary>
-    /// Gets a game snapshot including the hand for a specific player.
-    /// </summary>
     public GameSnapshotDto GetSnapshotForPlayer(string userId)
     {
         lock (_lock)
         {
             var snapshot = GetSnapshot();
 
-            // Include the hand for the requesting player only
             var player = _gameState.Players.FirstOrDefault(p => p.Id == userId);
             if (player != null && player.Hand != null)
             {
@@ -144,17 +134,12 @@ public class MultiplayerGameAdapter : IMultiplayerGameAdapter
         {
             try
             {
-                // Check if it's the player's turn
                 if (!CanPlayerAct(command.UserId))
-                {
                     return GameActionResult.Error("Not your turn");
-                }
 
                 var player = GetPlayerById(command.UserId);
                 if (player == null)
-                {
                     return GameActionResult.Error("Player not found in game");
-                }
 
                 GameActionResult result = command.Action switch
                 {
@@ -192,27 +177,18 @@ public class MultiplayerGameAdapter : IMultiplayerGameAdapter
     {
         lock (_lock)
         {
-            var player = GetPlayerById(userId);
+            var player = _gameState.Players.FirstOrDefault(p => p.Id == userId);
             if (player == null || _gameState.CurrentPlayer?.Id != userId)
-            {
                 return Array.Empty<string>();
-            }
 
             var moves = new List<string>();
 
-            // Can always play a card if it's your turn and trick is not complete
             if (!_gameState.IsTrickComplete())
-            {
                 moves.Add(BeziqueActions.PlayCard);
-            }
 
-            // Can switch seven of trump under specific conditions
             if (CanSwitchSevenOfTrump(userId))
-            {
                 moves.Add(BeziqueActions.SwitchSevenOfTrump);
-            }
 
-            // Meld declaration is allowed in certain states
             if (CanDeclareMeldInCurrentState())
             {
                 moves.Add(BeziqueActions.DeclareMeld);
@@ -254,19 +230,13 @@ public class MultiplayerGameAdapter : IMultiplayerGameAdapter
             _gameState.Reset();
 
             foreach (var player in players)
-            {
                 _gameState.AddPlayer(player);
-            }
 
-            // Set non-dealer as first player to lead
             var nonDealer = _gameState.Players.FirstOrDefault(p => !p.IsDealer)
                          ?? _gameState.Players.FirstOrDefault();
             if (nonDealer != null)
-            {
                 _gameState.CurrentPlayer = nonDealer;
-            }
 
-            // Initialize first trick
             _gameState.StartNewTrick();
         }
     }
@@ -300,14 +270,12 @@ public class MultiplayerGameAdapter : IMultiplayerGameAdapter
             if (player == null || player.Hand == null)
                 return false;
 
-            // Validate card indices
             foreach (var index in cardIndices)
             {
                 if (index < 0 || index >= player.Hand.Count)
                     return false;
             }
 
-            // Check if it's a valid meld
             var cards = cardIndices.Select(i => player.Hand[i]).ToArray();
             return _meldValidator.IsValidMeld(cards, _gameState.TrumpSuit);
         }
@@ -324,7 +292,6 @@ public class MultiplayerGameAdapter : IMultiplayerGameAdapter
             if (player == null || player.Hand == null)
                 return false;
 
-            // Can only switch if player has 7 of trump and trump card is still on deck
             return player.Hand.Any(c => c.Rank == Rank.Seven && c.Suit == _gameState.TrumpSuit)
                 && _deckOps.GetTrumpCard() != null;
         }
@@ -347,29 +314,10 @@ public class MultiplayerGameAdapter : IMultiplayerGameAdapter
         }
     }
 
-    #endregion
-
-    #region IGameAdapter Delegation
-
-    public void InitializeGame()
-    {
-        _baseAdapter.InitializeGame();
-    }
-
-    public void NotifyGameInitialized()
-    {
-        _baseAdapter.NotifyGameInitialized();
-    }
-
-    public void DealCards()
-    {
-        _baseAdapter.DealCards();
-    }
-
-    public void NotifyCardsDealt()
-    {
-        _baseAdapter.NotifyCardsDealt();
-    }
+    public void InitializeGame() => _baseAdapter.InitializeGame();
+    public void NotifyGameInitialized() => _baseAdapter.NotifyGameInitialized();
+    public void DealCards() => _baseAdapter.DealCards();
+    public void NotifyCardsDealt() => _baseAdapter.NotifyCardsDealt();
 
     public void FlipTrumpCard()
     {
@@ -377,35 +325,12 @@ public class MultiplayerGameAdapter : IMultiplayerGameAdapter
         FireTrumpDeterminedEvent();
     }
 
-    public void NotifyTrumpDetermined()
-    {
-        _baseAdapter.NotifyTrumpDetermined();
-    }
-
-    public void StartPlayerTimer()
-    {
-        _baseAdapter.StartPlayerTimer();
-    }
-
-    public void StopPlayerTimer()
-    {
-        _baseAdapter.StopPlayerTimer();
-    }
-
-    public void ResetPlayerTimer()
-    {
-        _baseAdapter.ResetPlayerTimer();
-    }
-
-    public void DeductTimeoutPoints()
-    {
-        _baseAdapter.DeductTimeoutPoints();
-    }
-
-    public void ProcessOpponentResponses()
-    {
-        _baseAdapter.ProcessOpponentResponses();
-    }
+    public void NotifyTrumpDetermined() => _baseAdapter.NotifyTrumpDetermined();
+    public void StartPlayerTimer() => _baseAdapter.StartPlayerTimer();
+    public void StopPlayerTimer() => _baseAdapter.StopPlayerTimer();
+    public void ResetPlayerTimer() => _baseAdapter.ResetPlayerTimer();
+    public void DeductTimeoutPoints() => _baseAdapter.DeductTimeoutPoints();
+    public void ProcessOpponentResponses() => _baseAdapter.ProcessOpponentResponses();
 
     public void ResolveTrick()
     {
@@ -413,55 +338,16 @@ public class MultiplayerGameAdapter : IMultiplayerGameAdapter
         FireTrickResolvedEvent();
     }
 
-    public void ProcessMeldOpportunity()
-    {
-        _baseAdapter.ProcessMeldOpportunity();
-    }
-
-    public void ScoreMeld()
-    {
-        _baseAdapter.ScoreMeld();
-    }
-
-    public void DrawCards()
-    {
-        _baseAdapter.DrawCards();
-    }
-
-    public void CheckDeck()
-    {
-        _baseAdapter.CheckDeck();
-    }
-
-    public void ProcessL9OpponentResponses()
-    {
-        _baseAdapter.ProcessL9OpponentResponses();
-    }
-
-    public void ResolveL9Trick()
-    {
-        _baseAdapter.ResolveL9Trick();
-    }
-
-    public void CheckL9TrickComplete()
-    {
-        _baseAdapter.CheckL9TrickComplete();
-    }
-
-    public void CalculateL9FinalScores()
-    {
-        _baseAdapter.CalculateL9FinalScores();
-    }
-
-    public void CalculateRoundScores()
-    {
-        _baseAdapter.CalculateRoundScores();
-    }
-
-    public void CalculateAcesAndTens()
-    {
-        _baseAdapter.CalculateAcesAndTens();
-    }
+    public void ProcessMeldOpportunity() => _baseAdapter.ProcessMeldOpportunity();
+    public void ScoreMeld() => _baseAdapter.ScoreMeld();
+    public void DrawCards() => _baseAdapter.DrawCards();
+    public void CheckDeck() => _baseAdapter.CheckDeck();
+    public void ProcessL9OpponentResponses() => _baseAdapter.ProcessL9OpponentResponses();
+    public void ResolveL9Trick() => _baseAdapter.ResolveL9Trick();
+    public void CheckL9TrickComplete() => _baseAdapter.CheckL9TrickComplete();
+    public void CalculateL9FinalScores() => _baseAdapter.CalculateL9FinalScores();
+    public void CalculateRoundScores() => _baseAdapter.CalculateRoundScores();
+    public void CalculateAcesAndTens() => _baseAdapter.CalculateAcesAndTens();
 
     public void NotifyRoundEnded()
     {
@@ -469,10 +355,7 @@ public class MultiplayerGameAdapter : IMultiplayerGameAdapter
         FireRoundEndedEvent();
     }
 
-    public void DeclareWinner()
-    {
-        _baseAdapter.DeclareWinner();
-    }
+    public void DeclareWinner() => _baseAdapter.DeclareWinner();
 
     public void NotifyGameOver()
     {
@@ -480,39 +363,12 @@ public class MultiplayerGameAdapter : IMultiplayerGameAdapter
         FireGameEndedEvent();
     }
 
-    public bool IsLastNineCardsPhase()
-    {
-        return _baseAdapter.IsLastNineCardsPhase();
-    }
-
-    public bool IsDeckEmpty()
-    {
-        return _baseAdapter.IsDeckEmpty();
-    }
-
-    public bool AreAllHandsEmpty()
-    {
-        return _baseAdapter.AreAllHandsEmpty();
-    }
-
-    public bool HasPlayerReachedWinningScore()
-    {
-        return _baseAdapter.HasPlayerReachedWinningScore();
-    }
-
-    public bool IsTrickComplete()
-    {
-        return _baseAdapter.IsTrickComplete();
-    }
-
-    public bool MorePlayersNeedToPlay()
-    {
-        return _baseAdapter.MorePlayersNeedToPlay();
-    }
-
-    #endregion
-
-    #region Command Handlers
+    public bool IsLastNineCardsPhase() => _baseAdapter.IsLastNineCardsPhase();
+    public bool IsDeckEmpty() => _baseAdapter.IsDeckEmpty();
+    public bool AreAllHandsEmpty() => _baseAdapter.AreAllHandsEmpty();
+    public bool HasPlayerReachedWinningScore() => _baseAdapter.HasPlayerReachedWinningScore();
+    public bool IsTrickComplete() => _baseAdapter.IsTrickComplete();
+    public bool MorePlayersNeedToPlay() => _baseAdapter.MorePlayersNeedToPlay();
 
     private GameActionResult HandlePlayCardCommand(Player player, object payload)
     {
@@ -521,9 +377,7 @@ public class MultiplayerGameAdapter : IMultiplayerGameAdapter
             int cardIndex = ExtractCardIndex(payload);
 
             if (!CanPlayCard(player.Id, cardIndex))
-            {
                 return GameActionResult.Error("Cannot play this card");
-            }
 
             var card = player.Hand[cardIndex];
             _playerActions.PlayCard(player, card);
@@ -546,9 +400,7 @@ public class MultiplayerGameAdapter : IMultiplayerGameAdapter
             int[] cardIndices = ExtractCardIndices(payload);
 
             if (!CanDeclareMeld(player.Id, cardIndices))
-            {
                 return GameActionResult.Error("Cannot declare this meld");
-            }
 
             var cards = cardIndices.Select(i => player.Hand[i]).ToList();
             var meldType = _meldValidator.DetermineMeldType(cards.ToArray(), _gameState.TrumpSuit);
@@ -577,9 +429,7 @@ public class MultiplayerGameAdapter : IMultiplayerGameAdapter
         try
         {
             if (!CanSwitchSevenOfTrump(player.Id))
-            {
                 return GameActionResult.Error("Cannot switch seven of trump");
-            }
 
             _playerActions.SwitchSevenOfTrump(player);
 
@@ -610,10 +460,6 @@ public class MultiplayerGameAdapter : IMultiplayerGameAdapter
             return GameActionResult.Error(ex.Message);
         }
     }
-
-    #endregion
-
-    #region Event Firing
 
     private void FireCardPlayedEvent(Player player, Card card, int cardIndex)
     {
@@ -676,7 +522,7 @@ public class MultiplayerGameAdapter : IMultiplayerGameAdapter
                     IsJoker = kvp.Value.IsJoker
                 }
             ),
-            Points = 0 // Would need to be tracked separately
+            Points = 0
         }));
     }
 
@@ -735,14 +581,9 @@ public class MultiplayerGameAdapter : IMultiplayerGameAdapter
         }));
     }
 
-    #endregion
-
-    #region Helper Methods
-
     private bool CanDeclareMeldInCurrentState()
     {
         var state = GetCurrentStateName();
-        // Meld can be declared in specific states
         return state.Contains("MELD") || state.Contains("PLAYER_TURN");
     }
 
@@ -777,13 +618,8 @@ public class MultiplayerGameAdapter : IMultiplayerGameAdapter
         }
         throw new ArgumentException("Invalid payload format for card indices");
     }
-
-    #endregion
 }
 
-/// <summary>
-/// Constants for Bezique multiplayer actions.
-/// </summary>
 public static class BeziqueActions
 {
     public const string PlayCard = "PlayCard";
