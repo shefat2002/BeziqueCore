@@ -20,6 +20,9 @@ namespace BeziqueCore.Interfaces
         // Game mode
         GameMode Mode { get; set; }
 
+        // State machine tracking for multiplayer
+        string CurrentStateName { get; set; }
+
         void Reset();
         void AddPlayer(Player player);
         void StartNewTrick();

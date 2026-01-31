@@ -34,6 +34,9 @@ namespace BeziqueCore.Models
         // Game mode - Standard or Advanced
         public GameMode Mode { get; set; } = GameMode.Standard;
 
+        // State machine tracking for multiplayer
+        public string CurrentStateName { get; set; } = "GAME_INIT";
+
         public GameState(IPlayerTimer playerTimer)
         {
             CurrentPlayerTimer = playerTimer;
