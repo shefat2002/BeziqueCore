@@ -38,6 +38,7 @@ Simplified game interface with direct actions and unified events.
 
 | Properties | Description |
 |------------|-------------|
+| `EventSubscriptionManager Events` | Advanced event subscription manager |
 | `bool IsGameOver` | Is game finished |
 | `Player CurrentPlayer` | Whose turn it is |
 | `string CurrentStateName` | Current state name |
@@ -50,12 +51,64 @@ Simplified game interface with direct actions and unified events.
 | `void DeclareMeld(int playerIndex, int[] cardIndices)` | Declare meld |
 | `void SkipMeld(int playerIndex)` | Skip meld phase |
 | `void SwitchSevenOfTrump(int playerIndex)` | Switch 7 of trump |
+| `void BeginEventBatch()` | Begin batching events |
+| `void EndEventBatch()` | Flush and publish batched events |
+| `void FlushEventBatch()` | Flush batch and start new batch |
 | `GameSnapshotDto GetSnapshot()` | Get full game state |
 | `GameSnapshotDto GetSnapshotForPlayer(string playerId)` | Get player-specific view |
 | `bool CanPlayCard(int playerIndex, int cardIndex)` | Check if card can be played |
 | `bool CanDeclareMeld(int playerIndex, int[] cardIndices)` | Check if meld is valid |
 | `bool CanSwitchSevenOfTrump(int playerIndex)` | Check if can switch trump |
 | `string[] GetLegalMoves(int playerIndex)` | Get available actions |
+
+### **EventSubscriptionManager** (Advanced Events)
+**File:** `Simple/EventSubscriptionManager.cs`
+
+Advanced event subscription with filtering, batching, and type-safe extensions.
+
+| Methods | Description |
+|---------|-------------|
+| `Subscribe<T>(handler, filter?)` | Subscribe with optional predicate filter |
+| `Unsubscribe<T>(handler)` | Unsubscribe specific handler |
+| `UnsubscribeAll<T>()` | Unsubscribe all handlers for type |
+| `Publish<T>(sender, args)` | Publish event to subscribers |
+| `BeginBatch()` | Start batching events |
+| `EndBatch(sender)` | Publish all batched events |
+| `FlushBatch(sender)` | Flush and start new batch |
+| `GetSubscriberCount<T>()` | Get subscriber count for type |
+| `ClearAll()` | Clear all subscriptions |
+
+**Extension Methods:**
+
+```csharp
+// Simplified subscription with action only
+game.Events.SubscribeToCardPlayed(e => Debug.Log($"{e.PlayerName} played {e.Card}"));
+game.Events.SubscribeToMeldDeclared(e => Debug.Log($"{e.MeldType} for {e.Points} points"));
+game.Events.SubscribeToTrickResolved(e => Debug.Log($"{e.WinnerName} won (+{e.Points})"));
+game.Events.SubscribeToPlayerTurnChanged(e => Debug.Log($"Turn: {e.PlayerName}"));
+game.Events.SubscribeToRoundEnded(e => UpdateScoreboard(e.RoundScores));
+game.Events.SubscribeToGameEnded(e => ShowGameOver(e.WinnerName, e.FinalScores));
+game.Events.SubscribeToError(e => Debug.LogError(e.Message));
+
+// Filtered subscription - only process specific player
+game.Events.SubscribeToCardPlayed(
+    e => Debug.Log($"Alice played {e.Card}"),
+    e => e.PlayerName == "Alice"
+);
+
+// Filter by multiple conditions
+game.Events.SubscribeToMeldDeclared(
+    e => Debug.Log($"Big meld! {e.Points} points"),
+    e => e.Points >= 100
+);
+
+// Event batching - batch multiple events and process together
+game.BeginEventBatch();
+game.PlayCard(0, 3);
+game.PlayCard(1, 5);
+game.DeclareMeld(0, new[] { 0, 1, 2 });
+game.EndEventBatch();  // All events fired together
+```
 
 ### **Simple Events** (Unified Event Args)
 **File:** `Simple/Events/GameEvents.cs`
@@ -74,7 +127,7 @@ All events use standard .NET `EventHandler<T>` pattern.
 | `Error` | `GameErrorEventArgs` | Error occurred |
 
 ```csharp
-// Subscribe to events
+// Subscribe to events (standard .NET events)
 game.CardPlayed += (sender, e) => {
     Debug.Log($"{e.PlayerName} played {e.Card}");
 };
@@ -90,6 +143,91 @@ game.TrickResolved += (sender, e) => {
 game.GameEnded += (sender, e) => {
     Debug.Log($"{e.WinnerName} wins the game!");
 };
+
+// OR use advanced EventSubscriptionManager with filtering
+game.Events.SubscribeToCardPlayed(
+    e => Debug.Log($"{e.PlayerName} played {e.Card}"),
+    e => e.PlayerName == "Alice"  // Only Alice's plays
+);
+```
+
+### **GameActionBuilder** (Fluent Actions API)
+**File:** `Simple/GameActions.cs`
+
+Fluent builder pattern for game actions with result objects.
+
+| Methods | Description |
+|---------|-------------|
+| `ForPlayer(int index)` / `ForPlayer(string name)` | Set target player |
+| `PlayCardAsync(int cardIndex)` | Play a card asynchronously |
+| `DeclareMeldAsync(params int[] cardIndices)` | Declare meld asynchronously |
+| `SkipMeldAsync()` | Skip meld phase asynchronously |
+| `SwitchSevenOfTrumpAsync()` | Switch trump asynchronously |
+| `CanPlayCard(int cardIndex)` | Check if card can be played |
+| `CanDeclareMeld(params int[] cardIndices)` | Check if meld is valid |
+| `CanSwitchSevenOfTrump()` | Check if can switch trump |
+| `GetLegalMoves()` | Get available actions |
+
+```csharp
+// Fluent builder pattern
+var result = await game.Actions()
+    .ForPlayer(0)
+    .PlayCardAsync(3);
+
+if (result.Success)
+    Debug.Log("Card played successfully");
+else
+    Debug.LogError($"Failed: {result.Message}");
+
+// Query with builder
+var canPlay = game.Actions()
+    .ForPlayer("Alice")
+    .CanPlayCard(5);
+
+canPlay.Match(
+    onSuccess: () => Debug.Log("Can play this card!"),
+    onFailure: (error) => Debug.LogError(error)
+);
+
+// Extension methods for quick actions
+await game.PlayCardAsync(0, 3);
+await game.DeclareMeldAsync(0, 0, 1, 2);
+await game.SkipMeldAsync(0);
+```
+
+### **ActionResult** (Result Objects)
+**File:** `Simple/ActionResult.cs`
+
+Type-safe result objects with pattern matching support.
+
+| Properties | Description |
+|------------|-------------|
+| `bool Success` | Whether action succeeded |
+| `string? Message` | Error or success message |
+| `object? Data` | Optional result data |
+
+| Methods | Description |
+|---------|-------------|
+| `Match(Action onSuccess, Action<string> onFailure)` | Pattern matching for void results |
+| `Match<TResult>(Func<TResult> onSuccess, Func<string, TResult> onFailure)` | Pattern matching with return value |
+
+```csharp
+ActionResult<string[]> GetMoves()
+{
+    return game.Actions()
+        .ForPlayer(0)
+        .GetLegalMoves();
+}
+
+// Pattern matching
+var moves = GetMoves();
+moves.Match(
+    onSuccess: (availableMoves) => {
+        foreach (var move in availableMoves)
+            Debug.Log(move);
+    },
+    onFailure: (error) => Debug.LogError(error)
+);
 ```
 
 ---

@@ -11,6 +11,7 @@ public class BeziqueGame
     private readonly GameStateNotifier _notifier;
     private readonly IGameState _gameState;
     private readonly List<Player> _players = new();
+    private readonly EventSubscriptionManager _events = new();
 
     public event EventHandler<CardPlayedEventArgs>? CardPlayed;
     public event EventHandler<MeldDeclaredEventArgs>? MeldDeclared;
@@ -20,6 +21,8 @@ public class BeziqueGame
     public event EventHandler<RoundEndedEventArgs>? RoundEnded;
     public event EventHandler<GameEndedEventArgs>? GameEnded;
     public event EventHandler<GameErrorEventArgs>? Error;
+
+    public EventSubscriptionManager Events => _events;
 
     public bool IsGameOver => _gameState.Winner != null;
     public Player CurrentPlayer => _gameState.CurrentPlayer;
@@ -261,6 +264,7 @@ public class BeziqueGame
     private void OnError(GameErrorEventArgs e)
     {
         Error?.Invoke(this, e);
+        _events.Publish(this, e);
     }
 
     private class MultiplayerEventHandler : Interfaces.IMultiplayerEventHandler
@@ -332,36 +336,58 @@ public class BeziqueGame
     protected virtual void OnCardPlayed(CardPlayedEventArgs e)
     {
         CardPlayed?.Invoke(this, e);
+        _events.Publish(this, e);
     }
 
     protected virtual void OnMeldDeclared(MeldDeclaredEventArgs e)
     {
         MeldDeclared?.Invoke(this, e);
+        _events.Publish(this, e);
     }
 
     protected virtual void OnMeldSkipped(MeldSkippedEventArgs e)
     {
         MeldSkipped?.Invoke(this, e);
+        _events.Publish(this, e);
     }
 
     protected virtual void OnTrickResolved(TrickResolvedEventArgs e)
     {
         TrickResolved?.Invoke(this, e);
+        _events.Publish(this, e);
     }
 
     protected virtual void OnPlayerTurnChanged(PlayerTurnChangedEventArgs e)
     {
         PlayerTurnChanged?.Invoke(this, e);
+        _events.Publish(this, e);
     }
 
     protected virtual void OnRoundEnded(RoundEndedEventArgs e)
     {
         RoundEnded?.Invoke(this, e);
+        _events.Publish(this, e);
     }
 
     protected virtual void OnGameEnded(GameEndedEventArgs e)
     {
         GameEnded?.Invoke(this, e);
+        _events.Publish(this, e);
+    }
+
+    public void BeginEventBatch()
+    {
+        _events.BeginBatch();
+    }
+
+    public void EndEventBatch()
+    {
+        _events.EndBatch(this);
+    }
+
+    public void FlushEventBatch()
+    {
+        _events.FlushBatch(this);
     }
 }
 
