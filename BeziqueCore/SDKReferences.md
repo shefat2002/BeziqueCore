@@ -6,10 +6,8 @@
 **File:** `BeziqueCore/BeziqueGameFlow.cs` + `BeziqueGameFlow.User.cs`
 
 ```csharp
-// Constructor
 BeziqueGameFlow(IGameAdapter adapter)
 
-// Main control
 void Start()
 void DispatchEvent(EventId eventId)
 ```
@@ -50,6 +48,121 @@ void DispatchEvent(EventId eventId)
 
 ---
 
+## Multiplayer Support
+
+### **IMultiplayerGameAdapter** (Network-Aware Adapter)
+**File:** `Interfaces/IMultiplayerGameAdapter.cs`
+
+Extends `IGameAdapter` with multiplayer-specific functionality for online games.
+
+| Category | Methods |
+|----------|---------|
+| **Snapshots** | `GameSnapshotDto GetSnapshot()`, `GetSnapshotForPlayer(string userId)` |
+| **Commands** | `Task<GameActionResult> ExecuteRemoteCommandAsync(PlayerCommand command)` |
+| **Validation** | `string[] GetLegalMoves(string userId)`, `bool CanPlayerAct(string userId)`, `bool CanPlayCard(string userId, int cardIndex)`, `bool CanDeclareMeld(string userId, int[] cardIndices)`, `bool CanSwitchSevenOfTrump(string userId)` |
+| **Players** | `string? GetCurrentPlayerUserId()`, `Player? GetPlayerById(string userId)`, `void InitializeGameWithPlayers(List<Player> players)` |
+| **State** | `string GetCurrentStateName()`, `void SubscribeToEvents(IMultiplayerEventHandler eventHandler)` |
+
+### **MultiplayerGameAdapter**
+**File:** `Multiplayer/MultiplayerGameAdapter.cs`
+
+Wraps `IGameAdapter` with network functionality:
+- Thread-safe operations with locks
+- Event firing to `IMultiplayerEventHandler` subscribers
+- Player command execution (PlayCard, DeclareMeld, SkipMeld, SwitchSevenOfTrump)
+- Game snapshot generation for network transmission
+
+### **IMultiplayerEventHandler** (Event Interface)
+**File:** `Interfaces/IMultiplayerEventHandler.cs`
+
+Subscribe to multiplayer game events for real-time updates.
+
+| Events | Description |
+|--------|-------------|
+| `OnCardPlayed(CardPlayedEvent)` | Card was played |
+| `OnMeldDeclared(MeldDeclaredEvent)` | Meld was declared |
+| `OnMeldSkipped(MeldSkippedEvent)` | Meld was skipped |
+| `OnTrickResolved(TrickResolvedEvent)` | Trick was resolved |
+| `OnSevenOfTrumpSwitched(SevenOfTrumpSwitchedEvent)` | 7 of trump switched |
+| `OnCardsDrawn(CardsDrawnEvent)` | Cards were drawn |
+| `OnRoundEnded(RoundEndedEvent)` | Round ended |
+| `OnGameEnded(GameEndedEvent)` | Game ended |
+| `OnLastNineCardsStarted(LastNineCardsStartedEvent)` | L9 phase started |
+| `OnTrumpDetermined(TrumpDeterminedEvent)` | Trump was determined |
+| `OnPlayerTurnChanged(PlayerTurnChangedEvent)` | Turn changed |
+| `OnError(GameErrorEvent)` | Error occurred |
+
+### **Multiplayer Models**
+**Files:** `Models/PlayerCommand.cs`, `Models/GameActionResult.cs`, `Models/GameSnapshotDto.cs`
+
+**PlayerCommand:**
+```csharp
+string UserId { get; init; }
+string Action { get; init; }
+object Payload { get; init; }
+string? CommandId { get; init; }
+DateTime Timestamp { get; init; }
+```
+
+**GameActionResult:**
+```csharp
+bool Success { get; init; }
+string? ErrorMessage { get; init; }
+object? Data { get; init; }
+string? GameState { get; init; }
+string? NextPlayerUserId { get; init; }
+
+static GameActionResult Ok(object? data = null)
+static GameActionResult Error(string errorMessage)
+```
+
+**GameSnapshotDto:**
+```csharp
+string StateName { get; init; }
+PlayerStateDto[] Players { get; init; }
+string TrumpSuit { get; init; }
+CardDto? TrumpCard { get; init; }
+TrickStateDto CurrentTrick { get; init; }
+string CurrentPlayerUserId { get; init; }
+string DealerUserId { get; init; }
+int DeckCardCount { get; init; }
+bool IsLastNineCardsPhase { get; init; }
+string? LeadSuit { get; init; }
+Dictionary<string, int> RoundScores { get; init; }
+string GameMode { get; init; }
+string? WinnerUserId { get; init; }
+```
+
+### **Multiplayer Events**
+**File:** `Models/Events/MultiplayerEvents.cs`
+
+Event types for real-time game updates:
+- `GameEvent` (base)
+- `CardPlayedEvent`
+- `MeldDeclaredEvent`
+- `MeldSkippedEvent`
+- `TrickResolvedEvent`
+- `SevenOfTrumpSwitchedEvent`
+- `CardsDrawnEvent`
+- `RoundEndedEvent`
+- `GameEndedEvent`
+- `LastNineCardsStartedEvent`
+- `TrumpDeterminedEvent`
+- `PlayerTurnChangedEvent`
+- `GameErrorEvent`
+
+### **BeziqueActions** (Constants)
+**File:** `Multiplayer/MultiplayerGameAdapter.cs`
+
+```csharp
+public const string PlayCard = "PlayCard"
+public const string DeclareMeld = "DeclareMeld"
+public const string SkipMeld = "SkipMeld"
+public const string SwitchSevenOfTrump = "SwitchSevenOfTrump"
+```
+
+---
+
 ## Core Interfaces
 
 ### **IGameAdapter** (Game Orchestration)
@@ -77,6 +190,7 @@ void DispatchEvent(EventId eventId)
 | `Dictionary<Player, Card> CurrentTrick` | Current trick |
 | `GameMode Mode` | Standard/Advanced |
 | `Dictionary<Player, int> RoundScores` | Scores |
+| `string CurrentStateName` | State machine state |
 
 | Methods | Description |
 |--------|-------------|
@@ -193,11 +307,9 @@ Implements `IPlayerTimer` - 15 second turn timer
 **File:** `Interfaces/IPlayerActions.cs`
 
 ```csharp
-// Factory Methods
 Card Create(Suit suit, Rank rank)
 Card CreateJoker(Suit suit = Suit.Spades, Rank rank = Rank.Ace)
 
-// Properties
 Suit Suit { get; }
 Rank Rank { get; }
 bool IsJoker { get; }
@@ -277,8 +389,8 @@ var gameAdapter = new GameAdapter(deckOps, playerActions, notifier, gameState, t
 var gameFlow = new BeziqueGameFlow(gameAdapter);
 
 // Add players
-gameState.AddPlayer(new Player { Id = "1", Name = "Human", IsBot = false, ... });
-gameState.AddPlayer(new Player { Id = "2", Name = "AI", IsBot = true, ... });
+gameState.AddPlayer(new Player { Id = "1", Name = "Human", IsBot = false });
+gameState.AddPlayer(new Player { Id = "2", Name = "AI", IsBot = true });
 
 // Subscribe to events
 notifier.OnCardPlayed += (player, card) => Console.WriteLine($"{player.Name} played {card}");
@@ -289,5 +401,35 @@ gameFlow.Start();
 gameFlow.DispatchGameInitialized();
 gameFlow.DispatchCardsDealt();
 gameFlow.DispatchTrumpDetermined();
-// ... continue dispatching events
+```
+
+---
+
+## Multiplayer Integration Example
+
+```csharp
+// Create multiplayer adapter
+var multiplayerAdapter = new MultiplayerGameAdapter(
+    gameAdapter, deckOps, playerActions, notifier, gameState, trickResolver, meldValidator);
+
+// Subscribe to multiplayer events
+multiplayerAdapter.SubscribeToEvents(new MultiplayerEventHandler());
+
+// Initialize with players
+multiplayerAdapter.InitializeGameWithPlayers(new List<Player>
+{
+    new Player { Id = "user1", Name = "Player 1", IsBot = false },
+    new Player { Id = "user2", Name = "Player 2", IsBot = false }
+});
+
+// Get snapshot for client
+var snapshot = multiplayerAdapter.GetSnapshotForPlayer("user1");
+
+// Execute remote command
+var result = await multiplayerAdapter.ExecuteRemoteCommandAsync(new PlayerCommand
+{
+    UserId = "user1",
+    Action = BeziqueActions.PlayCard,
+    Payload = new { CardIndex = 0 }
+});
 ```
