@@ -42,7 +42,6 @@ public class BeziqueGame
     internal void AddPlayer(Player player)
     {
         _players.Add(player);
-        _gameState.AddPlayer(player);
     }
 
     internal void Initialize()
@@ -53,6 +52,7 @@ public class BeziqueGame
 
     public void Start()
     {
+        _adapter.InitializeGame();
         _adapter.NotifyGameInitialized();
         _adapter.DealCards();
         _adapter.NotifyCardsDealt();

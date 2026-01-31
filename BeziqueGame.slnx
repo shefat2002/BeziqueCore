@@ -1,3 +1,5 @@
 <Solution>
   <Project Path="BeziqueCore/BeziqueCore.csproj" />
+  <Project Path="BeziqueCore.Tests/BeziqueCore.Tests.csproj" />
+
 </Solution>
