@@ -1,6 +1,100 @@
 # BeziqueCore SDK - Complete API Reference
 
-## Primary Entry Point
+## Quick Start (Simple API) - Recommended for Unity
+
+### **BeziqueGameManager** (Factory)
+**File:** `Simple/BeziqueGameManager.cs`
+
+The simplest way to create a game - reduces setup from 24 lines to 3 lines.
+
+| Method | Description |
+|--------|-------------|
+| `BeziqueGame CreateSinglePlayer(string humanName, string aiName)` | Human vs AI game |
+| `BeziqueGame CreateMultiplayer(params string[] playerNames)` | Multiplayer local game |
+| `BeziqueGame CreateGame(params PlayerConfig[] configs)` | Custom player configuration |
+| `BeziqueGame CreateCustom(Action<BeziqueGameBuilder> configure)` | Builder pattern for advanced setup |
+
+```csharp
+// Single player vs AI - 3 lines
+var game = BeziqueGameManager.CreateSinglePlayer("Alice", "Bot Bob");
+game.CardPlayed += (s, e) => Debug.Log($"{e.PlayerName} played {e.Card}");
+game.Start();
+
+// Local multiplayer
+var game = BeziqueGameManager.CreateMultiplayer("Alice", "Bob", "Charlie");
+
+// Custom configuration with builder
+var game = BeziqueGameManager.CreateCustom(b => b
+    .WithPlayer("Alice", isBot: false, isDealer: true)
+    .WithPlayer("Bob", isBot: true)
+    .WithGameMode(GameMode.Advanced)
+    .WithWinningScore(1500));
+```
+
+### **BeziqueGame** (Simplified Game Wrapper)
+**File:** `Simple/BeziqueGame.cs`
+
+Simplified game interface with direct actions and unified events.
+
+| Properties | Description |
+|------------|-------------|
+| `bool IsGameOver` | Is game finished |
+| `Player CurrentPlayer` | Whose turn it is |
+| `string CurrentStateName` | Current state name |
+| `IReadOnlyList<Player> Players` | All players |
+
+| Methods | Description |
+|---------|-------------|
+| `void Start()` | Start the game |
+| `void PlayCard(int playerIndex, int cardIndex)` | Play a card |
+| `void DeclareMeld(int playerIndex, int[] cardIndices)` | Declare meld |
+| `void SkipMeld(int playerIndex)` | Skip meld phase |
+| `void SwitchSevenOfTrump(int playerIndex)` | Switch 7 of trump |
+| `GameSnapshotDto GetSnapshot()` | Get full game state |
+| `GameSnapshotDto GetSnapshotForPlayer(string playerId)` | Get player-specific view |
+| `bool CanPlayCard(int playerIndex, int cardIndex)` | Check if card can be played |
+| `bool CanDeclareMeld(int playerIndex, int[] cardIndices)` | Check if meld is valid |
+| `bool CanSwitchSevenOfTrump(int playerIndex)` | Check if can switch trump |
+| `string[] GetLegalMoves(int playerIndex)` | Get available actions |
+
+### **Simple Events** (Unified Event Args)
+**File:** `Simple/Events/GameEvents.cs`
+
+All events use standard .NET `EventHandler<T>` pattern.
+
+| Event | Args | Description |
+|-------|------|-------------|
+| `CardPlayed` | `CardPlayedEventArgs` | Card was played |
+| `MeldDeclared` | `MeldDeclaredEventArgs` | Meld was declared |
+| `MeldSkipped` | `MeldSkippedEventArgs` | Meld was skipped |
+| `TrickResolved` | `TrickResolvedEventArgs` | Trick was resolved |
+| `PlayerTurnChanged` | `PlayerTurnChangedEventArgs` | Turn changed |
+| `RoundEnded` | `RoundEndedEventArgs` | Round ended |
+| `GameEnded` | `GameEndedEventArgs` | Game ended |
+| `Error` | `GameErrorEventArgs` | Error occurred |
+
+```csharp
+// Subscribe to events
+game.CardPlayed += (sender, e) => {
+    Debug.Log($"{e.PlayerName} played {e.Card}");
+};
+
+game.MeldDeclared += (sender, e) => {
+    Debug.Log($"{e.PlayerName} declared {e.MeldType} for {e.Points} points");
+};
+
+game.TrickResolved += (sender, e) => {
+    Debug.Log($"{e.WinnerName} won the trick (+{e.Points} points)");
+};
+
+game.GameEnded += (sender, e) => {
+    Debug.Log($"{e.WinnerName} wins the game!");
+};
+```
+
+---
+
+## Advanced Entry Point
 
 ### **BeziqueGameFlow** (State Machine)
 **File:** `BeziqueCore/BeziqueGameFlow.cs` + `BeziqueGameFlow.User.cs`
@@ -374,10 +468,32 @@ int GetTrickPoints(Rank rank)  // Ace=11, Ten=10, others=0
 
 ---
 
-## Quick Start Example
+## Quick Start Examples
+
+### Simple API (Recommended)
 
 ```csharp
-// Setup
+// 3 lines to start
+var game = BeziqueGameManager.CreateSinglePlayer("Alice", "Bot Bob");
+game.CardPlayed += (s, e) => Debug.Log($"{e.PlayerName} played {e.Card}");
+game.Start();
+
+// Player actions
+game.PlayCard(0, 3);              // Play 4th card
+game.DeclareMeld(0, [0, 1, 2]);   // Declare meld with first 3 cards
+game.SkipMeld(0);                 // Skip meld phase
+game.SwitchSevenOfTrump(0);       // Switch trump card
+
+// Query state
+var snapshot = game.GetSnapshotForPlayer(playerId);
+var legalMoves = game.GetLegalMoves(0);
+bool canPlay = game.CanPlayCard(0, 3);
+```
+
+### Advanced API (State Machine)
+
+```csharp
+// Setup (24 lines)
 var deckOps = new DeckOperations();
 var playerTimer = new PlayerTimer();
 var gameState = new GameState(playerTimer);
