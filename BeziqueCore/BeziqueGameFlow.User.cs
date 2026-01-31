@@ -146,11 +146,6 @@ public partial class BeziqueGameFlow
         }
     }
 
-    /// <summary>
-    /// Checks if any player has reached the winning score after trick resolution.
-    /// If so, dispatches WinningScoreReached event to transition to GAME_OVER.
-    /// This ensures the game ends immediately when someone wins.
-    /// </summary>
     public void CheckAndDispatchWinningScoreAfterTrick()
     {
         if (gameAdapter.HasPlayerReachedWinningScore())
@@ -164,11 +159,6 @@ public partial class BeziqueGameFlow
         }
     }
 
-    /// <summary>
-    /// Checks if any player has reached the winning score after meld scoring.
-    /// If so, dispatches WinningScoreReached event to transition to GAME_OVER.
-    /// This ensures the game ends immediately when someone wins from meld points.
-    /// </summary>
     public void CheckAndDispatchWinningScoreAfterMeld()
     {
         if (gameAdapter.HasPlayerReachedWinningScore())
@@ -182,10 +172,6 @@ public partial class BeziqueGameFlow
         }
     }
 
-    /// <summary>
-    /// Checks if any player has reached the winning score during last 9 cards phase.
-    /// If so, dispatches WinningScoreReached event to transition to GAME_OVER.
-    /// </summary>
     public void CheckAndDispatchL9WinningScore()
     {
         if (gameAdapter.HasPlayerReachedWinningScore())
@@ -199,11 +185,6 @@ public partial class BeziqueGameFlow
         }
     }
 
-    /// <summary>
-    /// Checks if any player has reached the winning score after round ends.
-    /// This is called after CalculateAcesAndTens in Advanced mode,
-    /// as the bonus points could push a player over the winning threshold.
-    /// </summary>
     public void CheckAndDispatchWinningScoreAfterRound()
     {
         if (gameAdapter.HasPlayerReachedWinningScore())

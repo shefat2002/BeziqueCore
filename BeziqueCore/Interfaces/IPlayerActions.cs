@@ -1,9 +1,5 @@
 namespace BeziqueCore.Models
 {
-    /// <summary>
-    /// Represents a playing card with value equality and comparison support.
-    /// Card is immutable for thread safety and predictability.
-    /// </summary>
     public sealed class Card : IEquatable<Card>, IComparable<Card>
     {
         public Suit Suit { get; }
@@ -18,17 +14,11 @@ namespace BeziqueCore.Models
             IsJoker = isJoker;
         }
 
-        /// <summary>
-        /// Creates a normal playing card.
-        /// </summary>
         public static Card Create(Suit suit, Rank rank)
         {
             return new Card(suit, rank, false);
         }
 
-        /// <summary>
-        /// Creates a Joker card. Suit and rank are ignored for jokers.
-        /// </summary>
         public static Card CreateJoker(Suit suit = Suit.Spades, Rank rank = Rank.Ace)
         {
             return new Card(suit, rank, true);
@@ -132,10 +122,8 @@ namespace BeziqueCore.Interfaces
         public bool IsDealer { get; set; }
         public bool IsBot { get; set; }
         public List<Meld> DeclaredMelds { get; set; }
-        /// <summary>
-        /// Tracks cards that have been used in melds and cannot be used again.
-        /// A card can only be part of one meld declaration.
-        /// </summary>
+        // Tracks cards that have been used in melds and cannot be used again
+        // A card can only be part of one meld declaration
         public List<Card> MeldedCards { get; set; }
     }
 

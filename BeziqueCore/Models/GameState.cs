@@ -3,14 +3,9 @@ using BeziqueCore.Constants;
 
 namespace BeziqueCore.Models
 {
-    /// <summary>
-    /// Game mode for Bezique - Standard or Advanced
-    /// </summary>
     public enum GameMode
     {
-        /// <summary>Standard Bezique rules</summary>
         Standard,
-        /// <summary>Advanced Bezique with additional Aces and Tens scoring</summary>
         Advanced
     }
 

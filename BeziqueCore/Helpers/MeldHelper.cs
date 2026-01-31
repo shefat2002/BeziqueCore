@@ -5,24 +5,12 @@ using System.Linq;
 
 namespace BeziqueCore.Helpers
 {
-    /// <summary>
-    /// Optimized helper methods for finding all possible melds from a player's hand.
-    /// Uses pre-computed card counts and efficient algorithms for better performance.
-    /// This provides the core meld detection logic used by both AI bots and UI.
-    /// </summary>
     public static class MeldHelper
     {
         // Pre-allocated reusable arrays to reduce allocations
         private static readonly Card[] _cardBuffer = new Card[8];
         private static readonly Suit[] _allSuits = Enum.GetValues(typeof(Suit)).Cast<Suit>().ToArray();
 
-        /// <summary>
-        /// Finds all possible melds that can be declared from the player's hand.
-        /// According to Bezique rules, a meld can include previously melded cards
-        /// as long as at least one card in the meld is new (unmelded).
-        /// Returns a list of all valid melds sorted by points (highest first).
-        /// If no melds are available, returns an empty list.
-        /// </summary>
         public static List<Meld> FindAllPossibleMelds(Player player, Suit trumpSuit)
         {
             var possibleMelds = new List<Meld>(8);
@@ -90,10 +78,6 @@ namespace BeziqueCore.Helpers
             return possibleMelds;
         }
 
-        /// <summary>
-        /// Computes card counts using a 2D array for O(1) lookups.
-        /// Array layout: [suitIndex][rankIndex] = count
-        /// </summary>
         private static int[,] ComputeCardCounts(List<Card> hand)
         {
             var counts = new int[4, 15]; // 4 suits, max rank 14 (Ace)
@@ -109,17 +93,11 @@ namespace BeziqueCore.Helpers
             return counts;
         }
 
-        /// <summary>
-        /// Gets the count of a specific card using pre-computed counts array.
-        /// </summary>
         private static int GetCardCount(int[,] counts, Suit suit, Rank rank)
         {
             return counts[(int)suit, (int)rank];
         }
 
-        /// <summary>
-        /// Finds the first occurrence of a specific card in the hand.
-        /// </summary>
         private static Card? FindCard(List<Card> hand, Suit suit, Rank rank)
         {
             for (int i = 0; i < hand.Count; i++)
@@ -131,9 +109,6 @@ namespace BeziqueCore.Helpers
             return null;
         }
 
-        /// <summary>
-        /// Collects cards of a specific suit and rank into a buffer.
-        /// </summary>
         private static void CollectCards(List<Card> hand, Card[] buffer, ref int index, Suit suit, Rank rank, int count)
         {
             int collected = 0;
@@ -267,9 +242,6 @@ namespace BeziqueCore.Helpers
             }
         }
 
-        /// <summary>
-        /// Checks if the player has any valid melds available.
-        /// </summary>
         public static bool HasAnyMeld(Player player, Suit trumpSuit)
         {
             // Early exit optimizations
@@ -279,10 +251,6 @@ namespace BeziqueCore.Helpers
             return FindAllPossibleMelds(player, trumpSuit).Count > 0;
         }
 
-        /// <summary>
-        /// Gets the highest point meld available to the player.
-        /// Returns null if no melds are available.
-        /// </summary>
         public static Meld? GetBestMeld(Player player, Suit trumpSuit)
         {
             var melds = FindAllPossibleMelds(player, trumpSuit);

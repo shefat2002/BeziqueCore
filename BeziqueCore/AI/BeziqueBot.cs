@@ -6,11 +6,6 @@ using System.Linq;
 
 namespace BeziqueCore.AI
 {
-    /// <summary>
-    /// Unified Bezique AI with maximum difficulty.
-    /// Combines optimal card play strategy with intelligent meld decisions.
-    /// Optimized with caching and reduced allocations for better performance.
-    /// </summary>
     public class BeziqueBot : IBeziqueBot
     {
         private readonly Random _random;
@@ -25,14 +20,6 @@ namespace BeziqueCore.AI
 
         public string BotName => "AI";
 
-        /// <summary>
-        /// Selects the optimal card to play based on game state.
-        /// Uses advanced strategy including:
-        /// - Trump management
-        /// - Suit control
-        /// - Point optimization
-        /// - Last 9 cards strict rule compliance
-        /// </summary>
         public Card SelectCardToPlay(
             Player bot,
             Dictionary<Player, Card> currentTrick,
@@ -49,10 +36,6 @@ namespace BeziqueCore.AI
             return SelectFollowCard(validCards, currentTrick, trumpSuit);
         }
 
-        /// <summary>
-        /// Decides whether to declare a meld and which meld to declare.
-        /// Always declares the highest point meld available.
-        /// </summary>
         public Meld? DecideMeld(Player bot, Suit trumpSuit)
         {
             var possibleMelds = MeldHelper.FindAllPossibleMelds(bot, trumpSuit);
@@ -65,13 +48,6 @@ namespace BeziqueCore.AI
             return null;
         }
 
-        /// <summary>
-        /// Selects the best card to lead with.
-        /// Strategy:
-        /// 1. Lead trump if we have strong trump holdings
-        /// 2. Lead from our strongest suit
-        /// 3. Save high cards for winning tricks
-        /// </summary>
         private Card SelectLeadCard(List<Card> validCards, Suit trumpSuit, Player bot)
         {
             var trumpCards = validCards.Where(c => c.Suit == trumpSuit).ToList();
@@ -108,13 +84,6 @@ namespace BeziqueCore.AI
                 ?? validCards.OrderByDescending(c => GetCardPowerCached(c, trumpSuit)).First();
         }
 
-        /// <summary>
-        /// Selects the best card to follow with.
-        /// Strategy:
-        /// 1. Try to win if we can and it's beneficial
-        /// 2. If we can't win, dump our lowest value card
-        /// 3. Special handling for 7 of trump
-        /// </summary>
         private Card SelectFollowCard(
             List<Card> validCards,
             Dictionary<Player, Card> currentTrick,
@@ -171,11 +140,6 @@ namespace BeziqueCore.AI
             return lowestDumpCard ?? validCards.OrderBy(c => GetCardPowerCached(c, trumpSuit)).First();
         }
 
-        /// <summary>
-        /// Gets valid cards that can be played in the current trick.
-        /// Enforces Last 9 Cards strict rules when applicable.
-        /// Uses array pooling to reduce allocations.
-        /// </summary>
         private List<Card> GetValidCards(
             Player bot,
             Dictionary<Player, Card> currentTrick,
@@ -218,10 +182,6 @@ namespace BeziqueCore.AI
             return new List<Card>(bot.Hand);
         }
 
-        /// <summary>
-        /// Calculates the power value of a card for AI decision making with caching.
-        /// Trumps are most powerful, then lead suit.
-        /// </summary>
         private int GetCardPowerCached(Card card, Suit trumpSuit)
         {
             if (card.IsJoker)
@@ -247,10 +207,6 @@ namespace BeziqueCore.AI
             return power;
         }
 
-        /// <summary>
-        /// Determines which card is currently winning the trick.
-        /// Optimized with manual loop for better performance.
-        /// </summary>
         private Card GetCurrentTrickWinner(Dictionary<Player, Card> currentTrick, Suit trumpSuit)
         {
             Card winner = null;

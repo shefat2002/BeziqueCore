@@ -3,10 +3,6 @@ using BeziqueCore.Interfaces;
 
 namespace BeziqueCore.Constants
 {
-    /// <summary>
-    /// Centralized game constants for Bezique.
-    /// Provides single source of truth for all game rules and scoring values.
-    /// </summary>
     public static class GameConstants
     {
         // Card dealing
@@ -40,9 +36,6 @@ namespace BeziqueCore.Constants
         public const int WinningScore = 1000;
     }
 
-    /// <summary>
-    /// Meld point mappings for quick lookup using array-based access for O(1) performance.
-    /// </summary>
     public static class MeldPoints
     {
         private static readonly int[] _pointLookup;
@@ -62,9 +55,6 @@ namespace BeziqueCore.Constants
             _pointLookup[(int)MeldType.FourJacks] = GameConstants.FourJacksPoints;
         }
 
-        /// <summary>
-        /// Gets points for a meld type using O(1) array lookup.
-        /// </summary>
         public static int GetPointsForType(MeldType type)
         {
             int index = (int)type;
@@ -72,9 +62,6 @@ namespace BeziqueCore.Constants
         }
     }
 
-    /// <summary>
-    /// Rank values for comparison and sorting using array-based access for O(1) performance.
-    /// </summary>
     public static class RankValues
     {
         // Pre-computed array for O(1) lookup instead of switch expression
@@ -100,18 +87,12 @@ namespace BeziqueCore.Constants
             _trickPointsLookup[(int)Rank.Ten] = 10;
         }
 
-        /// <summary>
-        /// Gets rank value using O(1) array lookup.
-        /// </summary>
         public static int GetValue(Rank rank)
         {
             int index = (int)rank;
             return index >= 0 && index < _valueLookup.Length ? _valueLookup[index] : 0;
         }
 
-        /// <summary>
-        /// Gets trick points for a rank using O(1) array lookup.
-        /// </summary>
         public static int GetTrickPoints(Rank rank)
         {
             int index = (int)rank;

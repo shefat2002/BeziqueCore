@@ -3,10 +3,6 @@ using BeziqueCore.Models;
 
 namespace BeziqueCore.Deck
 {
-    /// <summary>
-    /// Optimized deck operations using array-based storage for better performance.
-    /// Array-based approach eliminates Stack<T> overhead and reduces allocations during shuffling.
-    /// </summary>
     public class DeckOperations : IDeckOperations
     {
         // Array-based storage for O(1) random access and better cache locality
