@@ -6,8 +6,6 @@ namespace BeziqueCore.Interfaces
     {
         bool IsValidMeld(Card[] cards, Suit trumpSuit);
         int CalculateMeldPoints(Meld meld);
-        bool CanPlaceSequence(Card[] cards, List<Meld> meldHistory, Suit trumpSuit);
         MeldType DetermineMeldType(Card[] cards, Suit trumpSuit);
-        Meld GetBestPossibleMeld(Card[] selectedCards, List<Card> playerHand, Suit trumpSuit);
     }
 }

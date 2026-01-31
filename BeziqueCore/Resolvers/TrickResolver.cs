@@ -1,13 +1,12 @@
 using BeziqueCore.Interfaces;
 using BeziqueCore.Models;
+using BeziqueCore.Constants;
 
 namespace BeziqueCore.Resolvers
 {
     public class TrickResolver : ITrickResolver
     {
         private readonly IGameState _gameState;
-        private const int AcePoints = 11;
-        private const int TenPoints = 10;
 
         public TrickResolver(IGameState gameState)
         {
@@ -150,14 +149,7 @@ namespace BeziqueCore.Resolvers
                     continue;
                 }
 
-                if (card.Rank == Rank.Ace)
-                {
-                    points += AcePoints;
-                }
-                else if (card.Rank == Rank.Ten)
-                {
-                    points += TenPoints;
-                }
+                points += RankValues.GetTrickPoints(card.Rank);
             }
 
             return points;
