@@ -1,0 +1,60 @@
+@startuml
+
+/'! $CONFIG : toml
+SmRunnerSettings.transpilerId = "CSharp"
+
+[RenderConfig.CSharp]
+NameSpace =  "BeziqueCore;"
+'/
+
+hide empty description
+skinparam stateMessageAlignment center
+
+[*] -> Deal
+
+Deal -> Play : Complete
+
+state Deal {
+    state DealFirst
+    state DealMid
+    state DealLast
+
+    [*] -> DealFirst
+    DealFirst -> DealMid : Complete
+    DealMid -> DealLast : Complete
+    DealLast -> SelectTrump : Complete 
+    SelectTrump --> Play : Complete 
+}
+
+state Play {
+    state PlayFirst
+    state PlayMid
+    state PlayLast
+    
+    [*] -> PlayFirst
+    PlayFirst -> PlayMid : HasMid
+    PlayMid -> PlayLast : Complete
+    PlayLast --> Meld
+}
+
+state Meld{
+    [*] -> TryMelded
+    state Melded
+    state NoMeld
+    
+    TryMelded -> Melded : Success
+    TryMelded -> NoMeld : Failed
+    
+    Melded -> AddPoint : Complete
+    NoMeld --> NewTrick : Complete
+    
+}
+
+AddPoint --> NewTrick : Complete
+
+NewTrick -> AddOneCardToAll : Complete
+
+AddOneCardToAll --> PlayFirst : Complete
+
+
+@enduml
