@@ -275,51 +275,51 @@ state Deal {
 
         SelectTrump : SelectTrump
 
-}
+        state Play {
 
-state Play {
+                PlayFirst
 
-        PlayFirst
+                PlayFirst : PlayFirst
 
-        PlayFirst : PlayFirst
+                PlayMid
 
-        PlayMid
+                PlayMid : PlayMid
 
-        PlayMid : PlayMid
+                PlayLast
 
-        PlayLast
-
-        PlayLast : PlayLast
-
-        %% Initial state name as "." so that it fits in black circle shape.
-        %% See https://github.com/StateSmith/StateSmith/issues/404
-        state "." as Play.(InitialState)
-
-        state Meld {
+                PlayLast : PlayLast
 
                 %% Initial state name as "." so that it fits in black circle shape.
                 %% See https://github.com/StateSmith/StateSmith/issues/404
-                state "." as Meld.(InitialState)
+                state "." as Play.(InitialState)
 
-                TryMelded
+                state Meld {
 
-                TryMelded : TryMelded
+                        %% Initial state name as "." so that it fits in black circle shape.
+                        %% See https://github.com/StateSmith/StateSmith/issues/404
+                        state "." as Meld.(InitialState)
 
-                Melded
+                        TryMelded
 
-                Melded : Melded
+                        TryMelded : TryMelded
 
-                NoMeld
+                        Melded
 
-                NoMeld : NoMeld
+                        Melded : Melded
 
-                AddPoint
+                        NoMeld
 
-                AddPoint : AddPoint
+                        NoMeld : NoMeld
 
-                NewTrick
+                        AddPoint
 
-                NewTrick : NewTrick
+                        AddPoint : AddPoint
+
+                        NewTrick
+
+                        NewTrick : NewTrick
+
+                }
 
         }
 
@@ -330,8 +330,6 @@ AddOneCardToAll
 AddOneCardToAll : AddOneCardToAll
 
 ROOT.(InitialState) --> Deal
-
-Deal --> Play : Complete
 
 DealFirst --> DealMid : Complete
 
@@ -435,17 +433,17 @@ evaluateGuard = null;
         DEALFIRST : 3,
         DEALLAST : 4,
         DEALMID : 5,
-        SELECTTRUMP : 6,
-        PLAY : 7,
-        MELD : 8,
-        ADDPOINT : 9,
-        MELDED : 10,
-        NEWTRICK : 11,
-        NOMELD : 12,
-        TRYMELDED : 13,
-        PLAYFIRST : 14,
-        PLAYLAST : 15,
-        PLAYMID : 16,
+        PLAY : 6,
+        MELD : 7,
+        ADDPOINT : 8,
+        MELDED : 9,
+        NEWTRICK : 10,
+        NOMELD : 11,
+        TRYMELDED : 12,
+        PLAYFIRST : 13,
+        PLAYLAST : 14,
+        PLAYMID : 15,
+        SELECTTRUMP : 16,
     }
     static { Object.freeze(this.StateId); }
     
@@ -481,12 +479,12 @@ evaluateGuard = null;
                 this.#DEAL_enter();
                 
                 // Deal.<InitialState> behavior
-                // uml: / { this.tracer?.edgeTransition("edge5"); } TransitionTo(DealFirst)
+                // uml: / { this.tracer?.edgeTransition("edge4"); } TransitionTo(DealFirst)
                 {
                     // Step 1: Exit states until we reach `Deal` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
                     
-                    // Step 2: Transition action: `this.tracer?.edgeTransition("edge5");`.
-                    this.tracer?.edgeTransition("edge5");
+                    // Step 2: Transition action: `this.tracer?.edgeTransition("edge4");`.
+                    this.tracer?.edgeTransition("edge4");
                     
                     // Step 3: Enter/move towards transition target `DealFirst`.
                     this.#DEALFIRST_enter();
@@ -519,10 +517,7 @@ evaluateGuard = null;
             
             // STATE: Deal
             case Bezique.StateId.DEAL:
-                switch (eventId)
-                {
-                    case Bezique.EventId.COMPLETE: this.#DEAL_complete(); break;
-                }
+                // No events handled by this state (or its ancestors).
                 break;
             
             // STATE: DealFirst
@@ -546,14 +541,6 @@ evaluateGuard = null;
                 switch (eventId)
                 {
                     case Bezique.EventId.COMPLETE: this.#DEALMID_complete(); break;
-                }
-                break;
-            
-            // STATE: SelectTrump
-            case Bezique.StateId.SELECTTRUMP:
-                switch (eventId)
-                {
-                    case Bezique.EventId.COMPLETE: this.#SELECTTRUMP_complete(); break;
                 }
                 break;
             
@@ -631,6 +618,14 @@ evaluateGuard = null;
                     case Bezique.EventId.COMPLETE: this.#PLAYMID_complete(); break;
                 }
                 break;
+            
+            // STATE: SelectTrump
+            case Bezique.StateId.SELECTTRUMP:
+                switch (eventId)
+                {
+                    case Bezique.EventId.COMPLETE: this.#SELECTTRUMP_complete(); break;
+                }
+                break;
         }
         
     }
@@ -653,8 +648,6 @@ evaluateGuard = null;
                 
                 case Bezique.StateId.DEALMID: this.#DEALMID_exit(); break;
                 
-                case Bezique.StateId.SELECTTRUMP: this.#SELECTTRUMP_exit(); break;
-                
                 case Bezique.StateId.PLAY: this.#PLAY_exit(); break;
                 
                 case Bezique.StateId.MELD: this.#MELD_exit(); break;
@@ -674,6 +667,8 @@ evaluateGuard = null;
                 case Bezique.StateId.PLAYLAST: this.#PLAYLAST_exit(); break;
                 
                 case Bezique.StateId.PLAYMID: this.#PLAYMID_exit(); break;
+                
+                case Bezique.StateId.SELECTTRUMP: this.#SELECTTRUMP_exit(); break;
                 
                 default: return;  // Just to be safe. Prevents infinite loop if state ID memory is somehow corrupted.
             }
@@ -722,15 +717,16 @@ evaluateGuard = null;
     #ADDONECARDTOALL_complete()
     {
         // AddOneCardToAll behavior
-        // uml: Complete / { this.tracer?.edgeTransition("edge18"); } TransitionTo(PlayFirst)
+        // uml: Complete / { this.tracer?.edgeTransition("edge17"); } TransitionTo(PlayFirst)
         {
             // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
             this.#ADDONECARDTOALL_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge18");`.
-            this.tracer?.edgeTransition("edge18");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge17");`.
+            this.tracer?.edgeTransition("edge17");
             
             // Step 3: Enter/move towards transition target `PlayFirst`.
+            this.#DEAL_enter();
             this.#PLAY_enter();
             this.#PLAYFIRST_enter();
             
@@ -770,28 +766,6 @@ evaluateGuard = null;
         this.stateId = Bezique.StateId.ROOT;
     }
     
-    #DEAL_complete()
-    {
-        // Deal behavior
-        // uml: Complete / { this.tracer?.edgeTransition("edge1"); } TransitionTo(Play)
-        {
-            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
-            this.#exitUpToStateHandler(Bezique.StateId.ROOT);
-            
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge1");`.
-            this.tracer?.edgeTransition("edge1");
-            
-            // Step 3: Enter/move towards transition target `Play`.
-            this.#PLAY_enter();
-            
-            // Finish transition by calling pseudo state transition function.
-            this.#Play_InitialState_transition();
-            return; // event processing immediately stops when a transition finishes. No other behaviors for this state are checked.
-        } // end of behavior for Deal
-        
-        // No ancestor handles this event.
-    }
-    
     
     ////////////////////////////////////////////////////////////////////////////////
     // event handlers for state DEALFIRST
@@ -823,16 +797,14 @@ evaluateGuard = null;
     
     #DEALFIRST_complete()
     {
-        let consume_event = false;
-        
         // DealFirst behavior
-        // uml: Complete / { this.tracer?.edgeTransition("edge2"); } TransitionTo(DealMid)
+        // uml: Complete / { this.tracer?.edgeTransition("edge1"); } TransitionTo(DealMid)
         {
             // Step 1: Exit states until we reach `Deal` state (Least Common Ancestor for transition).
             this.#DEALFIRST_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge2");`.
-            this.tracer?.edgeTransition("edge2");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge1");`.
+            this.tracer?.edgeTransition("edge1");
             
             // Step 3: Enter/move towards transition target `DealMid`.
             this.#DEALMID_enter();
@@ -841,11 +813,7 @@ evaluateGuard = null;
             return;
         } // end of behavior for DealFirst
         
-        // Check if event has been consumed before calling ancestor handler.
-        if (!consume_event)
-        {
-            this.#DEAL_complete();
-        }
+        // No ancestor handles this event.
     }
     
     
@@ -879,16 +847,14 @@ evaluateGuard = null;
     
     #DEALLAST_complete()
     {
-        let consume_event = false;
-        
         // DealLast behavior
-        // uml: Complete / { this.tracer?.edgeTransition("edge4"); } TransitionTo(SelectTrump)
+        // uml: Complete / { this.tracer?.edgeTransition("edge3"); } TransitionTo(SelectTrump)
         {
             // Step 1: Exit states until we reach `Deal` state (Least Common Ancestor for transition).
             this.#DEALLAST_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge4");`.
-            this.tracer?.edgeTransition("edge4");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge3");`.
+            this.tracer?.edgeTransition("edge3");
             
             // Step 3: Enter/move towards transition target `SelectTrump`.
             this.#SELECTTRUMP_enter();
@@ -897,11 +863,7 @@ evaluateGuard = null;
             return;
         } // end of behavior for DealLast
         
-        // Check if event has been consumed before calling ancestor handler.
-        if (!consume_event)
-        {
-            this.#DEAL_complete();
-        }
+        // No ancestor handles this event.
     }
     
     
@@ -935,16 +897,14 @@ evaluateGuard = null;
     
     #DEALMID_complete()
     {
-        let consume_event = false;
-        
         // DealMid behavior
-        // uml: Complete / { this.tracer?.edgeTransition("edge3"); } TransitionTo(DealLast)
+        // uml: Complete / { this.tracer?.edgeTransition("edge2"); } TransitionTo(DealLast)
         {
             // Step 1: Exit states until we reach `Deal` state (Least Common Ancestor for transition).
             this.#DEALMID_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge3");`.
-            this.tracer?.edgeTransition("edge3");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge2");`.
+            this.tracer?.edgeTransition("edge2");
             
             // Step 3: Enter/move towards transition target `DealLast`.
             this.#DEALLAST_enter();
@@ -953,68 +913,7 @@ evaluateGuard = null;
             return;
         } // end of behavior for DealMid
         
-        // Check if event has been consumed before calling ancestor handler.
-        if (!consume_event)
-        {
-            this.#DEAL_complete();
-        }
-    }
-    
-    
-    ////////////////////////////////////////////////////////////////////////////////
-    // event handlers for state SELECTTRUMP
-    ////////////////////////////////////////////////////////////////////////////////
-    
-    #SELECTTRUMP_enter()
-    {
-        this.stateId = Bezique.StateId.SELECTTRUMP;
-        
-        // SelectTrump behavior
-        // uml: enter / { this.tracer?.enterState('SelectTrump'); }
-        {
-            // Step 1: execute action `this.tracer?.enterState('SelectTrump');`
-            this.tracer?.enterState('SelectTrump');
-        } // end of behavior for SelectTrump
-    }
-    
-    #SELECTTRUMP_exit()
-    {
-        // SelectTrump behavior
-        // uml: exit / { this.tracer?.exitState('SelectTrump'); }
-        {
-            // Step 1: execute action `this.tracer?.exitState('SelectTrump');`
-            this.tracer?.exitState('SelectTrump');
-        } // end of behavior for SelectTrump
-        
-        this.stateId = Bezique.StateId.DEAL;
-    }
-    
-    #SELECTTRUMP_complete()
-    {
-        let consume_event = false;
-        
-        // SelectTrump behavior
-        // uml: Complete / { this.tracer?.edgeTransition("edge6"); } TransitionTo(Play)
-        {
-            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
-            this.#exitUpToStateHandler(Bezique.StateId.ROOT);
-            
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge6");`.
-            this.tracer?.edgeTransition("edge6");
-            
-            // Step 3: Enter/move towards transition target `Play`.
-            this.#PLAY_enter();
-            
-            // Finish transition by calling pseudo state transition function.
-            this.#Play_InitialState_transition();
-            return; // event processing immediately stops when a transition finishes. No other behaviors for this state are checked.
-        } // end of behavior for SelectTrump
-        
-        // Check if event has been consumed before calling ancestor handler.
-        if (!consume_event)
-        {
-            this.#DEAL_complete();
-        }
+        // No ancestor handles this event.
     }
     
     
@@ -1043,25 +942,7 @@ evaluateGuard = null;
             this.tracer?.exitState('Play');
         } // end of behavior for Play
         
-        this.stateId = Bezique.StateId.ROOT;
-    }
-    
-    #Play_InitialState_transition()
-    {
-        // Play.<InitialState> behavior
-        // uml: / { this.tracer?.edgeTransition("edge10"); } TransitionTo(PlayFirst)
-        {
-            // Step 1: Exit states until we reach `Play` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
-            
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge10");`.
-            this.tracer?.edgeTransition("edge10");
-            
-            // Step 3: Enter/move towards transition target `PlayFirst`.
-            this.#PLAYFIRST_enter();
-            
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
-        } // end of behavior for Play.<InitialState>
+        this.stateId = Bezique.StateId.DEAL;
     }
     
     
@@ -1125,13 +1006,13 @@ evaluateGuard = null;
     #ADDPOINT_complete()
     {
         // AddPoint behavior
-        // uml: Complete / { this.tracer?.edgeTransition("edge16"); } TransitionTo(NewTrick)
+        // uml: Complete / { this.tracer?.edgeTransition("edge15"); } TransitionTo(NewTrick)
         {
             // Step 1: Exit states until we reach `Meld` state (Least Common Ancestor for transition).
             this.#ADDPOINT_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge16");`.
-            this.tracer?.edgeTransition("edge16");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge15");`.
+            this.tracer?.edgeTransition("edge15");
             
             // Step 3: Enter/move towards transition target `NewTrick`.
             this.#NEWTRICK_enter();
@@ -1175,13 +1056,13 @@ evaluateGuard = null;
     #MELDED_complete()
     {
         // Melded behavior
-        // uml: Complete / { this.tracer?.edgeTransition("edge14"); } TransitionTo(AddPoint)
+        // uml: Complete / { this.tracer?.edgeTransition("edge13"); } TransitionTo(AddPoint)
         {
             // Step 1: Exit states until we reach `Meld` state (Least Common Ancestor for transition).
             this.#MELDED_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge14");`.
-            this.tracer?.edgeTransition("edge14");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge13");`.
+            this.tracer?.edgeTransition("edge13");
             
             // Step 3: Enter/move towards transition target `AddPoint`.
             this.#ADDPOINT_enter();
@@ -1225,13 +1106,13 @@ evaluateGuard = null;
     #NEWTRICK_complete()
     {
         // NewTrick behavior
-        // uml: Complete / { this.tracer?.edgeTransition("edge17"); } TransitionTo(AddOneCardToAll)
+        // uml: Complete / { this.tracer?.edgeTransition("edge16"); } TransitionTo(AddOneCardToAll)
         {
             // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
             this.#exitUpToStateHandler(Bezique.StateId.ROOT);
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge17");`.
-            this.tracer?.edgeTransition("edge17");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge16");`.
+            this.tracer?.edgeTransition("edge16");
             
             // Step 3: Enter/move towards transition target `AddOneCardToAll`.
             this.#ADDONECARDTOALL_enter();
@@ -1275,13 +1156,13 @@ evaluateGuard = null;
     #NOMELD_complete()
     {
         // NoMeld behavior
-        // uml: Complete / { this.tracer?.edgeTransition("edge15"); } TransitionTo(NewTrick)
+        // uml: Complete / { this.tracer?.edgeTransition("edge14"); } TransitionTo(NewTrick)
         {
             // Step 1: Exit states until we reach `Meld` state (Least Common Ancestor for transition).
             this.#NOMELD_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge15");`.
-            this.tracer?.edgeTransition("edge15");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge14");`.
+            this.tracer?.edgeTransition("edge14");
             
             // Step 3: Enter/move towards transition target `NewTrick`.
             this.#NEWTRICK_enter();
@@ -1325,13 +1206,13 @@ evaluateGuard = null;
     #TRYMELDED_failed()
     {
         // TryMelded behavior
-        // uml: Failed / { this.tracer?.edgeTransition("edge13"); } TransitionTo(NoMeld)
+        // uml: Failed / { this.tracer?.edgeTransition("edge12"); } TransitionTo(NoMeld)
         {
             // Step 1: Exit states until we reach `Meld` state (Least Common Ancestor for transition).
             this.#TRYMELDED_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge13");`.
-            this.tracer?.edgeTransition("edge13");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge12");`.
+            this.tracer?.edgeTransition("edge12");
             
             // Step 3: Enter/move towards transition target `NoMeld`.
             this.#NOMELD_enter();
@@ -1346,13 +1227,13 @@ evaluateGuard = null;
     #TRYMELDED_success()
     {
         // TryMelded behavior
-        // uml: Success / { this.tracer?.edgeTransition("edge12"); } TransitionTo(Melded)
+        // uml: Success / { this.tracer?.edgeTransition("edge11"); } TransitionTo(Melded)
         {
             // Step 1: Exit states until we reach `Meld` state (Least Common Ancestor for transition).
             this.#TRYMELDED_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge12");`.
-            this.tracer?.edgeTransition("edge12");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge11");`.
+            this.tracer?.edgeTransition("edge11");
             
             // Step 3: Enter/move towards transition target `Melded`.
             this.#MELDED_enter();
@@ -1396,13 +1277,13 @@ evaluateGuard = null;
     #PLAYFIRST_hasmid()
     {
         // PlayFirst behavior
-        // uml: HasMid / { this.tracer?.edgeTransition("edge7"); } TransitionTo(PlayMid)
+        // uml: HasMid / { this.tracer?.edgeTransition("edge6"); } TransitionTo(PlayMid)
         {
             // Step 1: Exit states until we reach `Play` state (Least Common Ancestor for transition).
             this.#PLAYFIRST_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge7");`.
-            this.tracer?.edgeTransition("edge7");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge6");`.
+            this.tracer?.edgeTransition("edge6");
             
             // Step 3: Enter/move towards transition target `PlayMid`.
             this.#PLAYMID_enter();
@@ -1446,24 +1327,24 @@ evaluateGuard = null;
     #PLAYLAST_do()
     {
         // PlayLast behavior
-        // uml: do / { this.tracer?.edgeTransition("edge9"); } TransitionTo(Meld)
+        // uml: do / { this.tracer?.edgeTransition("edge8"); } TransitionTo(Meld)
         {
             // Step 1: Exit states until we reach `Play` state (Least Common Ancestor for transition).
             this.#PLAYLAST_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge9");`.
-            this.tracer?.edgeTransition("edge9");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge8");`.
+            this.tracer?.edgeTransition("edge8");
             
             // Step 3: Enter/move towards transition target `Meld`.
             this.#MELD_enter();
             
             // Meld.<InitialState> behavior
-            // uml: / { this.tracer?.edgeTransition("edge11"); } TransitionTo(TryMelded)
+            // uml: / { this.tracer?.edgeTransition("edge10"); } TransitionTo(TryMelded)
             {
                 // Step 1: Exit states until we reach `Meld` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
                 
-                // Step 2: Transition action: `this.tracer?.edgeTransition("edge11");`.
-                this.tracer?.edgeTransition("edge11");
+                // Step 2: Transition action: `this.tracer?.edgeTransition("edge10");`.
+                this.tracer?.edgeTransition("edge10");
                 
                 // Step 3: Enter/move towards transition target `TryMelded`.
                 this.#TRYMELDED_enter();
@@ -1508,13 +1389,13 @@ evaluateGuard = null;
     #PLAYMID_complete()
     {
         // PlayMid behavior
-        // uml: Complete / { this.tracer?.edgeTransition("edge8"); } TransitionTo(PlayLast)
+        // uml: Complete / { this.tracer?.edgeTransition("edge7"); } TransitionTo(PlayLast)
         {
             // Step 1: Exit states until we reach `Play` state (Least Common Ancestor for transition).
             this.#PLAYMID_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge8");`.
-            this.tracer?.edgeTransition("edge8");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge7");`.
+            this.tracer?.edgeTransition("edge7");
             
             // Step 3: Enter/move towards transition target `PlayLast`.
             this.#PLAYLAST_enter();
@@ -1522,6 +1403,68 @@ evaluateGuard = null;
             // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
             return;
         } // end of behavior for PlayMid
+        
+        // No ancestor handles this event.
+    }
+    
+    
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state SELECTTRUMP
+    ////////////////////////////////////////////////////////////////////////////////
+    
+    #SELECTTRUMP_enter()
+    {
+        this.stateId = Bezique.StateId.SELECTTRUMP;
+        
+        // SelectTrump behavior
+        // uml: enter / { this.tracer?.enterState('SelectTrump'); }
+        {
+            // Step 1: execute action `this.tracer?.enterState('SelectTrump');`
+            this.tracer?.enterState('SelectTrump');
+        } // end of behavior for SelectTrump
+    }
+    
+    #SELECTTRUMP_exit()
+    {
+        // SelectTrump behavior
+        // uml: exit / { this.tracer?.exitState('SelectTrump'); }
+        {
+            // Step 1: execute action `this.tracer?.exitState('SelectTrump');`
+            this.tracer?.exitState('SelectTrump');
+        } // end of behavior for SelectTrump
+        
+        this.stateId = Bezique.StateId.DEAL;
+    }
+    
+    #SELECTTRUMP_complete()
+    {
+        // SelectTrump behavior
+        // uml: Complete / { this.tracer?.edgeTransition("edge5"); } TransitionTo(Play)
+        {
+            // Step 1: Exit states until we reach `Deal` state (Least Common Ancestor for transition).
+            this.#SELECTTRUMP_exit();
+            
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge5");`.
+            this.tracer?.edgeTransition("edge5");
+            
+            // Step 3: Enter/move towards transition target `Play`.
+            this.#PLAY_enter();
+            
+            // Play.<InitialState> behavior
+            // uml: / { this.tracer?.edgeTransition("edge9"); } TransitionTo(PlayFirst)
+            {
+                // Step 1: Exit states until we reach `Play` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
+                
+                // Step 2: Transition action: `this.tracer?.edgeTransition("edge9");`.
+                this.tracer?.edgeTransition("edge9");
+                
+                // Step 3: Enter/move towards transition target `PlayFirst`.
+                this.#PLAYFIRST_enter();
+                
+                // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+                return;
+            } // end of behavior for Play.<InitialState>
+        } // end of behavior for SelectTrump
         
         // No ancestor handles this event.
     }
@@ -1537,7 +1480,6 @@ evaluateGuard = null;
             case Bezique.StateId.DEALFIRST: return "DEALFIRST";
             case Bezique.StateId.DEALLAST: return "DEALLAST";
             case Bezique.StateId.DEALMID: return "DEALMID";
-            case Bezique.StateId.SELECTTRUMP: return "SELECTTRUMP";
             case Bezique.StateId.PLAY: return "PLAY";
             case Bezique.StateId.MELD: return "MELD";
             case Bezique.StateId.ADDPOINT: return "ADDPOINT";
@@ -1548,6 +1490,7 @@ evaluateGuard = null;
             case Bezique.StateId.PLAYFIRST: return "PLAYFIRST";
             case Bezique.StateId.PLAYLAST: return "PLAYLAST";
             case Bezique.StateId.PLAYMID: return "PLAYMID";
+            case Bezique.StateId.SELECTTRUMP: return "SELECTTRUMP";
             default: return "?";
         }
     }
@@ -1604,9 +1547,7 @@ evaluateGuard = null;
 
         // Mapping from state to available events
         const stateEventsMapping = {
-  "Deal": [
-    "Complete"
-  ],
+  "Deal": [],
   "DealFirst": [
     "Complete"
   ],

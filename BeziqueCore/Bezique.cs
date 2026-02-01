@@ -27,17 +27,17 @@ public partial class Bezique
         DEALFIRST = 3,
         DEALLAST = 4,
         DEALMID = 5,
-        SELECTTRUMP = 6,
-        PLAY = 7,
-        MELD = 8,
-        ADDPOINT = 9,
-        MELDED = 10,
-        NEWTRICK = 11,
-        NOMELD = 12,
-        TRYMELDED = 13,
-        PLAYFIRST = 14,
-        PLAYLAST = 15,
-        PLAYMID = 16,
+        PLAY = 6,
+        MELD = 7,
+        ADDPOINT = 8,
+        MELDED = 9,
+        NEWTRICK = 10,
+        NOMELD = 11,
+        TRYMELDED = 12,
+        PLAYFIRST = 13,
+        PLAYLAST = 14,
+        PLAYMID = 15,
+        SELECTTRUMP = 16,
     }
 
     public const int StateIdCount = 17;
@@ -112,10 +112,7 @@ public partial class Bezique
 
             // STATE: Deal
             case StateId.DEAL:
-                switch (eventId)
-                {
-                    case EventId.COMPLETE: DEAL_complete(); break;
-                }
+                // No events handled by this state (or its ancestors).
                 break;
 
             // STATE: DealFirst
@@ -139,14 +136,6 @@ public partial class Bezique
                 switch (eventId)
                 {
                     case EventId.COMPLETE: DEALMID_complete(); break;
-                }
-                break;
-
-            // STATE: SelectTrump
-            case StateId.SELECTTRUMP:
-                switch (eventId)
-                {
-                    case EventId.COMPLETE: SELECTTRUMP_complete(); break;
                 }
                 break;
 
@@ -224,6 +213,14 @@ public partial class Bezique
                     case EventId.COMPLETE: PLAYMID_complete(); break;
                 }
                 break;
+
+            // STATE: SelectTrump
+            case StateId.SELECTTRUMP:
+                switch (eventId)
+                {
+                    case EventId.COMPLETE: SELECTTRUMP_complete(); break;
+                }
+                break;
         }
 
     }
@@ -246,8 +243,6 @@ public partial class Bezique
 
                 case StateId.DEALMID: DEALMID_exit(); break;
 
-                case StateId.SELECTTRUMP: SELECTTRUMP_exit(); break;
-
                 case StateId.PLAY: PLAY_exit(); break;
 
                 case StateId.MELD: MELD_exit(); break;
@@ -267,6 +262,8 @@ public partial class Bezique
                 case StateId.PLAYLAST: PLAYLAST_exit(); break;
 
                 case StateId.PLAYMID: PLAYMID_exit(); break;
+
+                case StateId.SELECTTRUMP: SELECTTRUMP_exit(); break;
 
                 default: return;  // Just to be safe. Prevents infinite loop if state ID memory is somehow corrupted.
             }
@@ -309,6 +306,7 @@ public partial class Bezique
             // Step 2: Transition action: ``.
 
             // Step 3: Enter/move towards transition target `PlayFirst`.
+            DEAL_enter();
             PLAY_enter();
             PLAYFIRST_enter();
 
@@ -334,27 +332,6 @@ public partial class Bezique
         this.stateId = StateId.ROOT;
     }
 
-    private void DEAL_complete()
-    {
-        // Deal behavior
-        // uml: Complete TransitionTo(Play)
-        {
-            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
-            ExitUpToStateHandler(StateId.ROOT);
-
-            // Step 2: Transition action: ``.
-
-            // Step 3: Enter/move towards transition target `Play`.
-            PLAY_enter();
-
-            // Finish transition by calling pseudo state transition function.
-            Play_InitialState_transition();
-            return; // event processing immediately stops when a transition finishes. No other behaviors for this state are checked.
-        } // end of behavior for Deal
-
-        // No ancestor handles this event.
-    }
-
 
     ////////////////////////////////////////////////////////////////////////////////
     // event handlers for state DEALFIRST
@@ -372,8 +349,6 @@ public partial class Bezique
 
     private void DEALFIRST_complete()
     {
-        bool consume_event = false;
-
         // DealFirst behavior
         // uml: Complete TransitionTo(DealMid)
         {
@@ -389,11 +364,7 @@ public partial class Bezique
             return;
         } // end of behavior for DealFirst
 
-        // Check if event has been consumed before calling ancestor handler.
-        if (!consume_event)
-        {
-            DEAL_complete();
-        }
+        // No ancestor handles this event.
     }
 
 
@@ -413,8 +384,6 @@ public partial class Bezique
 
     private void DEALLAST_complete()
     {
-        bool consume_event = false;
-
         // DealLast behavior
         // uml: Complete TransitionTo(SelectTrump)
         {
@@ -430,11 +399,7 @@ public partial class Bezique
             return;
         } // end of behavior for DealLast
 
-        // Check if event has been consumed before calling ancestor handler.
-        if (!consume_event)
-        {
-            DEAL_complete();
-        }
+        // No ancestor handles this event.
     }
 
 
@@ -454,8 +419,6 @@ public partial class Bezique
 
     private void DEALMID_complete()
     {
-        bool consume_event = false;
-
         // DealMid behavior
         // uml: Complete TransitionTo(DealLast)
         {
@@ -471,53 +434,7 @@ public partial class Bezique
             return;
         } // end of behavior for DealMid
 
-        // Check if event has been consumed before calling ancestor handler.
-        if (!consume_event)
-        {
-            DEAL_complete();
-        }
-    }
-
-
-    ////////////////////////////////////////////////////////////////////////////////
-    // event handlers for state SELECTTRUMP
-    ////////////////////////////////////////////////////////////////////////////////
-
-    private void SELECTTRUMP_enter()
-    {
-        this.stateId = StateId.SELECTTRUMP;
-    }
-
-    private void SELECTTRUMP_exit()
-    {
-        this.stateId = StateId.DEAL;
-    }
-
-    private void SELECTTRUMP_complete()
-    {
-        bool consume_event = false;
-
-        // SelectTrump behavior
-        // uml: Complete TransitionTo(Play)
-        {
-            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
-            ExitUpToStateHandler(StateId.ROOT);
-
-            // Step 2: Transition action: ``.
-
-            // Step 3: Enter/move towards transition target `Play`.
-            PLAY_enter();
-
-            // Finish transition by calling pseudo state transition function.
-            Play_InitialState_transition();
-            return; // event processing immediately stops when a transition finishes. No other behaviors for this state are checked.
-        } // end of behavior for SelectTrump
-
-        // Check if event has been consumed before calling ancestor handler.
-        if (!consume_event)
-        {
-            DEAL_complete();
-        }
+        // No ancestor handles this event.
     }
 
 
@@ -532,24 +449,7 @@ public partial class Bezique
 
     private void PLAY_exit()
     {
-        this.stateId = StateId.ROOT;
-    }
-
-    private void Play_InitialState_transition()
-    {
-        // Play.<InitialState> behavior
-        // uml: TransitionTo(PlayFirst)
-        {
-            // Step 1: Exit states until we reach `Play` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
-
-            // Step 2: Transition action: ``.
-
-            // Step 3: Enter/move towards transition target `PlayFirst`.
-            PLAYFIRST_enter();
-
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
-        } // end of behavior for Play.<InitialState>
+        this.stateId = StateId.DEAL;
     }
 
 
@@ -878,6 +778,52 @@ public partial class Bezique
         // No ancestor handles this event.
     }
 
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state SELECTTRUMP
+    ////////////////////////////////////////////////////////////////////////////////
+
+    private void SELECTTRUMP_enter()
+    {
+        this.stateId = StateId.SELECTTRUMP;
+    }
+
+    private void SELECTTRUMP_exit()
+    {
+        this.stateId = StateId.DEAL;
+    }
+
+    private void SELECTTRUMP_complete()
+    {
+        // SelectTrump behavior
+        // uml: Complete TransitionTo(Play)
+        {
+            // Step 1: Exit states until we reach `Deal` state (Least Common Ancestor for transition).
+            SELECTTRUMP_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `Play`.
+            PLAY_enter();
+
+            // Play.<InitialState> behavior
+            // uml: TransitionTo(PlayFirst)
+            {
+                // Step 1: Exit states until we reach `Play` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
+
+                // Step 2: Transition action: ``.
+
+                // Step 3: Enter/move towards transition target `PlayFirst`.
+                PLAYFIRST_enter();
+
+                // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+                return;
+            } // end of behavior for Play.<InitialState>
+        } // end of behavior for SelectTrump
+
+        // No ancestor handles this event.
+    }
+
     // Thread safe.
     public static string StateIdToString(StateId id)
     {
@@ -889,7 +835,6 @@ public partial class Bezique
             case StateId.DEALFIRST: return "DEALFIRST";
             case StateId.DEALLAST: return "DEALLAST";
             case StateId.DEALMID: return "DEALMID";
-            case StateId.SELECTTRUMP: return "SELECTTRUMP";
             case StateId.PLAY: return "PLAY";
             case StateId.MELD: return "MELD";
             case StateId.ADDPOINT: return "ADDPOINT";
@@ -900,6 +845,7 @@ public partial class Bezique
             case StateId.PLAYFIRST: return "PLAYFIRST";
             case StateId.PLAYLAST: return "PLAYLAST";
             case StateId.PLAYMID: return "PLAYMID";
+            case StateId.SELECTTRUMP: return "SELECTTRUMP";
             default: return "?";
         }
     }
