@@ -5,11 +5,11 @@ option csharp_namespace = "GrpcService";
 package bezique;
 
 service Bezique {
-  rpc GameInit (PlayerRequest) returns (GameInitReply);
-  rpc DealtCard (DealtRequest) returns (DealtReply);
+  rpc GameInit (PlayerJoinRequest) returns (GameInitReply);
+  rpc CardDealt (CardRequest) returns (CardDealtReply);
 }
 
-message PlayerRequest {
+message PlayerJoinRequest {
   int32 playerCount = 1;
 }
 
@@ -17,20 +17,26 @@ message GameInitReply {
   string playerMessage = 1;
 }
 
-message DealtRequest{
-  string cards = 1;
+message CardRequest{
+  string playerId = 1;
 }
 
-message DealtReply{
-  
+message CardDealtReply{
+  int32 cardId1 = 1;
+  int32 cardId2 = 2;
+  int32 cardId3 = 3;
 }
 
 
-// PlayerCount -> Card Deal -> Trump Selection -> 1st Player plays Turn -> Last Player Turn ->  Trick Winner Determine -> 
-// Game Winning Score Check -> Meld Availability -> Declare/Skip Meld ->  Game Winning Score Check ->
-// One Card Draw to Each Players -> Check Remaining Deck Card to Determine Last 9 Cards
 
-// Last 9: 1st Player plays Turn -> Last Player Turn ->  Trick Winner Determine -> Game Winning Score Check ->
-// Count Cards On Hands -> 
+
+// Game Flow:
+
+// GameInit (PlayerCount) -> CardDealt(3 - 3 - 3 rule) -> Trump Selection -> Player's Turn ->   
+// Trick Winner Determine -> Game Winning Score Check -> Meld Availability -> Declare/Skip Meld -> 
+// Game Winning Score Check -> One Card Draw to Each Players -> Check Remaining Deck Card to Determine Last 9 Cards
+
+// Last 9: Player's Turn -> Check Valid Turn ->  Trick Winner Determine -> Game Winning Score Check ->
+// Count Cards On Hands -> Cards Empty
 
 // All Card Played: Round End -> Game Winning Score Check -> Restart Dealing

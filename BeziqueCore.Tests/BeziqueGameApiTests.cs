@@ -170,6 +170,7 @@ public class BeziqueGameApiTests
         var beziqueGameState = new BeziqueGameState();
         beziqueGameState.DispatchEvent();
     }
+    
 
     #endregion
 }
