@@ -10,7 +10,7 @@ public class BeziqueGameApiTests
     {
         public void InitializeGame()
         {
-                   
+            
         }
 
         public void NotifyGameInitialized()

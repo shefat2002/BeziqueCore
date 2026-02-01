@@ -10,8 +10,9 @@ service Bezique {
 
 message CreateRequest {
   int32 playerCount = 1;
+  string gameMode = 2;
 }
 
 message GameInitReply {
-  string message = 1;
+  string playerMessage = 1;
 }
