@@ -12,7 +12,6 @@ skinparam stateMessageAlignment center
 
 [*] -> Deal
 
-Deal -> Play : Complete
 
 state Deal {
     state DealFirst
@@ -50,11 +49,14 @@ state Meld{
     
 }
 
+
 AddPoint --> NewTrick : Complete
 
 NewTrick -> AddOneCardToAll : Complete
 
 AddOneCardToAll --> PlayFirst : Complete
+
+
 
 
 @enduml
