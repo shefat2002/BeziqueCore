@@ -403,7 +403,7 @@ DEALING --> TRUMP_SELECTION : CardsDealt
 
 TRUMP_SELECTION --> GAMEPLAY : TrumpDetermined
 
-ROUND_END --> GAME_INIT : ContinueGame
+ROUND_END --> DEALING : ContinueGame
 
 ROUND_END --> GAME_OVER : WinningScoreReached
 
@@ -2044,7 +2044,7 @@ evaluateGuard = null;
     #ROUND_END_continuegame()
     {
         // ROUND_END behavior
-        // uml: ContinueGame / { this.tracer?.edgeTransition("edge3"); } TransitionTo(GAME_INIT)
+        // uml: ContinueGame / { this.tracer?.edgeTransition("edge3"); } TransitionTo(DEALING)
         {
             // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
             this.#ROUND_END_exit();
@@ -2052,8 +2052,8 @@ evaluateGuard = null;
             // Step 2: Transition action: `this.tracer?.edgeTransition("edge3");`.
             this.tracer?.edgeTransition("edge3");
             
-            // Step 3: Enter/move towards transition target `GAME_INIT`.
-            this.#GAME_INIT_enter();
+            // Step 3: Enter/move towards transition target `DEALING`.
+            this.#DEALING_enter();
             
             // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
             return;

@@ -1269,15 +1269,15 @@ public partial class BeziqueGameState
     private void ROUND_END_continuegame()
     {
         // ROUND_END behavior
-        // uml: ContinueGame TransitionTo(GAME_INIT)
+        // uml: ContinueGame TransitionTo(DEALING)
         {
             // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
             ROUND_END_exit();
 
             // Step 2: Transition action: ``.
 
-            // Step 3: Enter/move towards transition target `GAME_INIT`.
-            GAME_INIT_enter();
+            // Step 3: Enter/move towards transition target `DEALING`.
+            DEALING_enter();
 
             // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
             return;

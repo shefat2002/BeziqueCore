@@ -162,7 +162,7 @@ TRUMP_SELECTION -down-> GAMEPLAY : TrumpDetermined
 
 
 L9_TRICK_CHECK -down-> ROUND_END : AllHandsEmpty
-ROUND_END -left-> GAME_INIT : ContinueGame
+ROUND_END -left-> DEALING : ContinueGame
 ROUND_END -down-> GAME_OVER : WinningScoreReached
 PLAYER_TURN -right-> TIMER_TIMEOUT : TimerExpired
 TIMER_TIMEOUT -left-> PLAYER_TURN : TimerReset
