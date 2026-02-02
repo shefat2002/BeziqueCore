@@ -14,12 +14,12 @@ skinparam stateMessageAlignment center
 
 
 state Deal {
-    state DealFirst
+    state DealFirst : enter/ _adapter
     state DealMid
     state DealLast
 
     [*] -> DealFirst
-    DealFirst -> DealMid : Complete
+    DealFirst -> DealMid : Complete 
     DealMid -> DealLast : Complete
     DealLast -> SelectTrump : Complete 
     SelectTrump --> Play : Complete 
@@ -33,6 +33,7 @@ state Play {
     [*] -> PlayFirst
     PlayFirst -> PlayMid : HasMid
     PlayMid -> PlayLast : Complete
+    PlayFirst -> PlayLast : Complete
     PlayLast --> Meld
 }
 
