@@ -1,6 +1,8 @@
+using BeziqueCore.Interfaces;
+
 namespace BeziqueCore;
 
-public partial class BeziqueImp
+public partial class BeziqueImp : IBeziqueAdapter
 {
     
 }
