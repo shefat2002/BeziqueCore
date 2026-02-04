@@ -11,7 +11,7 @@ static class DeckFactory
     {
         var cards = new List<Card>(StandardCardCount * deckCount + deckCount);
 
-        for (byte deckIndex = 0; deckIndex < deckCount; deckIndex++)
+        for (sbyte deckIndex = 0; deckIndex < deckCount; deckIndex++)
         {
             for (byte cardId = 0; cardId < StandardCardCount; cardId++)
             {
