@@ -134,6 +134,11 @@ public class BeziqueAdapter : IBeziqueAdapter
     {
         int currentPlayer = _controller.Context.CurrentTurnPlayer;
 
+        var bestMeld = MeldValidator.FindBestMeld(_controller.Players[currentPlayer], _controller.Context.TrumpSuit);
+        if (bestMeld == null) return false;
+
+        if (bestMeld.Type != meldType) return false;
+
         if (!MeldStateHandler.DeclareMeld(_controller.Players[currentPlayer], cards, meldType, _controller.Context.TrumpSuit))
             return false;
 

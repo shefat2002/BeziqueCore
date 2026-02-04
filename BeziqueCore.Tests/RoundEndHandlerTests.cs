@@ -12,7 +12,7 @@ public class RoundEndHandlerTests
             new Player(2) { RoundScore = 120 }
         };
 
-        int winnerId = RoundEndHandler.EndRound(players, 1000);
+        int winnerId = RoundEndHandler.EndRound(players, GameMode.Standard, 3);
 
         Assert.Equal(1, winnerId);
     }
@@ -26,7 +26,7 @@ public class RoundEndHandlerTests
             new Player(1) { RoundScore = 150, TotalScore = 600 }
         };
 
-        RoundEndHandler.EndRound(players, 1000);
+        RoundEndHandler.EndRound(players, GameMode.Standard, 2);
 
         Assert.Equal(600, players[0].TotalScore);
         Assert.Equal(750, players[1].TotalScore);
@@ -42,7 +42,7 @@ public class RoundEndHandlerTests
             new Player(2) { RoundScore = 100 }
         };
 
-        int winnerId = RoundEndHandler.EndRound(players, 1000);
+        int winnerId = RoundEndHandler.EndRound(players, GameMode.Standard, 3);
 
         Assert.Equal(0, winnerId);
     }
@@ -55,7 +55,7 @@ public class RoundEndHandlerTests
             new Player(0) { RoundScore = 100 }
         };
 
-        int winnerId = RoundEndHandler.EndRound(players, 1000);
+        int winnerId = RoundEndHandler.EndRound(players, GameMode.Standard, 1);
 
         Assert.Equal(0, winnerId);
     }
@@ -71,9 +71,54 @@ public class RoundEndHandlerTests
             new Player(3) { RoundScore = 180 }
         };
 
-        int winnerId = RoundEndHandler.EndRound(players, 1000);
+        int winnerId = RoundEndHandler.EndRound(players, GameMode.Standard, 4);
 
         Assert.Equal(1, winnerId);
+    }
+
+    [Fact]
+    public void EndRound_AdvancedMode_WithAcesAndTens_AddsBonus()
+    {
+        var wonPile = new List<Card>();
+        for (sbyte i = 0; i < 4; i++)
+        {
+            wonPile.Add(new Card(28, i));
+            wonPile.Add(new Card(29, i));
+            wonPile.Add(new Card(24, i));
+            wonPile.Add(new Card(25, i));
+        }
+
+        var players = new[]
+        {
+            new Player(0)
+            {
+                RoundScore = 100,
+                TotalScore = 500,
+                WonPile = wonPile
+            }
+        };
+
+        RoundEndHandler.EndRound(players, GameMode.Advanced, 1);
+
+        Assert.Equal(760, players[0].TotalScore);
+    }
+
+    [Fact]
+    public void EndRound_AdvancedMode_BelowThreshold_NoBonus()
+    {
+        var players = new[]
+        {
+            new Player(0)
+            {
+                RoundScore = 100,
+                TotalScore = 500,
+                WonPile = new List<Card>()
+            }
+        };
+
+        RoundEndHandler.EndRound(players, GameMode.Advanced, 2);
+
+        Assert.Equal(600, players[0].TotalScore);
     }
 
     [Fact]
@@ -144,5 +189,47 @@ public class RoundEndHandlerTests
         bool isGameOver = RoundEndHandler.CheckGameOver(players, 0);
 
         Assert.True(isGameOver);
+    }
+
+    [Fact]
+    public void ResetRound_ClearsAllPlayerStates()
+    {
+        var players = new[]
+        {
+            new Player(0)
+            {
+                RoundScore = 100,
+                Hand = new List<Card> { new Card(0, 0) },
+                TableCards = new List<Card> { new Card(1, 0) },
+                WonPile = new List<Card> { new Card(2, 0) },
+                HasSwappedSeven = true
+            }
+        };
+
+        players[0].MeldHistory[MeldType.Bezique] = new List<Card> { new Card(3, 0), new Card(4, 0) };
+
+        RoundEndHandler.ResetRound(players);
+
+        Assert.Equal(0, players[0].RoundScore);
+        Assert.Empty(players[0].Hand);
+        Assert.Empty(players[0].TableCards);
+        Assert.Empty(players[0].WonPile);
+        Assert.False(players[0].HasSwappedSeven);
+        Assert.Empty(players[0].MeldHistory);
+    }
+
+    [Fact]
+    public void GetFinalWinner_ReturnsHighestTotalScorePlayer()
+    {
+        var players = new[]
+        {
+            new Player(0) { TotalScore = 500 },
+            new Player(1) { TotalScore = 800 },
+            new Player(2) { TotalScore = 650 }
+        };
+
+        int winnerId = RoundEndHandler.GetFinalWinner(players);
+
+        Assert.Equal(1, winnerId);
     }
 }
