@@ -2,7 +2,7 @@ using BeziqueCore.Interfaces;
 
 namespace BeziqueCore;
 
-static class DeckFactory
+public static class DeckFactory
 {
     private const byte StandardCardCount = 32;
     private const byte JokerCardId = 32;
