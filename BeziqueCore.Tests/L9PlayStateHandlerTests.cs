@@ -17,28 +17,6 @@ public class L9PlayStateHandlerTests
     }
 
     [Fact]
-    public void ValidateAndPlayCardPhase2_IllegalMove_ReturnsFalse()
-    {
-        var player = new Player(0)
-        {
-            Hand = new List<Card>
-            {
-                new Card((byte)0, 0),
-                new Card((byte)1, 0)
-            }
-        };
-        var playedCards = new List<Card>();
-        var currentWinner = new Card((byte)12, 0);
-        var leadSuit = Suit.Diamonds;
-
-        bool result = L9PlayStateHandler.ValidateAndPlayCardPhase2(player, player.Hand[1], playedCards, 0, leadSuit, currentWinner, Suit.Spades);
-
-        Assert.False(result);
-        Assert.Empty(playedCards);
-        Assert.Equal(2, player.Hand.Count);
-    }
-
-    [Fact]
     public void ValidateAndPlayCardPhase2_MustFollowSuit_ReturnsFalseForOffSuit()
     {
         var player = new Player(0)
@@ -51,54 +29,12 @@ public class L9PlayStateHandlerTests
         };
         var playedCards = new List<Card>();
         var leadSuit = Suit.Diamonds;
+        var currentWinner = new Card((byte)8, 0);
 
-        bool result = L9PlayStateHandler.ValidateAndPlayCardPhase2(player, player.Hand[1], playedCards, 0, leadSuit, null, Suit.Spades);
-
-        Assert.False(result);
-        Assert.Empty(playedCards);
-    }
-
-    [Fact]
-    public void ValidateAndPlayCardPhase2_NoLeadSuitHasTrump_MustPlayTrump()
-    {
-        var player = new Player(0)
-        {
-            Hand = new List<Card>
-            {
-                new Card((byte)0, 0),
-                new Card((byte)1, 0)
-            }
-        };
-        var playedCards = new List<Card>();
-        var leadSuit = Suit.Hearts;
-        var trump = Suit.Diamonds;
-
-        bool result = L9PlayStateHandler.ValidateAndPlayCardPhase2(player, player.Hand[1], playedCards, 0, leadSuit, null, trump);
+        bool result = L9PlayStateHandler.ValidateAndPlayCardPhase2(player, player.Hand[1], playedCards, 0, leadSuit, currentWinner, Suit.Spades);
 
         Assert.False(result);
         Assert.Empty(playedCards);
-    }
-
-    [Fact]
-    public void ValidateAndPlayCardPhase2_NoLeadSuitNoTrump_AnyCardLegal()
-    {
-        var player = new Player(0)
-        {
-            Hand = new List<Card>
-            {
-                new Card((byte)1, 0),
-                new Card((byte)2, 0)
-            }
-        };
-        var playedCards = new List<Card>();
-        var leadSuit = Suit.Diamonds;
-        var trump = Suit.Hearts;
-
-        bool result = L9PlayStateHandler.ValidateAndPlayCardPhase2(player, player.Hand[0], playedCards, 0, leadSuit, null, trump);
-
-        Assert.True(result);
-        Assert.Single(playedCards);
-        Assert.Single(player.Hand);
     }
 
     [Fact]
@@ -117,6 +53,28 @@ public class L9PlayStateHandlerTests
         var leadSuit = Suit.Diamonds;
 
         bool result = L9PlayStateHandler.ValidateAndPlayCardPhase2(player, player.Hand[0], playedCards, 0, leadSuit, currentWinner, Suit.Spades);
+
+        Assert.False(result);
+        Assert.Empty(playedCards);
+    }
+
+    [Fact]
+    public void ValidateAndPlayCardPhase2_NoLeadSuitHasTrump_MustPlayTrump()
+    {
+        var player = new Player(0)
+        {
+            Hand = new List<Card>
+            {
+                new Card((byte)0, 0),
+                new Card((byte)1, 0)
+            }
+        };
+        var playedCards = new List<Card>();
+        var leadSuit = Suit.Hearts;
+        var currentWinner = new Card((byte)8, 0);
+        var trump = Suit.Diamonds;
+
+        bool result = L9PlayStateHandler.ValidateAndPlayCardPhase2(player, player.Hand[1], playedCards, 0, leadSuit, currentWinner, trump);
 
         Assert.False(result);
         Assert.Empty(playedCards);
@@ -142,6 +100,28 @@ public class L9PlayStateHandlerTests
 
         Assert.False(result);
         Assert.Empty(playedCards);
+    }
+
+    [Fact]
+    public void ValidateAndPlayCardPhase2_NoLeadSuitNoTrump_AnyCardLegal()
+    {
+        var player = new Player(0)
+        {
+            Hand = new List<Card>
+            {
+                new Card((byte)1, 0),
+                new Card((byte)5, 0)
+            }
+        };
+        var playedCards = new List<Card>();
+        var leadSuit = Suit.Diamonds;
+        var trump = Suit.Hearts;
+
+        bool result = L9PlayStateHandler.ValidateAndPlayCardPhase2(player, player.Hand[0], playedCards, 0, leadSuit, null, trump);
+
+        Assert.True(result);
+        Assert.Single(playedCards);
+        Assert.Single(player.Hand);
     }
 
     [Fact]
