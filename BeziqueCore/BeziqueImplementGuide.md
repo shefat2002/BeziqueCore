@@ -70,16 +70,29 @@ This is the **Master Scoring Table**. The SDK must strictly adhere to these valu
 
 ### 3.1 Card & Enums
 ```csharp
-public enum Suit { Diamonds, Clubs, Hearts, Spades, None } // None for Joker
-public enum Rank { Seven=7, Eight=8, Nine=9, Jack=10, Queen=11, King=12, Ten=13, Ace=14, Joker=15 }
+public enum Suit { Diamonds, Clubs, Hearts, Spades }
 
-public class Card {
-    public int UniqueID; // 0-131 (Crucial for identifying specific cards)
-    public Suit Suit;
-    public Rank Rank;
-    public int OriginalDeckIndex; // 0-3 (Track which deck it came from)
+public enum Rank { Seven=7, Eight=8, Nine=9, Jack=10, Queen=11, King=12, Ten=13, Ace=14 }
+
+public readonly struct Card {
+    public byte CardId;          // 0-31 (standard cards), 32 (Joker)
+    public sbyte DeckIndex;      // -1 = unassigned/in deck, 0-3 = deck instance
+
+    // Computed properties (no storage overhead)
+    public bool IsJoker => CardId == 32;
+    public Suit Suit => IsJoker ? default : (Suit)(CardId % 4);
+    public Rank Rank => IsJoker ? (Rank)15 : (Rank)(7 + CardId / 4);
 }
 ```
+
+**CardId Mapping:**
+- Standard cards (0-31): `CardId = (Rank - 7) * 4 + Suit`
+  - Seven of Diamonds: 0, Seven of Clubs: 1, Seven of Hearts: 2, Seven of Spades: 3
+  - ...
+  - Ace of Diamonds: 28, Ace of Clubs: 29, Ace of Hearts: 30, Ace of Spades: 31
+- Joker: 32
+
+**Total Cards:** 132 instances (33 types × 4 decks)
 
 ### 3.2 Player State
 ```csharp
