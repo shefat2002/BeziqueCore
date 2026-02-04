@@ -55,7 +55,7 @@ AddPoint --> NewTrick : Complete
 
 NewTrick -> AddOneCardToAll : Complete
 
-AddOneCardToAll --> PlayFirst : Complete
+AddOneCardToAll --> Play : Complete
 
 AddOneCardToAll --> L9Play : DeckEmpty
 
@@ -65,19 +65,21 @@ state L9Play{
     state L9PlayLast
     
     [*]-> L9PlayFirst
-    L9PlayFirst --> L9PlayMid : Complete
-    L9PlayMid --> L9PlayLast : Complete        
+    L9PlayFirst --> L9PlayMid : HasMid
+    L9PlayMid --> L9PlayLast : Complete
+    L9PlayFirst --> L9PlayLast : Complete
 }
 
 L9PlayLast --> L9NewTrick : Complete
-L9NewTrick --> L9PlayFirst : CardsAvailable
+L9NewTrick --> L9Play : Complete
 
-L9NewTrick -> RoundEnd : NoCard
-RoundEnd -> Deal : Continue
+L9NewTrick --> RoundEnd : NoCard
+CalculatePoint --> Deal : Complete
 
 
-RoundEnd -> GameOver : WinningScore
-NewTrick -> GameOver : WinningScore
+RoundEnd -> CalculatePoint : Complete
+CalculatePoint -> GameOver : WinningScore
+NewTrick --> GameOver : WinningScore
 L9NewTrick -> GameOver : WinningScore
 
 
