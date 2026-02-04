@@ -39,18 +39,17 @@ public partial class Bezique
         L9PLAYMID = 13,
         PLAY = 14,
         MELD = 15,
-        ADDPOINT = 16,
-        MELDED = 17,
-        NEWTRICK = 18,
-        NOMELD = 19,
-        TRYMELDED = 20,
-        PLAYFIRST = 21,
-        PLAYLAST = 22,
-        PLAYMID = 23,
-        ROUNDEND = 24,
+        MELDED = 16,
+        NEWTRICK = 17,
+        NOMELD = 18,
+        TRYMELDED = 19,
+        PLAYFIRST = 20,
+        PLAYLAST = 21,
+        PLAYMID = 22,
+        ROUNDEND = 23,
     }
 
-    public const int StateIdCount = 25;
+    public const int StateIdCount = 24;
 
     // Used internally by state machine. Feel free to inspect, but don't modify.
     public StateId stateId;
@@ -173,7 +172,6 @@ public partial class Bezique
                 {
                     case EventId.COMPLETE: L9NEWTRICK_complete(); break;
                     case EventId.NOCARD: L9NEWTRICK_nocard(); break;
-                    case EventId.WINNINGSCORE: L9NEWTRICK_winningscore(); break;
                 }
                 break;
 
@@ -212,14 +210,6 @@ public partial class Bezique
                 // No events handled by this state (or its ancestors).
                 break;
 
-            // STATE: AddPoint
-            case StateId.ADDPOINT:
-                switch (eventId)
-                {
-                    case EventId.COMPLETE: ADDPOINT_complete(); break;
-                }
-                break;
-
             // STATE: Melded
             case StateId.MELDED:
                 switch (eventId)
@@ -233,7 +223,6 @@ public partial class Bezique
                 switch (eventId)
                 {
                     case EventId.COMPLETE: NEWTRICK_complete(); break;
-                    case EventId.WINNINGSCORE: NEWTRICK_winningscore(); break;
                 }
                 break;
 
@@ -328,8 +317,6 @@ public partial class Bezique
 
                 case StateId.MELD: MELD_exit(); break;
 
-                case StateId.ADDPOINT: ADDPOINT_exit(); break;
-
                 case StateId.MELDED: MELDED_exit(); break;
 
                 case StateId.NEWTRICK: NEWTRICK_exit(); break;
@@ -371,10 +358,10 @@ public partial class Bezique
         this.stateId = StateId.ADDONECARDTOALL;
 
         // AddOneCardToAll behavior
-        // uml: enter / { _adapter.DealCardsToAll(); }
+        // uml: enter / { _adapter.DrawCardsForAll() }
         {
-            // Step 1: execute action `_adapter.DealCardsToAll();`
-            _adapter.DealCardsToAll();
+            // Step 1: execute action `_adapter.DrawCardsForAll()`
+            _adapter.DrawCardsForAll();
         } // end of behavior for AddOneCardToAll
     }
 
@@ -435,9 +422,9 @@ public partial class Bezique
         this.stateId = StateId.CALCULATEPOINT;
 
         // CalculatePoint behavior
-        // uml: enter / { _adapter.CalculatePoints(); }
+        // uml: enter / { _adapter.CalculatePoints() }
         {
-            // Step 1: execute action `_adapter.CalculatePoints();`
+            // Step 1: execute action `_adapter.CalculatePoints()`
             _adapter.CalculatePoints();
         } // end of behavior for CalculatePoint
     }
@@ -530,10 +517,10 @@ public partial class Bezique
         this.stateId = StateId.DEALFIRST;
 
         // DealFirst behavior
-        // uml: enter / { _adapter.DealFirstCard(); }
+        // uml: enter / { _adapter.DealFirstSet() }
         {
-            // Step 1: execute action `_adapter.DealFirstCard();`
-            _adapter.DealFirstCard();
+            // Step 1: execute action `_adapter.DealFirstSet()`
+            _adapter.DealFirstSet();
         } // end of behavior for DealFirst
     }
 
@@ -572,10 +559,10 @@ public partial class Bezique
         this.stateId = StateId.DEALLAST;
 
         // DealLast behavior
-        // uml: enter / { _adapter.DealLastCard(); }
+        // uml: enter / { _adapter.DealLastSet() }
         {
-            // Step 1: execute action `_adapter.DealLastCard();`
-            _adapter.DealLastCard();
+            // Step 1: execute action `_adapter.DealLastSet()`
+            _adapter.DealLastSet();
         } // end of behavior for DealLast
     }
 
@@ -614,10 +601,10 @@ public partial class Bezique
         this.stateId = StateId.DEALMID;
 
         // DealMid behavior
-        // uml: enter / { _adapter.DealMidCard(); }
+        // uml: enter / { _adapter.DealMidSet() }
         {
-            // Step 1: execute action `_adapter.DealMidCard();`
-            _adapter.DealMidCard();
+            // Step 1: execute action `_adapter.DealMidSet()`
+            _adapter.DealMidSet();
         } // end of behavior for DealMid
     }
 
@@ -656,9 +643,9 @@ public partial class Bezique
         this.stateId = StateId.SELECTTRUMP;
 
         // SelectTrump behavior
-        // uml: enter / { _adapter.SelectTrump(); }
+        // uml: enter / { _adapter.SelectTrump() }
         {
-            // Step 1: execute action `_adapter.SelectTrump();`
+            // Step 1: execute action `_adapter.SelectTrump()`
             _adapter.SelectTrump();
         } // end of behavior for SelectTrump
     }
@@ -699,9 +686,9 @@ public partial class Bezique
         this.stateId = StateId.GAMEOVER;
 
         // GameOver behavior
-        // uml: enter / { _adapter.GameOver(); }
+        // uml: enter / { _adapter.GameOver() }
         {
-            // Step 1: execute action `_adapter.GameOver();`
+            // Step 1: execute action `_adapter.GameOver()`
             _adapter.GameOver();
         } // end of behavior for GameOver
     }
@@ -753,9 +740,9 @@ public partial class Bezique
         this.stateId = StateId.L9NEWTRICK;
 
         // L9NewTrick behavior
-        // uml: enter / { _adapter.StartL9NewTrick(); }
+        // uml: enter / { _adapter.StartL9NewTrick() }
         {
-            // Step 1: execute action `_adapter.StartL9NewTrick();`
+            // Step 1: execute action `_adapter.StartL9NewTrick()`
             _adapter.StartL9NewTrick();
         } // end of behavior for L9NewTrick
     }
@@ -805,26 +792,6 @@ public partial class Bezique
         // No ancestor handles this event.
     }
 
-    private void L9NEWTRICK_winningscore()
-    {
-        // L9NewTrick behavior
-        // uml: WinningScore TransitionTo(GameOver)
-        {
-            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
-            ExitUpToStateHandler(StateId.ROOT);
-
-            // Step 2: Transition action: ``.
-
-            // Step 3: Enter/move towards transition target `GameOver`.
-            GAMEOVER_enter();
-
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
-        } // end of behavior for L9NewTrick
-
-        // No ancestor handles this event.
-    }
-
 
     ////////////////////////////////////////////////////////////////////////////////
     // event handlers for state L9PLAYFIRST
@@ -835,9 +802,9 @@ public partial class Bezique
         this.stateId = StateId.L9PLAYFIRST;
 
         // L9PlayFirst behavior
-        // uml: enter / { _adapter.L9PlayFirstCard(); }
+        // uml: enter / { _adapter.L9PlayFirstCard() }
         {
-            // Step 1: execute action `_adapter.L9PlayFirstCard();`
+            // Step 1: execute action `_adapter.L9PlayFirstCard()`
             _adapter.L9PlayFirstCard();
         } // end of behavior for L9PlayFirst
     }
@@ -897,9 +864,9 @@ public partial class Bezique
         this.stateId = StateId.L9PLAYLAST;
 
         // L9PlayLast behavior
-        // uml: enter / { _adapter.L9PlayLastCard(); }
+        // uml: enter / { _adapter.L9PlayLastCard() }
         {
-            // Step 1: execute action `_adapter.L9PlayLastCard();`
+            // Step 1: execute action `_adapter.L9PlayLastCard()`
             _adapter.L9PlayLastCard();
         } // end of behavior for L9PlayLast
     }
@@ -939,9 +906,9 @@ public partial class Bezique
         this.stateId = StateId.L9PLAYMID;
 
         // L9PlayMid behavior
-        // uml: enter / { _adapter.L9PlayMidCard(); }
+        // uml: enter / { _adapter.L9PlayMidCard() }
         {
-            // Step 1: execute action `_adapter.L9PlayMidCard();`
+            // Step 1: execute action `_adapter.L9PlayMidCard()`
             _adapter.L9PlayMidCard();
         } // end of behavior for L9PlayMid
     }
@@ -1020,48 +987,6 @@ public partial class Bezique
 
 
     ////////////////////////////////////////////////////////////////////////////////
-    // event handlers for state ADDPOINT
-    ////////////////////////////////////////////////////////////////////////////////
-
-    private void ADDPOINT_enter()
-    {
-        this.stateId = StateId.ADDPOINT;
-
-        // AddPoint behavior
-        // uml: enter / { _adapter.AddMeldPoints(); }
-        {
-            // Step 1: execute action `_adapter.AddMeldPoints();`
-            _adapter.AddMeldPoints();
-        } // end of behavior for AddPoint
-    }
-
-    private void ADDPOINT_exit()
-    {
-        this.stateId = StateId.MELD;
-    }
-
-    private void ADDPOINT_complete()
-    {
-        // AddPoint behavior
-        // uml: Complete TransitionTo(NewTrick)
-        {
-            // Step 1: Exit states until we reach `Meld` state (Least Common Ancestor for transition).
-            ADDPOINT_exit();
-
-            // Step 2: Transition action: ``.
-
-            // Step 3: Enter/move towards transition target `NewTrick`.
-            NEWTRICK_enter();
-
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
-        } // end of behavior for AddPoint
-
-        // No ancestor handles this event.
-    }
-
-
-    ////////////////////////////////////////////////////////////////////////////////
     // event handlers for state MELDED
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -1070,9 +995,9 @@ public partial class Bezique
         this.stateId = StateId.MELDED;
 
         // Melded behavior
-        // uml: enter / { _adapter.MeldSuccess(); }
+        // uml: enter / { _adapter.MeldSuccess() }
         {
-            // Step 1: execute action `_adapter.MeldSuccess();`
+            // Step 1: execute action `_adapter.MeldSuccess()`
             _adapter.MeldSuccess();
         } // end of behavior for Melded
     }
@@ -1085,15 +1010,15 @@ public partial class Bezique
     private void MELDED_complete()
     {
         // Melded behavior
-        // uml: Complete TransitionTo(AddPoint)
+        // uml: Complete TransitionTo(NewTrick)
         {
             // Step 1: Exit states until we reach `Meld` state (Least Common Ancestor for transition).
             MELDED_exit();
 
             // Step 2: Transition action: ``.
 
-            // Step 3: Enter/move towards transition target `AddPoint`.
-            ADDPOINT_enter();
+            // Step 3: Enter/move towards transition target `NewTrick`.
+            NEWTRICK_enter();
 
             // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
             return;
@@ -1112,9 +1037,9 @@ public partial class Bezique
         this.stateId = StateId.NEWTRICK;
 
         // NewTrick behavior
-        // uml: enter / { _adapter.StartNewTrick(); }
+        // uml: enter / { _adapter.StartNewTrick() }
         {
-            // Step 1: execute action `_adapter.StartNewTrick();`
+            // Step 1: execute action `_adapter.StartNewTrick()`
             _adapter.StartNewTrick();
         } // end of behavior for NewTrick
     }
@@ -1144,26 +1069,6 @@ public partial class Bezique
         // No ancestor handles this event.
     }
 
-    private void NEWTRICK_winningscore()
-    {
-        // NewTrick behavior
-        // uml: WinningScore TransitionTo(GameOver)
-        {
-            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
-            ExitUpToStateHandler(StateId.ROOT);
-
-            // Step 2: Transition action: ``.
-
-            // Step 3: Enter/move towards transition target `GameOver`.
-            GAMEOVER_enter();
-
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
-        } // end of behavior for NewTrick
-
-        // No ancestor handles this event.
-    }
-
 
     ////////////////////////////////////////////////////////////////////////////////
     // event handlers for state NOMELD
@@ -1174,9 +1079,9 @@ public partial class Bezique
         this.stateId = StateId.NOMELD;
 
         // NoMeld behavior
-        // uml: enter / { _adapter.MeldFailed(); }
+        // uml: enter / { _adapter.MeldFailed() }
         {
-            // Step 1: execute action `_adapter.MeldFailed();`
+            // Step 1: execute action `_adapter.MeldFailed()`
             _adapter.MeldFailed();
         } // end of behavior for NoMeld
     }
@@ -1216,9 +1121,9 @@ public partial class Bezique
         this.stateId = StateId.TRYMELDED;
 
         // TryMelded behavior
-        // uml: enter / { _adapter.TryMeld(); }
+        // uml: enter / { _adapter.TryMeld() }
         {
-            // Step 1: execute action `_adapter.TryMeld();`
+            // Step 1: execute action `_adapter.TryMeld()`
             _adapter.TryMeld();
         } // end of behavior for TryMelded
     }
@@ -1278,9 +1183,9 @@ public partial class Bezique
         this.stateId = StateId.PLAYFIRST;
 
         // PlayFirst behavior
-        // uml: enter / { _adapter.PlayFirstCard(); }
+        // uml: enter / { _adapter.PlayFirstCard() }
         {
-            // Step 1: execute action `_adapter.PlayFirstCard();`
+            // Step 1: execute action `_adapter.PlayFirstCard()`
             _adapter.PlayFirstCard();
         } // end of behavior for PlayFirst
     }
@@ -1340,9 +1245,9 @@ public partial class Bezique
         this.stateId = StateId.PLAYLAST;
 
         // PlayLast behavior
-        // uml: enter / { _adapter.PlayLastCard(); }
+        // uml: enter / { _adapter.PlayLastCard() }
         {
-            // Step 1: execute action `_adapter.PlayLastCard();`
+            // Step 1: execute action `_adapter.PlayLastCard()`
             _adapter.PlayLastCard();
         } // end of behavior for PlayLast
     }
@@ -1393,9 +1298,9 @@ public partial class Bezique
         this.stateId = StateId.PLAYMID;
 
         // PlayMid behavior
-        // uml: enter / { _adapter.PlayMidCard(); }
+        // uml: enter / { _adapter.PlayMidCard() }
         {
-            // Step 1: execute action `_adapter.PlayMidCard();`
+            // Step 1: execute action `_adapter.PlayMidCard()`
             _adapter.PlayMidCard();
         } // end of behavior for PlayMid
     }
@@ -1435,9 +1340,9 @@ public partial class Bezique
         this.stateId = StateId.ROUNDEND;
 
         // RoundEnd behavior
-        // uml: enter / { _adapter.EndRound(); }
+        // uml: enter / { _adapter.EndRound() }
         {
-            // Step 1: execute action `_adapter.EndRound();`
+            // Step 1: execute action `_adapter.EndRound()`
             _adapter.EndRound();
         } // end of behavior for RoundEnd
     }
@@ -1488,7 +1393,6 @@ public partial class Bezique
             case StateId.L9PLAYMID: return "L9PLAYMID";
             case StateId.PLAY: return "PLAY";
             case StateId.MELD: return "MELD";
-            case StateId.ADDPOINT: return "ADDPOINT";
             case StateId.MELDED: return "MELDED";
             case StateId.NEWTRICK: return "NEWTRICK";
             case StateId.NOMELD: return "NOMELD";

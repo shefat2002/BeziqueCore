@@ -263,25 +263,25 @@ state Deal {
 
         DealFirst : DealFirst
 
-        DealFirst : enter / #123; _adapter.DealFirstCard()#59; #125;
+        DealFirst : enter / #123; _adapter.DealFirstSet() #125;
 
         DealMid
 
         DealMid : DealMid
 
-        DealMid : enter / #123; _adapter.DealMidCard()#59; #125;
+        DealMid : enter / #123; _adapter.DealMidSet() #125;
 
         DealLast
 
         DealLast : DealLast
 
-        DealLast : enter / #123; _adapter.DealLastCard()#59; #125;
+        DealLast : enter / #123; _adapter.DealLastSet() #125;
 
         SelectTrump
 
         SelectTrump : SelectTrump
 
-        SelectTrump : enter / #123; _adapter.SelectTrump()#59; #125;
+        SelectTrump : enter / #123; _adapter.SelectTrump() #125;
 
 }
 
@@ -295,19 +295,19 @@ state Play {
 
         PlayFirst : PlayFirst
 
-        PlayFirst : enter / #123; _adapter.PlayFirstCard()#59; #125;
+        PlayFirst : enter / #123; _adapter.PlayFirstCard() #125;
 
         PlayMid
 
         PlayMid : PlayMid
 
-        PlayMid : enter / #123; _adapter.PlayMidCard()#59; #125;
+        PlayMid : enter / #123; _adapter.PlayMidCard() #125;
 
         PlayLast
 
         PlayLast : PlayLast
 
-        PlayLast : enter / #123; _adapter.PlayLastCard()#59; #125;
+        PlayLast : enter / #123; _adapter.PlayLastCard() #125;
 
         state Meld {
 
@@ -319,31 +319,25 @@ state Play {
 
                 TryMelded : TryMelded
 
-                TryMelded : enter / #123; _adapter.TryMeld()#59; #125;
+                TryMelded : enter / #123; _adapter.TryMeld() #125;
 
                 Melded
 
                 Melded : Melded
 
-                Melded : enter / #123; _adapter.MeldSuccess()#59; #125;
+                Melded : enter / #123; _adapter.MeldSuccess() #125;
 
                 NoMeld
 
                 NoMeld : NoMeld
 
-                NoMeld : enter / #123; _adapter.MeldFailed()#59; #125;
-
-                AddPoint
-
-                AddPoint : AddPoint
-
-                AddPoint : enter / #123; _adapter.AddMeldPoints()#59; #125;
+                NoMeld : enter / #123; _adapter.MeldFailed() #125;
 
                 NewTrick
 
                 NewTrick : NewTrick
 
-                NewTrick : enter / #123; _adapter.StartNewTrick()#59; #125;
+                NewTrick : enter / #123; _adapter.StartNewTrick() #125;
 
         }
 
@@ -353,13 +347,7 @@ AddOneCardToAll
 
 AddOneCardToAll : AddOneCardToAll
 
-AddOneCardToAll : enter / #123; _adapter.DealCardsToAll()#59; #125;
-
-GameOver
-
-GameOver : GameOver
-
-GameOver : enter / #123; _adapter.GameOver()#59; #125;
+AddOneCardToAll : enter / #123; _adapter.DrawCardsForAll() #125;
 
 state L9Play {
 
@@ -371,25 +359,25 @@ state L9Play {
 
         L9PlayFirst : L9PlayFirst
 
-        L9PlayFirst : enter / #123; _adapter.L9PlayFirstCard()#59; #125;
+        L9PlayFirst : enter / #123; _adapter.L9PlayFirstCard() #125;
 
         L9PlayMid
 
         L9PlayMid : L9PlayMid
 
-        L9PlayMid : enter / #123; _adapter.L9PlayMidCard()#59; #125;
+        L9PlayMid : enter / #123; _adapter.L9PlayMidCard() #125;
 
         L9PlayLast
 
         L9PlayLast : L9PlayLast
 
-        L9PlayLast : enter / #123; _adapter.L9PlayLastCard()#59; #125;
+        L9PlayLast : enter / #123; _adapter.L9PlayLastCard() #125;
 
         L9NewTrick
 
         L9NewTrick : L9NewTrick
 
-        L9NewTrick : enter / #123; _adapter.StartL9NewTrick()#59; #125;
+        L9NewTrick : enter / #123; _adapter.StartL9NewTrick() #125;
 
 }
 
@@ -397,13 +385,19 @@ RoundEnd
 
 RoundEnd : RoundEnd
 
-RoundEnd : enter / #123; _adapter.EndRound()#59; #125;
+RoundEnd : enter / #123; _adapter.EndRound() #125;
 
 CalculatePoint
 
 CalculatePoint : CalculatePoint
 
-CalculatePoint : enter / #123; _adapter.CalculatePoints()#59; #125;
+CalculatePoint : enter / #123; _adapter.CalculatePoints() #125;
+
+GameOver
+
+GameOver : GameOver
+
+GameOver : enter / #123; _adapter.GameOver() #125;
 
 ROOT.(InitialState) --> Deal
 
@@ -433,15 +427,11 @@ TryMelded --> Melded : Success
 
 TryMelded --> NoMeld : Failed
 
-Melded --> AddPoint : Complete
+Melded --> NewTrick : Complete
 
 NoMeld --> NewTrick : Complete
 
-AddPoint --> NewTrick : Complete
-
 NewTrick --> AddOneCardToAll : Complete
-
-NewTrick --> GameOver : WinningScore
 
 AddOneCardToAll --> Play : Complete
 
@@ -460,8 +450,6 @@ L9PlayLast --> L9NewTrick : Complete
 L9NewTrick --> L9Play : Complete
 
 L9NewTrick --> RoundEnd : NoCard
-
-L9NewTrick --> GameOver : WinningScore
 
 RoundEnd --> CalculatePoint : Complete
 
@@ -549,19 +537,18 @@ evaluateGuard = null;
         L9PLAYMID : 13,
         PLAY : 14,
         MELD : 15,
-        ADDPOINT : 16,
-        MELDED : 17,
-        NEWTRICK : 18,
-        NOMELD : 19,
-        TRYMELDED : 20,
-        PLAYFIRST : 21,
-        PLAYLAST : 22,
-        PLAYMID : 23,
-        ROUNDEND : 24,
+        MELDED : 16,
+        NEWTRICK : 17,
+        NOMELD : 18,
+        TRYMELDED : 19,
+        PLAYFIRST : 20,
+        PLAYLAST : 21,
+        PLAYMID : 22,
+        ROUNDEND : 23,
     }
     static { Object.freeze(this.StateId); }
     
-    static StateIdCount = 25;
+    static StateIdCount = 24;
     static { Object.freeze(this.StateIdCount); }
     
     // Used internally by state machine. Feel free to inspect, but don't modify.
@@ -681,7 +668,6 @@ evaluateGuard = null;
                 {
                     case Bezique.EventId.COMPLETE: this.#L9NEWTRICK_complete(); break;
                     case Bezique.EventId.NOCARD: this.#L9NEWTRICK_nocard(); break;
-                    case Bezique.EventId.WINNINGSCORE: this.#L9NEWTRICK_winningscore(); break;
                 }
                 break;
             
@@ -720,14 +706,6 @@ evaluateGuard = null;
                 // No events handled by this state (or its ancestors).
                 break;
             
-            // STATE: AddPoint
-            case Bezique.StateId.ADDPOINT:
-                switch (eventId)
-                {
-                    case Bezique.EventId.COMPLETE: this.#ADDPOINT_complete(); break;
-                }
-                break;
-            
             // STATE: Melded
             case Bezique.StateId.MELDED:
                 switch (eventId)
@@ -741,7 +719,6 @@ evaluateGuard = null;
                 switch (eventId)
                 {
                     case Bezique.EventId.COMPLETE: this.#NEWTRICK_complete(); break;
-                    case Bezique.EventId.WINNINGSCORE: this.#NEWTRICK_winningscore(); break;
                 }
                 break;
             
@@ -836,8 +813,6 @@ evaluateGuard = null;
                 
                 case Bezique.StateId.MELD: this.#MELD_exit(); break;
                 
-                case Bezique.StateId.ADDPOINT: this.#ADDPOINT_exit(); break;
-                
                 case Bezique.StateId.MELDED: this.#MELDED_exit(); break;
                 
                 case Bezique.StateId.NEWTRICK: this.#NEWTRICK_exit(); break;
@@ -886,10 +861,10 @@ evaluateGuard = null;
         } // end of behavior for AddOneCardToAll
         
         // AddOneCardToAll behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.DealCardsToAll();"); }
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.DrawCardsForAll()"); }
         {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.DealCardsToAll();");`
-            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.DealCardsToAll();");
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.DrawCardsForAll()");`
+            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.DrawCardsForAll()");
         } // end of behavior for AddOneCardToAll
     }
     
@@ -908,13 +883,13 @@ evaluateGuard = null;
     #ADDONECARDTOALL_complete()
     {
         // AddOneCardToAll behavior
-        // uml: Complete / { this.tracer?.edgeTransition("edge19"); } TransitionTo(Play)
+        // uml: Complete / { this.tracer?.edgeTransition("edge17"); } TransitionTo(Play)
         {
             // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
             this.#ADDONECARDTOALL_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge19");`.
-            this.tracer?.edgeTransition("edge19");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge17");`.
+            this.tracer?.edgeTransition("edge17");
             
             // Step 3: Enter/move towards transition target `Play`.
             this.#PLAY_enter();
@@ -930,13 +905,13 @@ evaluateGuard = null;
     #ADDONECARDTOALL_deckempty()
     {
         // AddOneCardToAll behavior
-        // uml: DeckEmpty / { this.tracer?.edgeTransition("edge20"); } TransitionTo(L9Play)
+        // uml: DeckEmpty / { this.tracer?.edgeTransition("edge18"); } TransitionTo(L9Play)
         {
             // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
             this.#ADDONECARDTOALL_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge20");`.
-            this.tracer?.edgeTransition("edge20");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge18");`.
+            this.tracer?.edgeTransition("edge18");
             
             // Step 3: Enter/move towards transition target `L9Play`.
             this.#L9PLAY_enter();
@@ -966,10 +941,10 @@ evaluateGuard = null;
         } // end of behavior for CalculatePoint
         
         // CalculatePoint behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.CalculatePoints();"); }
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.CalculatePoints()"); }
         {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.CalculatePoints();");`
-            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.CalculatePoints();");
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.CalculatePoints()");`
+            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.CalculatePoints()");
         } // end of behavior for CalculatePoint
     }
     
@@ -988,13 +963,13 @@ evaluateGuard = null;
     #CALCULATEPOINT_complete()
     {
         // CalculatePoint behavior
-        // uml: Complete / { this.tracer?.edgeTransition("edge30"); } TransitionTo(Deal)
+        // uml: Complete / { this.tracer?.edgeTransition("edge27"); } TransitionTo(Deal)
         {
             // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
             this.#CALCULATEPOINT_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge30");`.
-            this.tracer?.edgeTransition("edge30");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge27");`.
+            this.tracer?.edgeTransition("edge27");
             
             // Step 3: Enter/move towards transition target `Deal`.
             this.#DEAL_enter();
@@ -1010,13 +985,13 @@ evaluateGuard = null;
     #CALCULATEPOINT_winningscore()
     {
         // CalculatePoint behavior
-        // uml: WinningScore / { this.tracer?.edgeTransition("edge31"); } TransitionTo(GameOver)
+        // uml: WinningScore / { this.tracer?.edgeTransition("edge28"); } TransitionTo(GameOver)
         {
             // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
             this.#CALCULATEPOINT_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge31");`.
-            this.tracer?.edgeTransition("edge31");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge28");`.
+            this.tracer?.edgeTransition("edge28");
             
             // Step 3: Enter/move towards transition target `GameOver`.
             this.#GAMEOVER_enter();
@@ -1092,10 +1067,10 @@ evaluateGuard = null;
         } // end of behavior for DealFirst
         
         // DealFirst behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.DealFirstCard();"); }
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.DealFirstSet()"); }
         {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.DealFirstCard();");`
-            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.DealFirstCard();");
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.DealFirstSet()");`
+            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.DealFirstSet()");
         } // end of behavior for DealFirst
     }
     
@@ -1149,10 +1124,10 @@ evaluateGuard = null;
         } // end of behavior for DealLast
         
         // DealLast behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.DealLastCard();"); }
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.DealLastSet()"); }
         {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.DealLastCard();");`
-            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.DealLastCard();");
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.DealLastSet()");`
+            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.DealLastSet()");
         } // end of behavior for DealLast
     }
     
@@ -1206,10 +1181,10 @@ evaluateGuard = null;
         } // end of behavior for DealMid
         
         // DealMid behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.DealMidCard();"); }
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.DealMidSet()"); }
         {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.DealMidCard();");`
-            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.DealMidCard();");
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.DealMidSet()");`
+            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.DealMidSet()");
         } // end of behavior for DealMid
     }
     
@@ -1263,10 +1238,10 @@ evaluateGuard = null;
         } // end of behavior for SelectTrump
         
         // SelectTrump behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.SelectTrump();"); }
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.SelectTrump()"); }
         {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.SelectTrump();");`
-            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.SelectTrump();");
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.SelectTrump()");`
+            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.SelectTrump()");
         } // end of behavior for SelectTrump
     }
     
@@ -1321,10 +1296,10 @@ evaluateGuard = null;
         } // end of behavior for GameOver
         
         // GameOver behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.GameOver();"); }
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.GameOver()"); }
         {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.GameOver();");`
-            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.GameOver();");
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.GameOver()");`
+            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.GameOver()");
         } // end of behavior for GameOver
     }
     
@@ -1372,12 +1347,12 @@ evaluateGuard = null;
     #L9Play_InitialState_transition()
     {
         // L9Play.<InitialState> behavior
-        // uml: / { this.tracer?.edgeTransition("edge21"); } TransitionTo(L9PlayFirst)
+        // uml: / { this.tracer?.edgeTransition("edge19"); } TransitionTo(L9PlayFirst)
         {
             // Step 1: Exit states until we reach `L9Play` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge21");`.
-            this.tracer?.edgeTransition("edge21");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge19");`.
+            this.tracer?.edgeTransition("edge19");
             
             // Step 3: Enter/move towards transition target `L9PlayFirst`.
             this.#L9PLAYFIRST_enter();
@@ -1404,10 +1379,10 @@ evaluateGuard = null;
         } // end of behavior for L9NewTrick
         
         // L9NewTrick behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.StartL9NewTrick();"); }
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.StartL9NewTrick()"); }
         {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.StartL9NewTrick();");`
-            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.StartL9NewTrick();");
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.StartL9NewTrick()");`
+            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.StartL9NewTrick()");
         } // end of behavior for L9NewTrick
     }
     
@@ -1426,13 +1401,13 @@ evaluateGuard = null;
     #L9NEWTRICK_complete()
     {
         // L9NewTrick behavior
-        // uml: Complete / { this.tracer?.edgeTransition("edge26"); } TransitionTo(L9Play)
+        // uml: Complete / { this.tracer?.edgeTransition("edge24"); } TransitionTo(L9Play)
         {
             // Step 1: Exit states until we reach `L9Play` state (Least Common Ancestor for transition).
             this.#L9NEWTRICK_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge26");`.
-            this.tracer?.edgeTransition("edge26");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge24");`.
+            this.tracer?.edgeTransition("edge24");
             
             // Step 3: Enter/move towards transition target `L9Play`.
             // Already in target. No entering required.
@@ -1447,37 +1422,16 @@ evaluateGuard = null;
     #L9NEWTRICK_nocard()
     {
         // L9NewTrick behavior
-        // uml: NoCard / { this.tracer?.edgeTransition("edge27"); } TransitionTo(RoundEnd)
+        // uml: NoCard / { this.tracer?.edgeTransition("edge25"); } TransitionTo(RoundEnd)
         {
             // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
             this.#exitUpToStateHandler(Bezique.StateId.ROOT);
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge27");`.
-            this.tracer?.edgeTransition("edge27");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge25");`.
+            this.tracer?.edgeTransition("edge25");
             
             // Step 3: Enter/move towards transition target `RoundEnd`.
             this.#ROUNDEND_enter();
-            
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
-        } // end of behavior for L9NewTrick
-        
-        // No ancestor handles this event.
-    }
-    
-    #L9NEWTRICK_winningscore()
-    {
-        // L9NewTrick behavior
-        // uml: WinningScore / { this.tracer?.edgeTransition("edge28"); } TransitionTo(GameOver)
-        {
-            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
-            this.#exitUpToStateHandler(Bezique.StateId.ROOT);
-            
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge28");`.
-            this.tracer?.edgeTransition("edge28");
-            
-            // Step 3: Enter/move towards transition target `GameOver`.
-            this.#GAMEOVER_enter();
             
             // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
             return;
@@ -1503,10 +1457,10 @@ evaluateGuard = null;
         } // end of behavior for L9PlayFirst
         
         // L9PlayFirst behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.L9PlayFirstCard();"); }
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.L9PlayFirstCard()"); }
         {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.L9PlayFirstCard();");`
-            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.L9PlayFirstCard();");
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.L9PlayFirstCard()");`
+            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.L9PlayFirstCard()");
         } // end of behavior for L9PlayFirst
     }
     
@@ -1525,13 +1479,13 @@ evaluateGuard = null;
     #L9PLAYFIRST_complete()
     {
         // L9PlayFirst behavior
-        // uml: Complete / { this.tracer?.edgeTransition("edge23"); } TransitionTo(L9PlayLast)
+        // uml: Complete / { this.tracer?.edgeTransition("edge21"); } TransitionTo(L9PlayLast)
         {
             // Step 1: Exit states until we reach `L9Play` state (Least Common Ancestor for transition).
             this.#L9PLAYFIRST_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge23");`.
-            this.tracer?.edgeTransition("edge23");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge21");`.
+            this.tracer?.edgeTransition("edge21");
             
             // Step 3: Enter/move towards transition target `L9PlayLast`.
             this.#L9PLAYLAST_enter();
@@ -1546,13 +1500,13 @@ evaluateGuard = null;
     #L9PLAYFIRST_hasmid()
     {
         // L9PlayFirst behavior
-        // uml: HasMid / { this.tracer?.edgeTransition("edge22"); } TransitionTo(L9PlayMid)
+        // uml: HasMid / { this.tracer?.edgeTransition("edge20"); } TransitionTo(L9PlayMid)
         {
             // Step 1: Exit states until we reach `L9Play` state (Least Common Ancestor for transition).
             this.#L9PLAYFIRST_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge22");`.
-            this.tracer?.edgeTransition("edge22");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge20");`.
+            this.tracer?.edgeTransition("edge20");
             
             // Step 3: Enter/move towards transition target `L9PlayMid`.
             this.#L9PLAYMID_enter();
@@ -1581,10 +1535,10 @@ evaluateGuard = null;
         } // end of behavior for L9PlayLast
         
         // L9PlayLast behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.L9PlayLastCard();"); }
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.L9PlayLastCard()"); }
         {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.L9PlayLastCard();");`
-            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.L9PlayLastCard();");
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.L9PlayLastCard()");`
+            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.L9PlayLastCard()");
         } // end of behavior for L9PlayLast
     }
     
@@ -1603,13 +1557,13 @@ evaluateGuard = null;
     #L9PLAYLAST_complete()
     {
         // L9PlayLast behavior
-        // uml: Complete / { this.tracer?.edgeTransition("edge25"); } TransitionTo(L9NewTrick)
+        // uml: Complete / { this.tracer?.edgeTransition("edge23"); } TransitionTo(L9NewTrick)
         {
             // Step 1: Exit states until we reach `L9Play` state (Least Common Ancestor for transition).
             this.#L9PLAYLAST_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge25");`.
-            this.tracer?.edgeTransition("edge25");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge23");`.
+            this.tracer?.edgeTransition("edge23");
             
             // Step 3: Enter/move towards transition target `L9NewTrick`.
             this.#L9NEWTRICK_enter();
@@ -1638,10 +1592,10 @@ evaluateGuard = null;
         } // end of behavior for L9PlayMid
         
         // L9PlayMid behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.L9PlayMidCard();"); }
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.L9PlayMidCard()"); }
         {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.L9PlayMidCard();");`
-            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.L9PlayMidCard();");
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.L9PlayMidCard()");`
+            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.L9PlayMidCard()");
         } // end of behavior for L9PlayMid
     }
     
@@ -1660,13 +1614,13 @@ evaluateGuard = null;
     #L9PLAYMID_complete()
     {
         // L9PlayMid behavior
-        // uml: Complete / { this.tracer?.edgeTransition("edge24"); } TransitionTo(L9PlayLast)
+        // uml: Complete / { this.tracer?.edgeTransition("edge22"); } TransitionTo(L9PlayLast)
         {
             // Step 1: Exit states until we reach `L9Play` state (Least Common Ancestor for transition).
             this.#L9PLAYMID_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge24");`.
-            this.tracer?.edgeTransition("edge24");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge22");`.
+            this.tracer?.edgeTransition("edge22");
             
             // Step 3: Enter/move towards transition target `L9PlayLast`.
             this.#L9PLAYLAST_enter();
@@ -1756,63 +1710,6 @@ evaluateGuard = null;
     
     
     ////////////////////////////////////////////////////////////////////////////////
-    // event handlers for state ADDPOINT
-    ////////////////////////////////////////////////////////////////////////////////
-    
-    #ADDPOINT_enter()
-    {
-        this.stateId = Bezique.StateId.ADDPOINT;
-        
-        // AddPoint behavior
-        // uml: enter / { this.tracer?.enterState('AddPoint'); }
-        {
-            // Step 1: execute action `this.tracer?.enterState('AddPoint');`
-            this.tracer?.enterState('AddPoint');
-        } // end of behavior for AddPoint
-        
-        // AddPoint behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.AddMeldPoints();"); }
-        {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.AddMeldPoints();");`
-            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.AddMeldPoints();");
-        } // end of behavior for AddPoint
-    }
-    
-    #ADDPOINT_exit()
-    {
-        // AddPoint behavior
-        // uml: exit / { this.tracer?.exitState('AddPoint'); }
-        {
-            // Step 1: execute action `this.tracer?.exitState('AddPoint');`
-            this.tracer?.exitState('AddPoint');
-        } // end of behavior for AddPoint
-        
-        this.stateId = Bezique.StateId.MELD;
-    }
-    
-    #ADDPOINT_complete()
-    {
-        // AddPoint behavior
-        // uml: Complete / { this.tracer?.edgeTransition("edge16"); } TransitionTo(NewTrick)
-        {
-            // Step 1: Exit states until we reach `Meld` state (Least Common Ancestor for transition).
-            this.#ADDPOINT_exit();
-            
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge16");`.
-            this.tracer?.edgeTransition("edge16");
-            
-            // Step 3: Enter/move towards transition target `NewTrick`.
-            this.#NEWTRICK_enter();
-            
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
-        } // end of behavior for AddPoint
-        
-        // No ancestor handles this event.
-    }
-    
-    
-    ////////////////////////////////////////////////////////////////////////////////
     // event handlers for state MELDED
     ////////////////////////////////////////////////////////////////////////////////
     
@@ -1828,10 +1725,10 @@ evaluateGuard = null;
         } // end of behavior for Melded
         
         // Melded behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.MeldSuccess();"); }
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.MeldSuccess()"); }
         {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.MeldSuccess();");`
-            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.MeldSuccess();");
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.MeldSuccess()");`
+            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.MeldSuccess()");
         } // end of behavior for Melded
     }
     
@@ -1850,7 +1747,7 @@ evaluateGuard = null;
     #MELDED_complete()
     {
         // Melded behavior
-        // uml: Complete / { this.tracer?.edgeTransition("edge14"); } TransitionTo(AddPoint)
+        // uml: Complete / { this.tracer?.edgeTransition("edge14"); } TransitionTo(NewTrick)
         {
             // Step 1: Exit states until we reach `Meld` state (Least Common Ancestor for transition).
             this.#MELDED_exit();
@@ -1858,8 +1755,8 @@ evaluateGuard = null;
             // Step 2: Transition action: `this.tracer?.edgeTransition("edge14");`.
             this.tracer?.edgeTransition("edge14");
             
-            // Step 3: Enter/move towards transition target `AddPoint`.
-            this.#ADDPOINT_enter();
+            // Step 3: Enter/move towards transition target `NewTrick`.
+            this.#NEWTRICK_enter();
             
             // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
             return;
@@ -1885,10 +1782,10 @@ evaluateGuard = null;
         } // end of behavior for NewTrick
         
         // NewTrick behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.StartNewTrick();"); }
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.StartNewTrick()"); }
         {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.StartNewTrick();");`
-            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.StartNewTrick();");
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.StartNewTrick()");`
+            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.StartNewTrick()");
         } // end of behavior for NewTrick
     }
     
@@ -1907,37 +1804,16 @@ evaluateGuard = null;
     #NEWTRICK_complete()
     {
         // NewTrick behavior
-        // uml: Complete / { this.tracer?.edgeTransition("edge17"); } TransitionTo(AddOneCardToAll)
+        // uml: Complete / { this.tracer?.edgeTransition("edge16"); } TransitionTo(AddOneCardToAll)
         {
             // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
             this.#exitUpToStateHandler(Bezique.StateId.ROOT);
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge17");`.
-            this.tracer?.edgeTransition("edge17");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge16");`.
+            this.tracer?.edgeTransition("edge16");
             
             // Step 3: Enter/move towards transition target `AddOneCardToAll`.
             this.#ADDONECARDTOALL_enter();
-            
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
-        } // end of behavior for NewTrick
-        
-        // No ancestor handles this event.
-    }
-    
-    #NEWTRICK_winningscore()
-    {
-        // NewTrick behavior
-        // uml: WinningScore / { this.tracer?.edgeTransition("edge18"); } TransitionTo(GameOver)
-        {
-            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
-            this.#exitUpToStateHandler(Bezique.StateId.ROOT);
-            
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge18");`.
-            this.tracer?.edgeTransition("edge18");
-            
-            // Step 3: Enter/move towards transition target `GameOver`.
-            this.#GAMEOVER_enter();
             
             // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
             return;
@@ -1963,10 +1839,10 @@ evaluateGuard = null;
         } // end of behavior for NoMeld
         
         // NoMeld behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.MeldFailed();"); }
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.MeldFailed()"); }
         {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.MeldFailed();");`
-            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.MeldFailed();");
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.MeldFailed()");`
+            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.MeldFailed()");
         } // end of behavior for NoMeld
     }
     
@@ -2020,10 +1896,10 @@ evaluateGuard = null;
         } // end of behavior for TryMelded
         
         // TryMelded behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.TryMeld();"); }
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.TryMeld()"); }
         {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.TryMeld();");`
-            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.TryMeld();");
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.TryMeld()");`
+            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.TryMeld()");
         } // end of behavior for TryMelded
     }
     
@@ -2098,10 +1974,10 @@ evaluateGuard = null;
         } // end of behavior for PlayFirst
         
         // PlayFirst behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.PlayFirstCard();"); }
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.PlayFirstCard()"); }
         {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.PlayFirstCard();");`
-            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.PlayFirstCard();");
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.PlayFirstCard()");`
+            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.PlayFirstCard()");
         } // end of behavior for PlayFirst
     }
     
@@ -2176,10 +2052,10 @@ evaluateGuard = null;
         } // end of behavior for PlayLast
         
         // PlayLast behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.PlayLastCard();"); }
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.PlayLastCard()"); }
         {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.PlayLastCard();");`
-            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.PlayLastCard();");
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.PlayLastCard()");`
+            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.PlayLastCard()");
         } // end of behavior for PlayLast
     }
     
@@ -2245,10 +2121,10 @@ evaluateGuard = null;
         } // end of behavior for PlayMid
         
         // PlayMid behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.PlayMidCard();"); }
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.PlayMidCard()"); }
         {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.PlayMidCard();");`
-            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.PlayMidCard();");
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.PlayMidCard()");`
+            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.PlayMidCard()");
         } // end of behavior for PlayMid
     }
     
@@ -2302,10 +2178,10 @@ evaluateGuard = null;
         } // end of behavior for RoundEnd
         
         // RoundEnd behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.EndRound();"); }
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.EndRound()"); }
         {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.EndRound();");`
-            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.EndRound();");
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.EndRound()");`
+            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.EndRound()");
         } // end of behavior for RoundEnd
     }
     
@@ -2324,13 +2200,13 @@ evaluateGuard = null;
     #ROUNDEND_complete()
     {
         // RoundEnd behavior
-        // uml: Complete / { this.tracer?.edgeTransition("edge29"); } TransitionTo(CalculatePoint)
+        // uml: Complete / { this.tracer?.edgeTransition("edge26"); } TransitionTo(CalculatePoint)
         {
             // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
             this.#ROUNDEND_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge29");`.
-            this.tracer?.edgeTransition("edge29");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge26");`.
+            this.tracer?.edgeTransition("edge26");
             
             // Step 3: Enter/move towards transition target `CalculatePoint`.
             this.#CALCULATEPOINT_enter();
@@ -2363,7 +2239,6 @@ evaluateGuard = null;
             case Bezique.StateId.L9PLAYMID: return "L9PLAYMID";
             case Bezique.StateId.PLAY: return "PLAY";
             case Bezique.StateId.MELD: return "MELD";
-            case Bezique.StateId.ADDPOINT: return "ADDPOINT";
             case Bezique.StateId.MELDED: return "MELDED";
             case Bezique.StateId.NEWTRICK: return "NEWTRICK";
             case Bezique.StateId.NOMELD: return "NOMELD";
@@ -2465,18 +2340,13 @@ evaluateGuard = null;
   "NoMeld": [
     "Complete"
   ],
-  "AddPoint": [
-    "Complete"
-  ],
   "NewTrick": [
-    "Complete",
-    "WinningScore"
+    "Complete"
   ],
   "AddOneCardToAll": [
     "Complete",
     "DeckEmpty"
   ],
-  "GameOver": [],
   "L9Play": [],
   "L9PlayFirst": [
     "Complete",
@@ -2490,8 +2360,7 @@ evaluateGuard = null;
   ],
   "L9NewTrick": [
     "Complete",
-    "NoCard",
-    "WinningScore"
+    "NoCard"
   ],
   "RoundEnd": [
     "Complete"
@@ -2499,7 +2368,8 @@ evaluateGuard = null;
   "CalculatePoint": [
     "Complete",
     "WinningScore"
-  ]
+  ],
+  "GameOver": []
 };
 
         // Get page element references

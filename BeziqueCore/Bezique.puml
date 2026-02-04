@@ -10,7 +10,28 @@ NameSpace = "BeziqueCore;"
 hide empty description
 skinparam stateMessageAlignment center
 
-' ///////////////////////////// STATE ORGANIZATION ///////////////////////
+' Game Flow:
+' 1. Deal Phase - Deal cards in 3 sets (3-3-3 for 2 players, 3-3-3 for 4 players)
+' 2. Select Trump - Flip the trump card
+' 3. Play Phase - Players play cards in tricks
+'    - 2 player: skip PlayMid
+'    - 4 player: PlayFirst -> PlayMid -> PlayLast
+' 4. Meld Phase - Winner can declare melds
+' 5. NewTrick - Clear played cards, winner leads
+' 6. AddOneCardToAll - Each player draws 1 card from deck
+' 7. Repeat Play/Meld/NewTrick/Draw until deck empty
+' 8. L9Play - Play last 9 cards (no drawing)
+' 9. RoundEnd - Calculate scores
+' 10. Check for winning score or start new round
+'
+' Events:
+' - Complete: State finished, move to next
+' - HasMid: 4 players, has middle player(s)
+' - Success: Meld declared successfully
+' - Failed: Meld failed or not declared
+' - DeckEmpty: No more cards to draw
+' - NoCard: Player has no more cards
+' - WinningScore: Player reached target score
 
 [*] -> Deal
 
@@ -21,18 +42,18 @@ state Deal {
     state DealMid
     state DealLast
 
-    DealFirst : enter / _adapter.DealFirstCard();
+    DealFirst : enter / _adapter.DealFirstSet()
     DealFirst -> DealMid : Complete
 
-    DealMid : enter / _adapter.DealMidCard();
+    DealMid : enter / _adapter.DealMidSet()
     DealMid -> DealLast : Complete
 
-    DealLast : enter / _adapter.DealLastCard();
+    DealLast : enter / _adapter.DealLastSet()
     DealLast -> SelectTrump : Complete
 }
 
 state SelectTrump
-SelectTrump : enter / _adapter.SelectTrump();
+SelectTrump : enter / _adapter.SelectTrump()
 SelectTrump --> Play : Complete
 
 state Play {
@@ -42,14 +63,14 @@ state Play {
     state PlayMid
     state PlayLast
 
-    PlayFirst : enter / _adapter.PlayFirstCard();
+    PlayFirst : enter / _adapter.PlayFirstCard()
     PlayFirst -> PlayMid : HasMid
     PlayFirst -> PlayLast : Complete
 
-    PlayMid : enter / _adapter.PlayMidCard();
+    PlayMid : enter / _adapter.PlayMidCard()
     PlayMid -> PlayLast : Complete
 
-    PlayLast : enter / _adapter.PlayLastCard();
+    PlayLast : enter / _adapter.PlayLastCard()
     PlayLast --> Meld : Complete
 }
 
@@ -60,28 +81,23 @@ state Meld {
     state Melded
     state NoMeld
 
-    TryMelded : enter / _adapter.TryMeld();
+    TryMelded : enter / _adapter.TryMeld()
     TryMelded -> Melded : Success
     TryMelded -> NoMeld : Failed
 
-    Melded : enter / _adapter.MeldSuccess();
-    Melded -> AddPoint : Complete
+    Melded : enter / _adapter.MeldSuccess()
+    Melded -> NewTrick : Complete
 
-    NoMeld : enter / _adapter.MeldFailed();
+    NoMeld : enter / _adapter.MeldFailed()
     NoMeld --> NewTrick : Complete
 }
 
-state AddPoint
-AddPoint : enter / _adapter.AddMeldPoints();
-AddPoint --> NewTrick : Complete
-
 state NewTrick
-NewTrick : enter / _adapter.StartNewTrick();
+NewTrick : enter / _adapter.StartNewTrick()
 NewTrick -> AddOneCardToAll : Complete
-NewTrick --> GameOver : WinningScore
 
 state AddOneCardToAll
-AddOneCardToAll : enter / _adapter.DealCardsToAll();
+AddOneCardToAll : enter / _adapter.DrawCardsForAll()
 AddOneCardToAll --> Play : Complete
 AddOneCardToAll --> L9Play : DeckEmpty
 
@@ -92,33 +108,32 @@ state L9Play {
     state L9PlayMid
     state L9PlayLast
 
-    L9PlayFirst : enter / _adapter.L9PlayFirstCard();
+    L9PlayFirst : enter / _adapter.L9PlayFirstCard()
     L9PlayFirst --> L9PlayMid : HasMid
     L9PlayFirst --> L9PlayLast : Complete
 
-    L9PlayMid : enter / _adapter.L9PlayMidCard();
+    L9PlayMid : enter / _adapter.L9PlayMidCard()
     L9PlayMid --> L9PlayLast : Complete
 
-    L9PlayLast : enter / _adapter.L9PlayLastCard();
+    L9PlayLast : enter / _adapter.L9PlayLastCard()
     L9PlayLast --> L9NewTrick : Complete
 }
 
 state L9NewTrick
-L9NewTrick : enter / _adapter.StartL9NewTrick();
+L9NewTrick : enter / _adapter.StartL9NewTrick()
 L9NewTrick --> L9Play : Complete
 L9NewTrick --> RoundEnd : NoCard
-L9NewTrick --> GameOver : WinningScore
 
 state RoundEnd
-RoundEnd : enter / _adapter.EndRound();
+RoundEnd : enter / _adapter.EndRound()
 RoundEnd -> CalculatePoint : Complete
 
 state CalculatePoint
-CalculatePoint : enter / _adapter.CalculatePoints();
+CalculatePoint : enter / _adapter.CalculatePoints()
 CalculatePoint --> Deal : Complete
 CalculatePoint --> GameOver : WinningScore
 
 state GameOver
-GameOver : enter / _adapter.GameOver();
+GameOver : enter / _adapter.GameOver()
 
 @enduml
