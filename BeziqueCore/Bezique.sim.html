@@ -329,9 +329,37 @@ AddOneCardToAll
 
 AddOneCardToAll : AddOneCardToAll
 
-L9Play
+state L9Play {
 
-L9Play : L9Play
+        L9PlayFirst
+
+        L9PlayFirst : L9PlayFirst
+
+        L9PlayMid
+
+        L9PlayMid : L9PlayMid
+
+        L9PlayLast
+
+        L9PlayLast : L9PlayLast
+
+        %% Initial state name as "." so that it fits in black circle shape.
+        %% See https://github.com/StateSmith/StateSmith/issues/404
+        state "." as L9Play.(InitialState)
+
+}
+
+L9NewTrick
+
+L9NewTrick : L9NewTrick
+
+RoundEnd
+
+RoundEnd : RoundEnd
+
+GameOver
+
+GameOver : GameOver
 
 ROOT.(InitialState) --> Deal
 
@@ -369,9 +397,29 @@ AddPoint --> NewTrick : Complete
 
 NewTrick --> AddOneCardToAll : Complete
 
+NewTrick --> GameOver : WinningScore
+
 AddOneCardToAll --> PlayFirst : Complete
 
 AddOneCardToAll --> L9Play : DeckEmpty
+
+L9PlayFirst --> L9PlayMid : Complete
+
+L9PlayMid --> L9PlayLast : Complete
+
+L9PlayLast --> L9NewTrick : Complete
+
+L9Play.(InitialState) --> L9PlayFirst
+
+L9NewTrick --> L9PlayFirst : CardsAvailable
+
+L9NewTrick --> RoundEnd : NoCard
+
+L9NewTrick --> GameOver : WinningScore
+
+RoundEnd --> Deal : Continue
+
+RoundEnd --> GameOver : WinningScore
 
 
 
@@ -423,15 +471,19 @@ evaluateGuard = null;
     static EventId = 
     {
         DO : 0, // The `do` event is special. State event handlers do not consume this event (ancestors all get it too) unless a transition occurs.
-        COMPLETE : 1,
-        DECKEMPTY : 2,
-        FAILED : 3,
-        HASMID : 4,
-        SUCCESS : 5,
+        CARDSAVAILABLE : 1,
+        COMPLETE : 2,
+        CONTINUE : 3,
+        DECKEMPTY : 4,
+        FAILED : 5,
+        HASMID : 6,
+        NOCARD : 7,
+        SUCCESS : 8,
+        WINNINGSCORE : 9,
     }
     static { Object.freeze(this.EventId); }
     
-    static EventIdCount = 6;
+    static EventIdCount = 10;
     static { Object.freeze(this.EventIdCount); }
     
     static StateId = 
@@ -453,11 +505,17 @@ evaluateGuard = null;
         PLAYLAST : 14,
         PLAYMID : 15,
         SELECTTRUMP : 16,
-        L9PLAY : 17,
+        GAMEOVER : 17,
+        L9NEWTRICK : 18,
+        L9PLAY : 19,
+        L9PLAYFIRST : 20,
+        L9PLAYLAST : 21,
+        L9PLAYMID : 22,
+        ROUNDEND : 23,
     }
     static { Object.freeze(this.StateId); }
     
-    static StateIdCount = 18;
+    static StateIdCount = 24;
     static { Object.freeze(this.StateIdCount); }
     
     // Used internally by state machine. Feel free to inspect, but don't modify.
@@ -488,20 +546,9 @@ evaluateGuard = null;
                 // Step 3: Enter/move towards transition target `Deal`.
                 this.#DEAL_enter();
                 
-                // Deal.<InitialState> behavior
-                // uml: / { this.tracer?.edgeTransition("edge4"); } TransitionTo(DealFirst)
-                {
-                    // Step 1: Exit states until we reach `Deal` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
-                    
-                    // Step 2: Transition action: `this.tracer?.edgeTransition("edge4");`.
-                    this.tracer?.edgeTransition("edge4");
-                    
-                    // Step 3: Enter/move towards transition target `DealFirst`.
-                    this.#DEALFIRST_enter();
-                    
-                    // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-                    return;
-                } // end of behavior for Deal.<InitialState>
+                // Finish transition by calling pseudo state transition function.
+                this.#Deal_InitialState_transition();
+                return; // event processing immediately stops when a transition finishes. No other behaviors for this state are checked.
             } // end of behavior for ROOT.<InitialState>
         } // end of behavior for ROOT
     }
@@ -586,6 +633,7 @@ evaluateGuard = null;
                 switch (eventId)
                 {
                     case Bezique.EventId.COMPLETE: this.#NEWTRICK_complete(); break;
+                    case Bezique.EventId.WINNINGSCORE: this.#NEWTRICK_winningscore(); break;
                 }
                 break;
             
@@ -639,9 +687,57 @@ evaluateGuard = null;
                 }
                 break;
             
+            // STATE: GameOver
+            case Bezique.StateId.GAMEOVER:
+                // No events handled by this state (or its ancestors).
+                break;
+            
+            // STATE: L9NewTrick
+            case Bezique.StateId.L9NEWTRICK:
+                switch (eventId)
+                {
+                    case Bezique.EventId.CARDSAVAILABLE: this.#L9NEWTRICK_cardsavailable(); break;
+                    case Bezique.EventId.NOCARD: this.#L9NEWTRICK_nocard(); break;
+                    case Bezique.EventId.WINNINGSCORE: this.#L9NEWTRICK_winningscore(); break;
+                }
+                break;
+            
             // STATE: L9Play
             case Bezique.StateId.L9PLAY:
                 // No events handled by this state (or its ancestors).
+                break;
+            
+            // STATE: L9PlayFirst
+            case Bezique.StateId.L9PLAYFIRST:
+                switch (eventId)
+                {
+                    case Bezique.EventId.COMPLETE: this.#L9PLAYFIRST_complete(); break;
+                }
+                break;
+            
+            // STATE: L9PlayLast
+            case Bezique.StateId.L9PLAYLAST:
+                switch (eventId)
+                {
+                    case Bezique.EventId.COMPLETE: this.#L9PLAYLAST_complete(); break;
+                }
+                break;
+            
+            // STATE: L9PlayMid
+            case Bezique.StateId.L9PLAYMID:
+                switch (eventId)
+                {
+                    case Bezique.EventId.COMPLETE: this.#L9PLAYMID_complete(); break;
+                }
+                break;
+            
+            // STATE: RoundEnd
+            case Bezique.StateId.ROUNDEND:
+                switch (eventId)
+                {
+                    case Bezique.EventId.CONTINUE: this.#ROUNDEND_continue(); break;
+                    case Bezique.EventId.WINNINGSCORE: this.#ROUNDEND_winningscore(); break;
+                }
                 break;
         }
         
@@ -687,7 +783,19 @@ evaluateGuard = null;
                 
                 case Bezique.StateId.SELECTTRUMP: this.#SELECTTRUMP_exit(); break;
                 
+                case Bezique.StateId.GAMEOVER: this.#GAMEOVER_exit(); break;
+                
+                case Bezique.StateId.L9NEWTRICK: this.#L9NEWTRICK_exit(); break;
+                
                 case Bezique.StateId.L9PLAY: this.#L9PLAY_exit(); break;
+                
+                case Bezique.StateId.L9PLAYFIRST: this.#L9PLAYFIRST_exit(); break;
+                
+                case Bezique.StateId.L9PLAYLAST: this.#L9PLAYLAST_exit(); break;
+                
+                case Bezique.StateId.L9PLAYMID: this.#L9PLAYMID_exit(); break;
+                
+                case Bezique.StateId.ROUNDEND: this.#ROUNDEND_exit(); break;
                 
                 default: return;  // Just to be safe. Prevents infinite loop if state ID memory is somehow corrupted.
             }
@@ -736,13 +844,13 @@ evaluateGuard = null;
     #ADDONECARDTOALL_complete()
     {
         // AddOneCardToAll behavior
-        // uml: Complete / { this.tracer?.edgeTransition("edge18"); } TransitionTo(PlayFirst)
+        // uml: Complete / { this.tracer?.edgeTransition("edge19"); } TransitionTo(PlayFirst)
         {
             // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
             this.#ADDONECARDTOALL_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge18");`.
-            this.tracer?.edgeTransition("edge18");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge19");`.
+            this.tracer?.edgeTransition("edge19");
             
             // Step 3: Enter/move towards transition target `PlayFirst`.
             this.#DEAL_enter();
@@ -759,19 +867,31 @@ evaluateGuard = null;
     #ADDONECARDTOALL_deckempty()
     {
         // AddOneCardToAll behavior
-        // uml: DeckEmpty / { this.tracer?.edgeTransition("edge19"); } TransitionTo(L9Play)
+        // uml: DeckEmpty / { this.tracer?.edgeTransition("edge20"); } TransitionTo(L9Play)
         {
             // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
             this.#ADDONECARDTOALL_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge19");`.
-            this.tracer?.edgeTransition("edge19");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge20");`.
+            this.tracer?.edgeTransition("edge20");
             
             // Step 3: Enter/move towards transition target `L9Play`.
             this.#L9PLAY_enter();
             
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
+            // L9Play.<InitialState> behavior
+            // uml: / { this.tracer?.edgeTransition("edge24"); } TransitionTo(L9PlayFirst)
+            {
+                // Step 1: Exit states until we reach `L9Play` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
+                
+                // Step 2: Transition action: `this.tracer?.edgeTransition("edge24");`.
+                this.tracer?.edgeTransition("edge24");
+                
+                // Step 3: Enter/move towards transition target `L9PlayFirst`.
+                this.#L9PLAYFIRST_enter();
+                
+                // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+                return;
+            } // end of behavior for L9Play.<InitialState>
         } // end of behavior for AddOneCardToAll
         
         // No ancestor handles this event.
@@ -804,6 +924,24 @@ evaluateGuard = null;
         } // end of behavior for Deal
         
         this.stateId = Bezique.StateId.ROOT;
+    }
+    
+    #Deal_InitialState_transition()
+    {
+        // Deal.<InitialState> behavior
+        // uml: / { this.tracer?.edgeTransition("edge4"); } TransitionTo(DealFirst)
+        {
+            // Step 1: Exit states until we reach `Deal` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
+            
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge4");`.
+            this.tracer?.edgeTransition("edge4");
+            
+            // Step 3: Enter/move towards transition target `DealFirst`.
+            this.#DEALFIRST_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for Deal.<InitialState>
     }
     
     
@@ -1156,6 +1294,27 @@ evaluateGuard = null;
             
             // Step 3: Enter/move towards transition target `AddOneCardToAll`.
             this.#ADDONECARDTOALL_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for NewTrick
+        
+        // No ancestor handles this event.
+    }
+    
+    #NEWTRICK_winningscore()
+    {
+        // NewTrick behavior
+        // uml: WinningScore / { this.tracer?.edgeTransition("edge18"); } TransitionTo(GameOver)
+        {
+            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
+            this.#exitUpToStateHandler(Bezique.StateId.ROOT);
+            
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge18");`.
+            this.tracer?.edgeTransition("edge18");
+            
+            // Step 3: Enter/move towards transition target `GameOver`.
+            this.#GAMEOVER_enter();
             
             // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
             return;
@@ -1532,6 +1691,128 @@ evaluateGuard = null;
     
     
     ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state GAMEOVER
+    ////////////////////////////////////////////////////////////////////////////////
+    
+    #GAMEOVER_enter()
+    {
+        this.stateId = Bezique.StateId.GAMEOVER;
+        
+        // GameOver behavior
+        // uml: enter / { this.tracer?.enterState('GameOver'); }
+        {
+            // Step 1: execute action `this.tracer?.enterState('GameOver');`
+            this.tracer?.enterState('GameOver');
+        } // end of behavior for GameOver
+    }
+    
+    #GAMEOVER_exit()
+    {
+        // GameOver behavior
+        // uml: exit / { this.tracer?.exitState('GameOver'); }
+        {
+            // Step 1: execute action `this.tracer?.exitState('GameOver');`
+            this.tracer?.exitState('GameOver');
+        } // end of behavior for GameOver
+        
+        this.stateId = Bezique.StateId.ROOT;
+    }
+    
+    
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state L9NEWTRICK
+    ////////////////////////////////////////////////////////////////////////////////
+    
+    #L9NEWTRICK_enter()
+    {
+        this.stateId = Bezique.StateId.L9NEWTRICK;
+        
+        // L9NewTrick behavior
+        // uml: enter / { this.tracer?.enterState('L9NewTrick'); }
+        {
+            // Step 1: execute action `this.tracer?.enterState('L9NewTrick');`
+            this.tracer?.enterState('L9NewTrick');
+        } // end of behavior for L9NewTrick
+    }
+    
+    #L9NEWTRICK_exit()
+    {
+        // L9NewTrick behavior
+        // uml: exit / { this.tracer?.exitState('L9NewTrick'); }
+        {
+            // Step 1: execute action `this.tracer?.exitState('L9NewTrick');`
+            this.tracer?.exitState('L9NewTrick');
+        } // end of behavior for L9NewTrick
+        
+        this.stateId = Bezique.StateId.ROOT;
+    }
+    
+    #L9NEWTRICK_cardsavailable()
+    {
+        // L9NewTrick behavior
+        // uml: CardsAvailable / { this.tracer?.edgeTransition("edge25"); } TransitionTo(L9PlayFirst)
+        {
+            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
+            this.#L9NEWTRICK_exit();
+            
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge25");`.
+            this.tracer?.edgeTransition("edge25");
+            
+            // Step 3: Enter/move towards transition target `L9PlayFirst`.
+            this.#L9PLAY_enter();
+            this.#L9PLAYFIRST_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for L9NewTrick
+        
+        // No ancestor handles this event.
+    }
+    
+    #L9NEWTRICK_nocard()
+    {
+        // L9NewTrick behavior
+        // uml: NoCard / { this.tracer?.edgeTransition("edge26"); } TransitionTo(RoundEnd)
+        {
+            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
+            this.#L9NEWTRICK_exit();
+            
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge26");`.
+            this.tracer?.edgeTransition("edge26");
+            
+            // Step 3: Enter/move towards transition target `RoundEnd`.
+            this.#ROUNDEND_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for L9NewTrick
+        
+        // No ancestor handles this event.
+    }
+    
+    #L9NEWTRICK_winningscore()
+    {
+        // L9NewTrick behavior
+        // uml: WinningScore / { this.tracer?.edgeTransition("edge27"); } TransitionTo(GameOver)
+        {
+            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
+            this.#L9NEWTRICK_exit();
+            
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge27");`.
+            this.tracer?.edgeTransition("edge27");
+            
+            // Step 3: Enter/move towards transition target `GameOver`.
+            this.#GAMEOVER_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for L9NewTrick
+        
+        // No ancestor handles this event.
+    }
+    
+    
+    ////////////////////////////////////////////////////////////////////////////////
     // event handlers for state L9PLAY
     ////////////////////////////////////////////////////////////////////////////////
     
@@ -1559,6 +1840,228 @@ evaluateGuard = null;
         this.stateId = Bezique.StateId.ROOT;
     }
     
+    
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state L9PLAYFIRST
+    ////////////////////////////////////////////////////////////////////////////////
+    
+    #L9PLAYFIRST_enter()
+    {
+        this.stateId = Bezique.StateId.L9PLAYFIRST;
+        
+        // L9PlayFirst behavior
+        // uml: enter / { this.tracer?.enterState('L9PlayFirst'); }
+        {
+            // Step 1: execute action `this.tracer?.enterState('L9PlayFirst');`
+            this.tracer?.enterState('L9PlayFirst');
+        } // end of behavior for L9PlayFirst
+    }
+    
+    #L9PLAYFIRST_exit()
+    {
+        // L9PlayFirst behavior
+        // uml: exit / { this.tracer?.exitState('L9PlayFirst'); }
+        {
+            // Step 1: execute action `this.tracer?.exitState('L9PlayFirst');`
+            this.tracer?.exitState('L9PlayFirst');
+        } // end of behavior for L9PlayFirst
+        
+        this.stateId = Bezique.StateId.L9PLAY;
+    }
+    
+    #L9PLAYFIRST_complete()
+    {
+        // L9PlayFirst behavior
+        // uml: Complete / { this.tracer?.edgeTransition("edge21"); } TransitionTo(L9PlayMid)
+        {
+            // Step 1: Exit states until we reach `L9Play` state (Least Common Ancestor for transition).
+            this.#L9PLAYFIRST_exit();
+            
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge21");`.
+            this.tracer?.edgeTransition("edge21");
+            
+            // Step 3: Enter/move towards transition target `L9PlayMid`.
+            this.#L9PLAYMID_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for L9PlayFirst
+        
+        // No ancestor handles this event.
+    }
+    
+    
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state L9PLAYLAST
+    ////////////////////////////////////////////////////////////////////////////////
+    
+    #L9PLAYLAST_enter()
+    {
+        this.stateId = Bezique.StateId.L9PLAYLAST;
+        
+        // L9PlayLast behavior
+        // uml: enter / { this.tracer?.enterState('L9PlayLast'); }
+        {
+            // Step 1: execute action `this.tracer?.enterState('L9PlayLast');`
+            this.tracer?.enterState('L9PlayLast');
+        } // end of behavior for L9PlayLast
+    }
+    
+    #L9PLAYLAST_exit()
+    {
+        // L9PlayLast behavior
+        // uml: exit / { this.tracer?.exitState('L9PlayLast'); }
+        {
+            // Step 1: execute action `this.tracer?.exitState('L9PlayLast');`
+            this.tracer?.exitState('L9PlayLast');
+        } // end of behavior for L9PlayLast
+        
+        this.stateId = Bezique.StateId.L9PLAY;
+    }
+    
+    #L9PLAYLAST_complete()
+    {
+        // L9PlayLast behavior
+        // uml: Complete / { this.tracer?.edgeTransition("edge23"); } TransitionTo(L9NewTrick)
+        {
+            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
+            this.#exitUpToStateHandler(Bezique.StateId.ROOT);
+            
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge23");`.
+            this.tracer?.edgeTransition("edge23");
+            
+            // Step 3: Enter/move towards transition target `L9NewTrick`.
+            this.#L9NEWTRICK_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for L9PlayLast
+        
+        // No ancestor handles this event.
+    }
+    
+    
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state L9PLAYMID
+    ////////////////////////////////////////////////////////////////////////////////
+    
+    #L9PLAYMID_enter()
+    {
+        this.stateId = Bezique.StateId.L9PLAYMID;
+        
+        // L9PlayMid behavior
+        // uml: enter / { this.tracer?.enterState('L9PlayMid'); }
+        {
+            // Step 1: execute action `this.tracer?.enterState('L9PlayMid');`
+            this.tracer?.enterState('L9PlayMid');
+        } // end of behavior for L9PlayMid
+    }
+    
+    #L9PLAYMID_exit()
+    {
+        // L9PlayMid behavior
+        // uml: exit / { this.tracer?.exitState('L9PlayMid'); }
+        {
+            // Step 1: execute action `this.tracer?.exitState('L9PlayMid');`
+            this.tracer?.exitState('L9PlayMid');
+        } // end of behavior for L9PlayMid
+        
+        this.stateId = Bezique.StateId.L9PLAY;
+    }
+    
+    #L9PLAYMID_complete()
+    {
+        // L9PlayMid behavior
+        // uml: Complete / { this.tracer?.edgeTransition("edge22"); } TransitionTo(L9PlayLast)
+        {
+            // Step 1: Exit states until we reach `L9Play` state (Least Common Ancestor for transition).
+            this.#L9PLAYMID_exit();
+            
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge22");`.
+            this.tracer?.edgeTransition("edge22");
+            
+            // Step 3: Enter/move towards transition target `L9PlayLast`.
+            this.#L9PLAYLAST_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for L9PlayMid
+        
+        // No ancestor handles this event.
+    }
+    
+    
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state ROUNDEND
+    ////////////////////////////////////////////////////////////////////////////////
+    
+    #ROUNDEND_enter()
+    {
+        this.stateId = Bezique.StateId.ROUNDEND;
+        
+        // RoundEnd behavior
+        // uml: enter / { this.tracer?.enterState('RoundEnd'); }
+        {
+            // Step 1: execute action `this.tracer?.enterState('RoundEnd');`
+            this.tracer?.enterState('RoundEnd');
+        } // end of behavior for RoundEnd
+    }
+    
+    #ROUNDEND_exit()
+    {
+        // RoundEnd behavior
+        // uml: exit / { this.tracer?.exitState('RoundEnd'); }
+        {
+            // Step 1: execute action `this.tracer?.exitState('RoundEnd');`
+            this.tracer?.exitState('RoundEnd');
+        } // end of behavior for RoundEnd
+        
+        this.stateId = Bezique.StateId.ROOT;
+    }
+    
+    #ROUNDEND_continue()
+    {
+        // RoundEnd behavior
+        // uml: Continue / { this.tracer?.edgeTransition("edge28"); } TransitionTo(Deal)
+        {
+            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
+            this.#ROUNDEND_exit();
+            
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge28");`.
+            this.tracer?.edgeTransition("edge28");
+            
+            // Step 3: Enter/move towards transition target `Deal`.
+            this.#DEAL_enter();
+            
+            // Finish transition by calling pseudo state transition function.
+            this.#Deal_InitialState_transition();
+            return; // event processing immediately stops when a transition finishes. No other behaviors for this state are checked.
+        } // end of behavior for RoundEnd
+        
+        // No ancestor handles this event.
+    }
+    
+    #ROUNDEND_winningscore()
+    {
+        // RoundEnd behavior
+        // uml: WinningScore / { this.tracer?.edgeTransition("edge29"); } TransitionTo(GameOver)
+        {
+            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
+            this.#ROUNDEND_exit();
+            
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge29");`.
+            this.tracer?.edgeTransition("edge29");
+            
+            // Step 3: Enter/move towards transition target `GameOver`.
+            this.#GAMEOVER_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for RoundEnd
+        
+        // No ancestor handles this event.
+    }
+    
     // Thread safe.
     static stateIdToString(id)
     {
@@ -1581,7 +2084,13 @@ evaluateGuard = null;
             case Bezique.StateId.PLAYLAST: return "PLAYLAST";
             case Bezique.StateId.PLAYMID: return "PLAYMID";
             case Bezique.StateId.SELECTTRUMP: return "SELECTTRUMP";
+            case Bezique.StateId.GAMEOVER: return "GAMEOVER";
+            case Bezique.StateId.L9NEWTRICK: return "L9NEWTRICK";
             case Bezique.StateId.L9PLAY: return "L9PLAY";
+            case Bezique.StateId.L9PLAYFIRST: return "L9PLAYFIRST";
+            case Bezique.StateId.L9PLAYLAST: return "L9PLAYLAST";
+            case Bezique.StateId.L9PLAYMID: return "L9PLAYMID";
+            case Bezique.StateId.ROUNDEND: return "ROUNDEND";
             default: return "?";
         }
     }
@@ -1591,12 +2100,16 @@ evaluateGuard = null;
     {
         switch (id)
         {
+            case Bezique.EventId.CARDSAVAILABLE: return "CARDSAVAILABLE";
             case Bezique.EventId.COMPLETE: return "COMPLETE";
+            case Bezique.EventId.CONTINUE: return "CONTINUE";
             case Bezique.EventId.DECKEMPTY: return "DECKEMPTY";
             case Bezique.EventId.DO: return "DO";
             case Bezique.EventId.FAILED: return "FAILED";
             case Bezique.EventId.HASMID: return "HASMID";
+            case Bezique.EventId.NOCARD: return "NOCARD";
             case Bezique.EventId.SUCCESS: return "SUCCESS";
+            case Bezique.EventId.WINNINGSCORE: return "WINNINGSCORE";
             default: return "?";
         }
     }
@@ -1635,7 +2148,7 @@ evaluateGuard = null;
             center: true
         });
 
-        const diagramEventNamesArray = ['do', 'Complete', 'DeckEmpty', 'Failed', 'HasMid', 'Success', ];
+        const diagramEventNamesArray = ['do', 'CardsAvailable', 'Complete', 'Continue', 'DeckEmpty', 'Failed', 'HasMid', 'NoCard', 'Success', 'WinningScore', ];
 
         // Mapping from state to available events
         const stateEventsMapping = {
@@ -1678,13 +2191,33 @@ evaluateGuard = null;
     "Complete"
   ],
   "NewTrick": [
-    "Complete"
+    "Complete",
+    "WinningScore"
   ],
   "AddOneCardToAll": [
     "Complete",
     "DeckEmpty"
   ],
-  "L9Play": []
+  "L9Play": [],
+  "L9PlayFirst": [
+    "Complete"
+  ],
+  "L9PlayMid": [
+    "Complete"
+  ],
+  "L9PlayLast": [
+    "Complete"
+  ],
+  "L9NewTrick": [
+    "CardsAvailable",
+    "NoCard",
+    "WinningScore"
+  ],
+  "RoundEnd": [
+    "Continue",
+    "WinningScore"
+  ],
+  "GameOver": []
 };
 
         // Get page element references

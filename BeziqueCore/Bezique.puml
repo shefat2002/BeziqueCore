@@ -59,6 +59,29 @@ AddOneCardToAll --> PlayFirst : Complete
 
 AddOneCardToAll --> L9Play : DeckEmpty
 
+state L9Play{
+    state L9PlayFirst
+    state L9PlayMid
+    state L9PlayLast
+    
+    [*]-> L9PlayFirst
+    L9PlayFirst --> L9PlayMid : Complete
+    L9PlayMid --> L9PlayLast : Complete        
+}
+
+L9PlayLast --> L9NewTrick : Complete
+L9NewTrick --> L9PlayFirst : CardsAvailable
+
+L9NewTrick -> RoundEnd : NoCard
+RoundEnd -> Deal : Continue
+
+
+RoundEnd -> GameOver : WinningScore
+NewTrick -> GameOver : WinningScore
+L9NewTrick -> GameOver : WinningScore
+
+
+
 
 
 
