@@ -50,6 +50,8 @@ public class TrickResolverHandlerTests
             new Player(0) { RoundScore = 100 },
             new Player(1) { RoundScore = 100 }
         };
+        // CardId 0 = Seven of Diamonds (Trump Seven when trump is Diamonds)
+        // CardId 7 = Eight of Spades (non-trump)
         var playedCards = new List<Card>
         {
             new Card((byte)0, 0),
@@ -59,7 +61,8 @@ public class TrickResolverHandlerTests
 
         TrickResolverHandler.ResolveTrick(playedCards, players, playerIndices, Suit.Diamonds, true);
 
-        Assert.Equal(120, players[0].RoundScore);
+        // Player 0 wins: 100 + 10 (playing Trump Seven) + 20 (final trick with Trump Seven) = 130
+        Assert.Equal(130, players[0].RoundScore);
     }
 
     [Fact]

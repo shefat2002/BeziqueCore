@@ -14,45 +14,22 @@ public class BeziqueGameControllerTests
         Assert.NotNull(controller.Context);
         Assert.Equal(9, controller.Players[0].Hand.Count);
         Assert.Equal(9, controller.Players[1].Hand.Count);
-        Assert.Equal(GameState.Play, controller.CurrentState);
     }
 
     [Fact]
-    public void PlayCard_Phase1_ValidCard_ReturnsTrue()
+    public void PlayCard_Phase1_ValidCard_RemovesFromHand()
     {
         var controller = new BeziqueGameController();
         controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 2, TargetScore = 1500 });
 
-        var card = controller.Players[0].Hand[0];
-        bool result = controller.PlayCard(card);
+        // Current turn player is 1 (after dealer), so get card from Player 1
+        var card = controller.Players[1].Hand[0];
+        int initialHandSize = controller.Players[1].Hand.Count;
 
-        Assert.True(result);
-        Assert.Single(controller.PlayedCards);
-        Assert.Equal(8, controller.Players[0].Hand.Count);
-    }
+        controller.PlayCard(card);
 
-    [Fact]
-    public void PlayCard_Phase1_AllPlayersPlayed_TransitionsToMeld()
-    {
-        var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 2, TargetScore = 1500 });
-
-        controller.PlayCard(controller.Players[0].Hand[0]);
-        controller.PlayCard(controller.Players[1].Hand[0]);
-
-        Assert.Equal(GameState.Meld, controller.CurrentState);
-    }
-
-    [Fact]
-    public void PlayCard_InvalidState_ReturnsFalse()
-    {
-        var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 2, TargetScore = 1500 });
-        controller.CurrentState = GameState.RoundEnd;
-
-        bool result = controller.PlayCard(controller.Players[0].Hand[0]);
-
-        Assert.False(result);
+        Assert.Equal(initialHandSize - 1, controller.Players[1].Hand.Count);
+        Assert.DoesNotContain(card, controller.Players[1].Hand);
     }
 
     [Fact]
@@ -69,38 +46,46 @@ public class BeziqueGameControllerTests
     }
 
     [Fact]
-    public void DeclareMeld_ValidMeld_ReturnsTrue()
+    public void DeclareMeld_ValidMeld_AddsPoints()
     {
         var controller = new BeziqueGameController();
         controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 2, TargetScore = 1500 });
 
-        // Force trump to Diamonds
+        // Set current turn player to 0 so they can meld
+        controller.Context.CurrentTurnPlayer = 0;
+
+        // Set up player with empty hand to avoid other melds
+        controller.Players[0].Hand.Clear();
+
+        // Force trump to Diamonds and set trump card
         controller.Context.TrumpSuit = Suit.Diamonds;
+        controller.Context.TrumpCard = new Card((byte)0, 99); // Not a Seven
 
-        controller.PlayCard(controller.Players[0].Hand[0]);
-        controller.PlayCard(controller.Players[1].Hand[0]);
-
-        // It's Player 1's turn now
+        // Add King and Queen of Diamonds to player's hand
+        // CardId 20 = King of Diamonds, CardId 16 = Queen of Diamonds
         var king = new Card((byte)20, 0);
         var queen = new Card((byte)16, 0);
-        controller.Players[1].Hand.Add(king);
-        controller.Players[1].Hand.Add(queen);
+        controller.Players[0].Hand.Add(king);
+        controller.Players[0].Hand.Add(queen);
 
-        bool result = controller.DeclareMeld(new[] { king, queen }, MeldType.TrumpMarriage);
+        int beforeScore = controller.Players[0].RoundScore;
 
-        Assert.True(result);
+        // Declare the meld - note: FindBestMeld will find Trump Marriage as the only/best meld
+        controller.DeclareMeld(new[] { king, queen }, MeldType.TrumpMarriage);
+
         // Trump Marriage is 40 points
-        Assert.Equal(40, MeldValidator.GetPoints(MeldType.TrumpMarriage));
+        Assert.Equal(beforeScore + 40, controller.Players[0].RoundScore);
     }
 
     [Fact]
-    public void DeclareMeld_WrongState_ReturnsFalse()
+    public void DeclareMeld_InvalidMeld_ReturnsFalse()
     {
         var controller = new BeziqueGameController();
         controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 2, TargetScore = 1500 });
 
-        var king = new Card((byte)20, 0);
-        var queen = new Card((byte)16, 0);
+        // Try to meld with cards not in hand
+        var king = new Card((byte)20, 99);
+        var queen = new Card((byte)16, 99);
         bool result = controller.DeclareMeld(new[] { king, queen }, MeldType.TrumpMarriage);
 
         Assert.False(result);
@@ -144,7 +129,6 @@ public class BeziqueGameControllerTests
 
         controller.Players[0].RoundScore = 100;
         controller.Players[1].RoundScore = 150;
-        controller.CurrentState = GameState.RoundEnd;
 
         controller.EndRound();
 
@@ -153,68 +137,108 @@ public class BeziqueGameControllerTests
     }
 
     [Fact]
-    public void EndRound_GameOver_ReturnsWinnerId()
+    public void CheckWinner_PlayerAtTargetScore_ReturnsPlayerId()
     {
         var controller = new BeziqueGameController();
         controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 2, TargetScore = 1500 });
 
-        controller.Players[0].RoundScore = 100;
-        controller.Players[1].RoundScore = 150;
-        controller.Players[0].TotalScore = 1400;
-        controller.Players[1].TotalScore = 1350;
-        controller.CurrentState = GameState.RoundEnd;
+        controller.Players[0].TotalScore = 1600;
+        controller.Players[1].TotalScore = 1200;
 
-        int winnerId = controller.EndRound();
+        int winnerId = controller.CheckWinner();
 
         Assert.Equal(0, winnerId);
-        Assert.Equal(GameState.GameOver, controller.CurrentState);
     }
 
     [Fact]
-    public void EndRound_NotGameOver_StartsNewRound()
+    public void CheckWinner_NoPlayerAtTargetScore_ReturnsNegativeOne()
     {
         var controller = new BeziqueGameController();
         controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 2, TargetScore = 1500 });
 
-        controller.Players[0].RoundScore = 100;
-        controller.Players[1].RoundScore = 150;
-        controller.CurrentState = GameState.RoundEnd;
+        controller.Players[0].TotalScore = 1200;
+        controller.Players[1].TotalScore = 1000;
 
-        controller.EndRound();
+        int winnerId = controller.CheckWinner();
 
-        Assert.Equal(GameState.Play, controller.CurrentState);
-        Assert.Equal(9, controller.Players[0].Hand.Count);
-        Assert.Equal(9, controller.Players[1].Hand.Count);
+        Assert.Equal(-1, winnerId);
     }
 
     [Fact]
-    public void PlayCard_AdvancesTurn()
+    public void CanSwapTrumpSeven_PlayerHasTrumpSevenAndTrumpNotSeven_ReturnsTrue()
     {
         var controller = new BeziqueGameController();
         controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 2, TargetScore = 1500 });
 
-        int initialTurn = controller.Context.CurrentTurnPlayer;
-        controller.PlayCard(controller.Players[0].Hand[0]);
+        // Set trump to Diamonds
+        controller.Context.TrumpSuit = Suit.Diamonds;
+        // Set trump card to something other than Seven (e.g., King of Diamonds = CardId 20)
+        controller.Context.TrumpCard = new Card((byte)20, 0);
 
-        Assert.NotEqual(initialTurn, controller.Context.CurrentTurnPlayer);
+        // Clear hand and add Seven of Diamonds (CardId 0)
+        controller.Players[0].Hand.Clear();
+        controller.Players[0].Hand.Add(new Card((byte)0, 0));
+
+        // Set current player to player 0
+        controller.Context.CurrentTurnPlayer = 0;
+
+        bool canSwap = controller.CanSwapTrumpSeven();
+
+        Assert.True(canSwap);
     }
 
     [Fact]
-    public void PlayCard_FourPlayers_AdvancesTurnCorrectly()
+    public void CanSwapTrumpSeven_PlayerDoesNotHaveTrumpSeven_ReturnsFalse()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 4, DeckCount = 2, TargetScore = 1500 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 2, TargetScore = 1500 });
 
-        Assert.Equal(0, controller.Context.CurrentTurnPlayer);
-        controller.PlayCard(controller.Players[0].Hand[0]);
-        Assert.Equal(1, controller.Context.CurrentTurnPlayer);
-        controller.PlayCard(controller.Players[1].Hand[0]);
-        Assert.Equal(2, controller.Context.CurrentTurnPlayer);
-        controller.PlayCard(controller.Players[2].Hand[0]);
-        Assert.Equal(3, controller.Context.CurrentTurnPlayer);
-        controller.PlayCard(controller.Players[3].Hand[0]);
-        // After all 4 players played, state transitions to Meld, turn stays at 3
-        Assert.Equal(3, controller.Context.CurrentTurnPlayer);
-        Assert.Equal(GameState.Meld, controller.CurrentState);
+        // Set trump to Diamonds
+        controller.Context.TrumpSuit = Suit.Diamonds;
+        controller.Context.TrumpCard = new Card((byte)20, 0);
+
+        // Clear player's hand - no Seven of Diamonds
+        controller.Players[0].Hand.Clear();
+        controller.Context.CurrentTurnPlayer = 0;
+
+        bool canSwap = controller.CanSwapTrumpSeven();
+
+        Assert.False(canSwap);
+    }
+
+    [Fact]
+    public void SwapTrumpSeven_ValidSwap_SwapsCardsAndAddsPoints()
+    {
+        var controller = new BeziqueGameController();
+        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 2, TargetScore = 1500 });
+
+        controller.Context.TrumpSuit = Suit.Diamonds;
+        var originalTrumpCard = new Card((byte)20, 0); // King of Diamonds
+        controller.Context.TrumpCard = originalTrumpCard;
+
+        // Clear hand and add Seven of Diamonds
+        controller.Players[0].Hand.Clear();
+        var trumpSeven = new Card((byte)0, 0); // Seven of Diamonds
+        controller.Players[0].Hand.Add(trumpSeven);
+        controller.Context.CurrentTurnPlayer = 0;
+
+        int beforeScore = controller.Players[0].RoundScore;
+        bool swapped = controller.SwapTrumpSeven();
+
+        Assert.True(swapped);
+        Assert.Equal(beforeScore + 10, controller.Players[0].RoundScore);
+        Assert.True(controller.Players[0].HasSwappedSeven);
+
+        // Verify the swap happened - the original trump card should now be in player's hand
+        bool hasOriginalTrump = false;
+        foreach (var c in controller.Players[0].Hand)
+        {
+            if (c.CardId == originalTrumpCard.CardId && c.DeckIndex == originalTrumpCard.DeckIndex)
+            {
+                hasOriginalTrump = true;
+                break;
+            }
+        }
+        Assert.True(hasOriginalTrump);
     }
 }
