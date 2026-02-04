@@ -30,7 +30,7 @@ state Play {
     state PlayMid
     state PlayLast
     
-    [*] -> PlayFirst
+    [*] --> PlayFirst
     PlayFirst -> PlayMid : HasMid
     PlayMid -> PlayLast : Complete
     PlayFirst -> PlayLast : Complete
