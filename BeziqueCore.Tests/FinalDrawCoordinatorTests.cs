@@ -16,9 +16,9 @@ public class FinalDrawCoordinatorTests
 
         FinalDrawCoordinator.ExecuteFinalDraw(players, winnerId: 0, trumpCard, drawDeck);
 
-        Assert.Equal(1, players[0].Hand.Count);
+        Assert.Single(players[0].Hand);
         Assert.Equal((byte)31, players[0].Hand[0].CardId);
-        Assert.Equal(1, players[1].Hand.Count);
+        Assert.Single(players[1].Hand);
         Assert.Equal((byte)0, players[1].Hand[0].CardId);
     }
 
@@ -36,9 +36,9 @@ public class FinalDrawCoordinatorTests
 
         FinalDrawCoordinator.ExecuteFinalDraw(players, winnerId: 1, trumpCard, drawDeck);
 
-        Assert.Equal(1, players[1].Hand.Count);
+        Assert.Single(players[1].Hand);
         Assert.Equal((byte)31, players[1].Hand[0].CardId);
-        Assert.Equal(1, players[0].Hand.Count);
+        Assert.Single(players[0].Hand);
         Assert.Equal((byte)0, players[0].Hand[0].CardId);
     }
 
@@ -58,13 +58,13 @@ public class FinalDrawCoordinatorTests
 
         FinalDrawCoordinator.ExecuteFinalDraw(players, winnerId: 0, trumpCard, drawDeck);
 
-        Assert.Equal(1, players[0].Hand.Count);
+        Assert.Single(players[0].Hand);
         Assert.Equal((byte)31, players[0].Hand[0].CardId);
-        Assert.Equal(1, players[1].Hand.Count);
+        Assert.Single(players[1].Hand);
         Assert.Equal((byte)0, players[1].Hand[0].CardId);
-        Assert.Equal(1, players[2].Hand.Count);
+        Assert.Single(players[2].Hand);
         Assert.Equal((byte)0, players[2].Hand[0].CardId);
-        Assert.Equal(1, players[3].Hand.Count);
+        Assert.Single(players[3].Hand);
         Assert.Equal((byte)0, players[3].Hand[0].CardId);
     }
 
@@ -73,10 +73,10 @@ public class FinalDrawCoordinatorTests
     {
         var players = new[]
         {
-            new Player { PlayerID = 0, Hand = new List<Card>() },
-            new Player { PlayerID = 1, Hand = new List<Card>() },
-            new Player { PlayerID = 2, Hand = new List<Card>() },
-            new Player { PlayerID = 3, Hand = new List<Card>() }
+            new Player(0) { Hand = new List<Card>() },
+            new Player(1) { Hand = new List<Card>() },
+            new Player(2) { Hand = new List<Card>() },
+            new Player(3) { Hand = new List<Card>() }
         };
         var trumpCard = new Card((byte)5, 1);
         var drawDeck = new Stack<Card>();
@@ -84,7 +84,7 @@ public class FinalDrawCoordinatorTests
 
         FinalDrawCoordinator.ExecuteFinalDraw(players, winnerId: 2, trumpCard, drawDeck);
 
-        Assert.Equal(1, players[2].Hand.Count);
+        Assert.Single(players[2].Hand);
         Assert.Equal((byte)28, players[2].Hand[0].CardId);
         Assert.All(players.Where(p => p.PlayerID != 2), p => Assert.Single(p.Hand));
         Assert.All(players.Where(p => p.PlayerID != 2), p => Assert.Equal((byte)5, p.Hand[0].CardId));
@@ -95,8 +95,8 @@ public class FinalDrawCoordinatorTests
     {
         var players = new[]
         {
-            new Player { PlayerID = 0, Hand = new List<Card> { new Card((byte)10, 0) } },
-            new Player { PlayerID = 1, Hand = new List<Card> { new Card((byte)11, 1) } }
+            new Player(0) { Hand = new List<Card> { new Card((byte)10, 0) } },
+            new Player(1) { Hand = new List<Card> { new Card((byte)11, 1) } }
         };
         var trumpCard = new Card((byte)0, 0);
         var drawDeck = new Stack<Card>();
