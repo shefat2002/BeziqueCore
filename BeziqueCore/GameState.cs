@@ -48,7 +48,8 @@ public static class GameInitializer
             TrumpSuit = trumpSuit,
             CurrentPhase = GamePhase.Phase1_Normal,
             CurrentTurnPlayer = 0,
-            LastTrickWinner = 0
+            LastTrickWinner = 0,
+            GameMode = config.Mode
         };
 
         if (trumpCard.Rank == Rank.Seven)
@@ -96,7 +97,24 @@ public static class TrickResolverHandler
 
         if (isFinalTrick)
         {
-            players[playerIndices[winnerIndex]].RoundScore += 10;
+            bool winnerUsedTrumpSeven = false;
+            for (int i = 0; i < playedCards.Count; i++)
+            {
+                if (i == winnerIndex && TrumpSevenDetector.IsTrumpSeven(playedCards[i], trump))
+                {
+                    winnerUsedTrumpSeven = true;
+                    break;
+                }
+            }
+
+            if (winnerUsedTrumpSeven)
+            {
+                players[playerIndices[winnerIndex]].RoundScore += 20;
+            }
+            else
+            {
+                players[playerIndices[winnerIndex]].RoundScore += 10;
+            }
         }
 
         int winnerPlayerId = playerIndices[winnerIndex];
@@ -121,6 +139,42 @@ public static class MeldStateHandler
     {
         return MeldValidator.TryExecuteMeld(player, cards, meldType, trump);
     }
+
+    public static bool CanSwapTrumpSeven(Player player, Card trumpCard, Suit trump)
+    {
+        if (player.HasSwappedSeven) return false;
+        if (trumpCard.Rank == Rank.Seven) return false;
+
+        for (int i = 0; i < player.Hand.Count; i++)
+        {
+            if (TrumpSevenDetector.IsTrumpSeven(player.Hand[i], trump))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static bool SwapTrumpSeven(Player player, ref Card trumpCard, Suit trump)
+    {
+        if (!CanSwapTrumpSeven(player, trumpCard, trump)) return false;
+
+        for (int i = 0; i < player.Hand.Count; i++)
+        {
+            if (TrumpSevenDetector.IsTrumpSeven(player.Hand[i], trump))
+            {
+                var temp = player.Hand[i];
+                player.Hand[i] = trumpCard;
+                trumpCard = temp;
+                player.HasSwappedSeven = true;
+                player.RoundScore += 10;
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
 
 public static class NewTrickHandler
@@ -134,8 +188,10 @@ public static class NewTrickHandler
 
 public static class RoundEndHandler
 {
-    public static int EndRound(Player[] players, int winningScoreThreshold)
+    public static int EndRound(Player[] players, GameMode mode, byte playerCount)
     {
+        ScoringManager.CalculateRoundScores(players, mode, playerCount);
+
         int highestScore = int.MinValue;
         int winnerId = -1;
 
@@ -148,24 +204,29 @@ public static class RoundEndHandler
             }
         }
 
-        for (int i = 0; i < players.Length; i++)
-        {
-            players[i].TotalScore += players[i].RoundScore;
-        }
-
         return winnerId;
     }
 
-    public static bool CheckGameOver(Player[] players, int winningScoreThreshold)
+    public static void ResetRound(Player[] players)
     {
         for (int i = 0; i < players.Length; i++)
         {
-            if (players[i].TotalScore >= winningScoreThreshold)
-            {
-                return true;
-            }
+            players[i].RoundScore = 0;
+            players[i].Hand.Clear();
+            players[i].TableCards.Clear();
+            players[i].WonPile.Clear();
+            players[i].HasSwappedSeven = false;
+            players[i].MeldHistory.Clear();
         }
+    }
 
-        return false;
+    public static bool CheckGameOver(Player[] players, ushort winningScoreThreshold)
+    {
+        return ScoringManager.HasAnyPlayerReachedTarget(players, winningScoreThreshold);
+    }
+
+    public static int GetFinalWinner(Player[] players)
+    {
+        return ScoringManager.GetWinnerId(players);
     }
 }

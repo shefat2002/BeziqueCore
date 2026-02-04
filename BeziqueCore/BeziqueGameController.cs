@@ -43,6 +43,10 @@ public class BeziqueGameController
 
     public bool DeclareMeld(Card[] cards, MeldType meldType) => _adapter.DeclareMeld(cards, meldType);
 
+    public bool CanSwapTrumpSeven() => _adapter.CanSwapTrumpSeven();
+
+    public bool SwapTrumpSeven() => _adapter.SwapTrumpSeven();
+
     public void SkipMeld() => _adapter.SkipMeld();
 
     public void ResolveTrick() => _adapter.ResolveTrick();

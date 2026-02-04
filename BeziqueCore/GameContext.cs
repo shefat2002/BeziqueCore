@@ -8,6 +8,7 @@ public class GameContext
     public GamePhase CurrentPhase { get; set; }
     public int CurrentTurnPlayer { get; set; }
     public int LastTrickWinner { get; set; }
+    public GameMode GameMode { get; set; }
 
     public GameContext()
     {
@@ -15,5 +16,6 @@ public class GameContext
         CurrentPhase = GamePhase.Phase1_Normal;
         CurrentTurnPlayer = 0;
         LastTrickWinner = 0;
+        GameMode = GameMode.Standard;
     }
 }

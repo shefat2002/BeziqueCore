@@ -146,6 +146,24 @@ public class BeziqueAdapter : IBeziqueAdapter
         _meldDeclared = false;
     }
 
+    public bool CanSwapTrumpSeven()
+    {
+        int currentPlayer = _controller.Context.CurrentTurnPlayer;
+        return MeldStateHandler.CanSwapTrumpSeven(_controller.Players[currentPlayer], _controller.Context.TrumpCard, _controller.Context.TrumpSuit);
+    }
+
+    public bool SwapTrumpSeven()
+    {
+        int currentPlayer = _controller.Context.CurrentTurnPlayer;
+        var trumpCard = _controller.Context.TrumpCard;
+        bool success = MeldStateHandler.SwapTrumpSeven(_controller.Players[currentPlayer], ref trumpCard, _controller.Context.TrumpSuit);
+        if (success)
+        {
+            _controller.Context.TrumpCard = trumpCard;
+        }
+        return success;
+    }
+
     public int CheckWinner()
     {
         for (int i = 0; i < _controller.Players.Length; i++)
@@ -162,18 +180,7 @@ public class BeziqueAdapter : IBeziqueAdapter
 
     public int EndRound()
     {
-        int highestScore = int.MinValue;
-        int winnerId = -1;
-
-        for (int i = 0; i < _controller.Players.Length; i++)
-        {
-            if (_controller.Players[i].RoundScore > highestScore)
-            {
-                highestScore = _controller.Players[i].RoundScore;
-                winnerId = i;
-            }
-        }
-
+        int winnerId = RoundEndHandler.EndRound(_controller.Players, _controller.Context.GameMode, _controller.PlayerCount);
         return winnerId;
     }
 
