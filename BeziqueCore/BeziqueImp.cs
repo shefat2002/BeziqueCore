@@ -139,10 +139,13 @@ public class BeziqueAdapter : IBeziqueAdapter
 
         if (bestMeld.Type != meldType) return false;
 
+        int beforeScore = _controller.Players[currentPlayer].RoundScore;
         if (!MeldStateHandler.DeclareMeld(_controller.Players[currentPlayer], cards, meldType, _controller.Context.TrumpSuit))
             return false;
 
         _meldDeclared = true;
+        int points = _controller.Players[currentPlayer].RoundScore - beforeScore;
+        _controller.OnMeldDeclared(currentPlayer, meldType, points);
         return true;
     }
 
@@ -189,7 +192,75 @@ public class BeziqueAdapter : IBeziqueAdapter
         return winnerId;
     }
 
-    // IBeziqueAdapter explicit interface for EndRound is above
+    // New Gateway Methods
+    public void DrawCards()
+    {
+        int winnerId = _controller.Context.LastTrickWinner;
+
+        if (_controller.Context.DrawDeck.Count == 0)
+            return;
+
+        // Check for phase transition - ExecuteDraw handles it automatically
+        bool transitioned = PhaseTransitionManager.ExecuteDraw(_controller.Players, winnerId, _controller.Context.TrumpCard, _controller.Context.DrawDeck, _controller.PlayerCount);
+
+        if (transitioned)
+        {
+            _controller.Context.CurrentPhase = GamePhase.Phase2_Last9;
+            _controller.OnPhaseChanged(GamePhase.Phase2_Last9);
+        }
+    }
+
+    public bool CanMeld()
+    {
+        // Only trick winner can meld, and only in Phase 1
+        if (_controller.Context.CurrentPhase != GamePhase.Phase1_Normal)
+            return false;
+
+        int currentPlayer = _controller.Context.CurrentTurnPlayer;
+        return currentPlayer == _controller.Context.LastTrickWinner;
+    }
+
+    public bool CheckPhaseTransition()
+    {
+        return _controller.Context.DrawDeck.Count == _controller.PlayerCount;
+    }
+
+    public Card[] GetLegalMoves()
+    {
+        int currentPlayer = _controller.Context.CurrentTurnPlayer;
+        var hand = _controller.Players[currentPlayer].Hand;
+        var tableCards = _controller.Players[currentPlayer].TableCards;
+
+        if (_controller.Context.CurrentPhase == GamePhase.Phase1_Normal)
+        {
+            // In Phase 1, any card from Hand or TableCards can be played
+            return hand.Concat(tableCards).ToArray();
+        }
+        else if (_controller.Context.CurrentPhase == GamePhase.Phase2_Last9)
+        {
+            // Phase 2: Strict validation
+            var leadSuit = _controller.PlayedCards.Count > 0 ? _controller.PlayedCards[0].Suit : Suit.None;
+            var currentWinner = _controller.PlayedCards.Count > 0 ? _controller.PlayedCards[0] : (Card?)null;
+
+            var legalMoves = new List<Card>();
+            foreach (var card in hand.Concat(tableCards))
+            {
+                if (Phase2MoveValidator.IsLegalMove(hand.Concat(tableCards).ToList(), card, leadSuit, currentWinner, _controller.Context.TrumpSuit))
+                {
+                    legalMoves.Add(card);
+                }
+            }
+            return legalMoves.ToArray();
+        }
+
+        return Array.Empty<Card>();
+    }
+
+    public MeldOpportunity? GetBestMeld()
+    {
+        int currentPlayer = _controller.Context.CurrentTurnPlayer;
+        return MeldValidator.FindBestMeld(_controller.Players[currentPlayer], _controller.Context.TrumpSuit);
+    }
 
     // Internal
     private void ResolveTrickInternal()
@@ -201,14 +272,17 @@ public class BeziqueAdapter : IBeziqueAdapter
         int winnerId = TrickResolverHandler.ResolveTrick(_controller.PlayedCards, _controller.Players, playerIndices, _controller.Context.TrumpSuit, isFinalTrick);
 
         _controller.Context.LastTrickWinner = winnerId;
+        _controller.OnTrickEnded(winnerId, isFinalTrick);
 
         if (isFinalTrick)
         {
             _controller.SetState(GameState.RoundEnd);
+            _controller.OnGameEnded(winnerId);
         }
         else if (_controller.Context.DrawDeck.Count == 0)
         {
             _controller.Context.CurrentPhase = GamePhase.Phase2_Last9;
+            _controller.OnPhaseChanged(GamePhase.Phase2_Last9);
             _controller.SetState(GameState.L9NewTrick);
         }
         else
