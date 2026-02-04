@@ -7,8 +7,8 @@ public class FinalDrawCoordinatorTests
     {
         var players = new[]
         {
-            new Player { PlayerID = 0, Hand = new List<Card>() },
-            new Player { PlayerID = 1, Hand = new List<Card>() }
+            new Player(0) { Hand = new List<Card>() },
+            new Player(1) { Hand = new List<Card>() }
         };
         var trumpCard = new Card((byte)0, 0);
         var drawDeck = new Stack<Card>();
@@ -27,8 +27,8 @@ public class FinalDrawCoordinatorTests
     {
         var players = new[]
         {
-            new Player { PlayerID = 0, Hand = new List<Card>() },
-            new Player { PlayerID = 1, Hand = new List<Card>() }
+            new Player(0) { Hand = new List<Card>() },
+            new Player(1) { Hand = new List<Card>() }
         };
         var trumpCard = new Card((byte)0, 0);
         var drawDeck = new Stack<Card>();
@@ -47,10 +47,10 @@ public class FinalDrawCoordinatorTests
     {
         var players = new[]
         {
-            new Player { PlayerID = 0, Hand = new List<Card>() },
-            new Player { PlayerID = 1, Hand = new List<Card>() },
-            new Player { PlayerID = 2, Hand = new List<Card>() },
-            new Player { PlayerID = 3, Hand = new List<Card>() }
+            new Player(0) { Hand = new List<Card>() },
+            new Player(1) { Hand = new List<Card>() },
+            new Player(2) { Hand = new List<Card>() },
+            new Player(3) { Hand = new List<Card>() }
         };
         var trumpCard = new Card((byte)0, 0);
         var drawDeck = new Stack<Card>();
