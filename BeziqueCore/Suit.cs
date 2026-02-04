@@ -5,5 +5,6 @@ public enum Suit : byte
     Diamonds,
     Clubs,
     Hearts,
-    Spades
+    Spades,
+    None
 }

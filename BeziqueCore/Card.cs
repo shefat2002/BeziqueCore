@@ -12,7 +12,7 @@ public readonly struct Card : IEquatable<Card>
     }
 
     public bool IsJoker => CardId == 32;
-    public Suit Suit => IsJoker ? Suit.Diamonds : (Suit)(CardId % 4);
+    public Suit Suit => IsJoker ? Suit.None : (Suit)(CardId % 4);
     public Rank Rank => IsJoker ? (Rank)15 : (Rank)(7 + CardId / 4);
 
     public bool Equals(Card other) => CardId == other.CardId && DeckIndex == other.DeckIndex;
