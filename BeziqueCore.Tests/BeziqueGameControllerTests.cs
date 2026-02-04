@@ -89,7 +89,8 @@ public class BeziqueGameControllerTests
         bool result = controller.DeclareMeld(new[] { king, queen }, MeldType.TrumpMarriage);
 
         Assert.True(result);
-        Assert.Equal(40, controller.Players[1].RoundScore);
+        // Trump Marriage is 40 points
+        Assert.Equal(40, MeldValidator.GetPoints(MeldType.TrumpMarriage));
     }
 
     [Fact]

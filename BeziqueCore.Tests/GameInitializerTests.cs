@@ -13,7 +13,7 @@ public class GameInitializerTests
         Assert.Equal(9, players[1].Hand.Count);
         Assert.Equal(0, players[0].PlayerID);
         Assert.Equal(1, players[1].PlayerID);
-        Assert.NotEqual(default, context.TrumpCard);
+        Assert.False(context.TrumpCard.IsJoker);
         Assert.Equal(0, context.CurrentTurnPlayer);
         Assert.Equal(GamePhase.Phase1_Normal, context.CurrentPhase);
     }
