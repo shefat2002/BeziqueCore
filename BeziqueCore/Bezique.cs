@@ -12,12 +12,13 @@ public partial class Bezique
     {
         DO = 0, // The `do` event is special. State event handlers do not consume this event (ancestors all get it too) unless a transition occurs.
         COMPLETE = 1,
-        FAILED = 2,
-        HASMID = 3,
-        SUCCESS = 4,
+        DECKEMPTY = 2,
+        FAILED = 3,
+        HASMID = 4,
+        SUCCESS = 5,
     }
 
-    public const int EventIdCount = 5;
+    public const int EventIdCount = 6;
 
     public enum StateId
     {
@@ -38,9 +39,10 @@ public partial class Bezique
         PLAYLAST = 14,
         PLAYMID = 15,
         SELECTTRUMP = 16,
+        L9PLAY = 17,
     }
 
-    public const int StateIdCount = 17;
+    public const int StateIdCount = 18;
 
     // Used internally by state machine. Feel free to inspect, but don't modify.
     public StateId stateId;
@@ -107,6 +109,7 @@ public partial class Bezique
                 switch (eventId)
                 {
                     case EventId.COMPLETE: ADDONECARDTOALL_complete(); break;
+                    case EventId.DECKEMPTY: ADDONECARDTOALL_deckempty(); break;
                 }
                 break;
 
@@ -195,6 +198,7 @@ public partial class Bezique
                 switch (eventId)
                 {
                     case EventId.HASMID: PLAYFIRST_hasmid(); break;
+                    case EventId.COMPLETE: PLAYFIRST_complete(); break;
                 }
                 break;
 
@@ -220,6 +224,11 @@ public partial class Bezique
                 {
                     case EventId.COMPLETE: SELECTTRUMP_complete(); break;
                 }
+                break;
+
+            // STATE: L9Play
+            case StateId.L9PLAY:
+                // No events handled by this state (or its ancestors).
                 break;
         }
 
@@ -265,6 +274,8 @@ public partial class Bezique
 
                 case StateId.SELECTTRUMP: SELECTTRUMP_exit(); break;
 
+                case StateId.L9PLAY: L9PLAY_exit(); break;
+
                 default: return;  // Just to be safe. Prevents infinite loop if state ID memory is somehow corrupted.
             }
         }
@@ -309,6 +320,26 @@ public partial class Bezique
             DEAL_enter();
             PLAY_enter();
             PLAYFIRST_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for AddOneCardToAll
+
+        // No ancestor handles this event.
+    }
+
+    private void ADDONECARDTOALL_deckempty()
+    {
+        // AddOneCardToAll behavior
+        // uml: DeckEmpty TransitionTo(L9Play)
+        {
+            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
+            ADDONECARDTOALL_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `L9Play`.
+            L9PLAY_enter();
 
             // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
             return;
@@ -677,6 +708,26 @@ public partial class Bezique
         this.stateId = StateId.PLAY;
     }
 
+    private void PLAYFIRST_complete()
+    {
+        // PlayFirst behavior
+        // uml: Complete TransitionTo(PlayLast)
+        {
+            // Step 1: Exit states until we reach `Play` state (Least Common Ancestor for transition).
+            PLAYFIRST_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `PlayLast`.
+            PLAYLAST_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for PlayFirst
+
+        // No ancestor handles this event.
+    }
+
     private void PLAYFIRST_hasmid()
     {
         // PlayFirst behavior
@@ -824,6 +875,21 @@ public partial class Bezique
         // No ancestor handles this event.
     }
 
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state L9PLAY
+    ////////////////////////////////////////////////////////////////////////////////
+
+    private void L9PLAY_enter()
+    {
+        this.stateId = StateId.L9PLAY;
+    }
+
+    private void L9PLAY_exit()
+    {
+        this.stateId = StateId.ROOT;
+    }
+
     // Thread safe.
     public static string StateIdToString(StateId id)
     {
@@ -846,6 +912,7 @@ public partial class Bezique
             case StateId.PLAYLAST: return "PLAYLAST";
             case StateId.PLAYMID: return "PLAYMID";
             case StateId.SELECTTRUMP: return "SELECTTRUMP";
+            case StateId.L9PLAY: return "L9PLAY";
             default: return "?";
         }
     }
@@ -856,6 +923,7 @@ public partial class Bezique
         switch (id)
         {
             case EventId.COMPLETE: return "COMPLETE";
+            case EventId.DECKEMPTY: return "DECKEMPTY";
             case EventId.DO: return "DO";
             case EventId.FAILED: return "FAILED";
             case EventId.HASMID: return "HASMID";

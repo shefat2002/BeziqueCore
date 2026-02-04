@@ -14,7 +14,7 @@ skinparam stateMessageAlignment center
 
 
 state Deal {
-    state DealFirst : enter/ _adapter
+    state DealFirst
     state DealMid
     state DealLast
 
@@ -56,6 +56,8 @@ AddPoint --> NewTrick : Complete
 NewTrick -> AddOneCardToAll : Complete
 
 AddOneCardToAll --> PlayFirst : Complete
+
+AddOneCardToAll --> L9Play : DeckEmpty
 
 
 
