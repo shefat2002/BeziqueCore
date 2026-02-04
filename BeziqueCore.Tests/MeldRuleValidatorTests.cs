@@ -29,8 +29,8 @@ public class MeldRuleValidatorTests
     [Fact]
     public void ValidateMeld_NonTrumpMarriage_ReturnsTrue_WhenValid()
     {
-        var cards = new[] { new Card(20, 0), new Card(18, 0) };
-        var result = MeldRuleValidator.ValidateMeld(MeldType.NonTrumpMarriage, cards, Suit.Hearts);
+        var cards = new[] { new Card(22, 0), new Card(18, 0) };
+        var result = MeldRuleValidator.ValidateMeld(MeldType.NonTrumpMarriage, cards, Suit.Spades);
         Assert.True(result);
     }
 
@@ -45,39 +45,39 @@ public class MeldRuleValidatorTests
     [Fact]
     public void ValidateMeld_Bezique_ReturnsTrue_WhenValid()
     {
-        var cards = new[] { new Card(15, 0), new Card(12, 0) };
-        var result = MeldRuleValidator.ValidateMeld(MeldType.Bezique, cards, Suit.Clubs);
+        var cards = new[] { new Card(19, 0), new Card(12, 0) };
+        var result = MeldRuleValidator.ValidateMeld(MeldType.Bezique, cards, Suit.Hearts);
         Assert.True(result);
     }
 
     [Fact]
     public void ValidateMeld_Bezique_ReturnsFalse_WhenWrongCards()
     {
-        var cards = new[] { new Card(15, 0), new Card(14, 0) };
-        var result = MeldRuleValidator.ValidateMeld(MeldType.Bezique, cards, Suit.Clubs);
+        var cards = new[] { new Card(19, 0), new Card(14, 0) };
+        var result = MeldRuleValidator.ValidateMeld(MeldType.Bezique, cards, Suit.Hearts);
         Assert.False(result);
     }
 
     [Fact]
     public void ValidateMeld_DoubleBezique_ReturnsTrue_WhenValid()
     {
-        var cards = new[] { new Card(15, 0), new Card(15, 1), new Card(12, 0), new Card(12, 1) };
-        var result = MeldRuleValidator.ValidateMeld(MeldType.DoubleBezique, cards, Suit.Clubs);
+        var cards = new[] { new Card(19, 0), new Card(19, 1), new Card(12, 0), new Card(12, 1) };
+        var result = MeldRuleValidator.ValidateMeld(MeldType.DoubleBezique, cards, Suit.Diamonds);
         Assert.True(result);
     }
 
     [Fact]
     public void ValidateMeld_DoubleBezique_ReturnsFalse_WhenNotEnoughCards()
     {
-        var cards = new[] { new Card(15, 0), new Card(15, 1), new Card(12, 0) };
-        var result = MeldRuleValidator.ValidateMeld(MeldType.DoubleBezique, cards, Suit.Clubs);
+        var cards = new[] { new Card(19, 0), new Card(19, 1), new Card(12, 0) };
+        var result = MeldRuleValidator.ValidateMeld(MeldType.DoubleBezique, cards, Suit.Diamonds);
         Assert.False(result);
     }
 
     [Fact]
     public void ValidateMeld_TrumpRun_ReturnsTrue_WhenValid()
     {
-        var cards = new[] { new Card(30, 0), new Card(25, 0), new Card(22, 0), new Card(18, 0), new Card(13, 0) };
+        var cards = new[] { new Card(28, 0), new Card(24, 0), new Card(20, 0), new Card(16, 0), new Card(12, 0) };
         var result = MeldRuleValidator.ValidateMeld(MeldType.TrumpRun, cards, Suit.Diamonds);
         Assert.True(result);
     }
@@ -85,7 +85,7 @@ public class MeldRuleValidatorTests
     [Fact]
     public void ValidateMeld_TrumpRun_ReturnsFalse_WhenMissingCard()
     {
-        var cards = new[] { new Card(30, 0), new Card(25, 0), new Card(22, 0), new Card(18, 0) };
+        var cards = new[] { new Card(28, 0), new Card(24, 0), new Card(20, 0), new Card(16, 0) };
         var result = MeldRuleValidator.ValidateMeld(MeldType.TrumpRun, cards, Suit.Diamonds);
         Assert.False(result);
     }
