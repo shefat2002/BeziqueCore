@@ -108,10 +108,14 @@ public class BeziqueAdapter : IBeziqueAdapter
 
     public void MeldSuccess()
     {
+        // Meld was successfully declared, now dispatch COMPLETE to move to NewTrick
+        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
     }
 
     public void MeldFailed()
     {
+        // Meld was skipped or failed, dispatch COMPLETE to move to NewTrick
+        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
     }
 
     // Trick Transition Methods
@@ -312,12 +316,9 @@ public class BeziqueAdapter : IBeziqueAdapter
         int points = _controller.Players[currentPlayer].RoundScore - beforeScore;
         _controller.OnMeldDeclared(currentPlayer, meldType, points);
 
-        // Dispatch success event to move FSM from TryMelded -> Melded
+        // Dispatch SUCCESS to move FSM from TryMelded -> Melded
+        // FSM will then call MeldSuccess() which dispatches COMPLETE to move to NewTrick
         _stateMachine.DispatchEvent(Bezique.EventId.SUCCESS);
-
-        // Dispatch COMPLETE to move FSM from Melded -> NewTrick
-        // This prevents the deadlock where FSM gets stuck in Melded state
-        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
 
         return true;
     }
