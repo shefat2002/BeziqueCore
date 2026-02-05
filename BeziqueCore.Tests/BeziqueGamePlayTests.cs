@@ -6,7 +6,7 @@ public class BeziqueGamePlayTests
     public void FullGame_TwoPlayerStandard_CompleteGameFlow()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 2 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 4 });
 
         Assert.Equal(2, controller.PlayerCount);
         Assert.Equal(9, controller.Players[0].Hand.Count);
@@ -40,7 +40,7 @@ public class BeziqueGamePlayTests
     public void FullGame_PhaseTransition_DetectsCorrectly()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 1 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 4 });
 
         int initialDeckCount = controller.Context.DrawDeck.Count;
 
@@ -68,7 +68,7 @@ public class BeziqueGamePlayTests
     public void FullGame_TrumpSevenSwap_ExecutesSuccessfully()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 1 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 4 });
 
         controller.Context.TrumpSuit = Suit.Diamonds;
         controller.Context.TrumpCard = new Card((byte)20, 0);
@@ -91,7 +91,7 @@ public class BeziqueGamePlayTests
     public void FullGame_MeldDeclaration_TrumpMarriageScoresPoints()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 2 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 4 });
 
         controller.Context.TrumpSuit = Suit.Diamonds;
         controller.Context.CurrentTurnPlayer = 0;
@@ -115,7 +115,7 @@ public class BeziqueGamePlayTests
     public void FullGame_BeziqueMeld_ScoresCorrectly()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 2 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 4 });
 
         controller.Context.CurrentTurnPlayer = 0;
         controller.Context.LastTrickWinner = 0;
@@ -140,7 +140,7 @@ public class BeziqueGamePlayTests
     public void FullGame_DoubleBezique_Scores500Points()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 2 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 4 });
 
         controller.Context.CurrentTurnPlayer = 0;
         controller.Context.LastTrickWinner = 0;
@@ -166,7 +166,7 @@ public class BeziqueGamePlayTests
     public void FullGame_TrumpRun_Scores250Points()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 2 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 4 });
 
         controller.Context.TrumpSuit = Suit.Diamonds;
         controller.Context.CurrentTurnPlayer = 0;
@@ -193,7 +193,7 @@ public class BeziqueGamePlayTests
     public void FullGame_AdvancedMode_AceTenCount_AddsBonus()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Advanced, TargetScore = 500, DeckCount = 2 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Advanced, TargetScore = 500, DeckCount = 4 });
 
         controller.Players[0].RoundScore = 100;
         controller.Players[0].TotalScore = 400;
@@ -214,7 +214,7 @@ public class BeziqueGamePlayTests
     public void FullGame_AdvancedMode_BelowThreshold_NoBonus()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Advanced, TargetScore = 500, DeckCount = 2 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Advanced, TargetScore = 500, DeckCount = 4 });
 
         controller.Players[0].RoundScore = 100;
         controller.Players[0].TotalScore = 400;
@@ -233,7 +233,7 @@ public class BeziqueGamePlayTests
     public void FullGame_Debug_BeziqueMeld_FindBestMeld()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 2 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 4 });
 
         controller.Context.CurrentTurnPlayer = 0;
         controller.Context.LastTrickWinner = 0;
@@ -268,7 +268,7 @@ public class BeziqueGamePlayTests
     public void FullGame_Phase2_StrictValidation_OnlyLegalMovesAllowed()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 2 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 4 });
 
         controller.Context.CurrentPhase = GamePhase.Phase2_Last9;
         controller.Context.CurrentTurnPlayer = 1;
@@ -327,7 +327,7 @@ public class BeziqueGamePlayTests
     public void FullGame_FourPlayer_DealingWorksCorrectly()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 4, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 2 });
+        controller.Initialize(new GameConfig { PlayerCount = 4, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 4 });
 
         Assert.Equal(4, controller.PlayerCount);
         for (int i = 0; i < 4; i++)
@@ -340,7 +340,7 @@ public class BeziqueGamePlayTests
     public void FullGame_JokerSubstitutionInFourAces_WorksCorrectly()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 2 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 4 });
 
         controller.Context.CurrentTurnPlayer = 0;
         controller.Context.LastTrickWinner = 0;
@@ -365,7 +365,7 @@ public class BeziqueGamePlayTests
     public void FullGame_TwoJokersInFourAces_FailsValidation()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 2 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 4 });
 
         controller.Context.CurrentTurnPlayer = 0;
         controller.Context.LastTrickWinner = 0;
@@ -388,7 +388,7 @@ public class BeziqueGamePlayTests
     public void FullGame_CardReuse_SameMeldType_Fails()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 2 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 4 });
 
         controller.Context.TrumpSuit = Suit.Diamonds;
         controller.Context.CurrentTurnPlayer = 0;
@@ -414,7 +414,7 @@ public class BeziqueGamePlayTests
     public void FullGame_Events_TrickEnded_FiresCorrectly()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 2 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 4 });
 
         bool eventFired = false;
         controller.TrickEnded += (s, e) => eventFired = true;
@@ -429,7 +429,7 @@ public class BeziqueGamePlayTests
     public void FullGame_Events_MeldDeclaredEvent_FiresWhenMelding()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 2 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 4 });
 
         bool eventFired = false;
         controller.MeldDeclared += (s, e) => eventFired = true;
@@ -454,7 +454,7 @@ public class BeziqueGamePlayTests
     public void FullGame_FourAcesWithJoker_Scores100Points()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 2 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 4 });
 
         controller.Context.CurrentTurnPlayer = 0;
         controller.Context.LastTrickWinner = 0;
@@ -479,7 +479,7 @@ public class BeziqueGamePlayTests
     public void FullGame_NonTrumpMarriage_Scores20Points()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 2 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 4 });
 
         controller.Context.TrumpSuit = Suit.Diamonds;
         controller.Context.CurrentTurnPlayer = 0;
@@ -523,7 +523,7 @@ public class BeziqueGamePlayTests
     public void FullGame_DealerBonus_TrumpCardIsSeven_Awards10Points()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 1 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, Mode = GameMode.Standard, TargetScore = 500, DeckCount = 4 });
 
         bool dealerBonus = controller.Players[1].RoundScore == 10;
         Assert.True(controller.Players[1].RoundScore >= 0);

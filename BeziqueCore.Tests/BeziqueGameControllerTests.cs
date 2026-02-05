@@ -6,7 +6,7 @@ public class BeziqueGameControllerTests
     public void Initialize_CreatesPlayersAndContext()
     {
         var controller = new BeziqueGameController();
-        var config = new GameConfig { PlayerCount = 2, DeckCount = 2, TargetScore = 1500 };
+        var config = new GameConfig { PlayerCount = 2, DeckCount = 4, TargetScore = 1500 };
 
         controller.Initialize(config);
 
@@ -20,7 +20,7 @@ public class BeziqueGameControllerTests
     public void PlayCard_Phase1_ValidCard_RemovesFromHand()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 2, TargetScore = 1500 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 4, TargetScore = 1500 });
 
         // Current turn player is 1 (after dealer), so get card from Player 1
         var card = controller.Players[1].Hand[0];
@@ -36,7 +36,7 @@ public class BeziqueGameControllerTests
     public void PlayCard_Phase1_InvalidCard_ReturnsFalse()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 2, TargetScore = 1500 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 4, TargetScore = 1500 });
 
         // Use a card from deck index 99 which definitely won't be in any hand
         var card = new Card((byte)0, 99);
@@ -49,7 +49,7 @@ public class BeziqueGameControllerTests
     public void DeclareMeld_ValidMeld_AddsPoints()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 2, TargetScore = 1500 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 4, TargetScore = 1500 });
 
         // Set current turn player to 0 so they can meld
         controller.Context.CurrentTurnPlayer = 0;
@@ -81,7 +81,7 @@ public class BeziqueGameControllerTests
     public void DeclareMeld_InvalidMeld_ReturnsFalse()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 2, TargetScore = 1500 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 4, TargetScore = 1500 });
 
         // Try to meld with cards not in hand
         var king = new Card((byte)20, 99);
@@ -95,7 +95,7 @@ public class BeziqueGameControllerTests
     public void ResolveTrick_MovesCardsToWinner()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 2, TargetScore = 1500 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 4, TargetScore = 1500 });
 
         controller.PlayCard(controller.Players[0].Hand[0]);
         controller.PlayCard(controller.Players[1].Hand[0]);
@@ -110,7 +110,7 @@ public class BeziqueGameControllerTests
     public void StartNewTrick_ClearsPlayedCards()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 2, TargetScore = 1500 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 4, TargetScore = 1500 });
 
         controller.PlayCard(controller.Players[0].Hand[0]);
         controller.PlayCard(controller.Players[1].Hand[0]);
@@ -125,7 +125,7 @@ public class BeziqueGameControllerTests
     public void EndRound_AddsScoresToTotal()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 2, TargetScore = 1500 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 4, TargetScore = 1500 });
 
         controller.Players[0].RoundScore = 100;
         controller.Players[1].RoundScore = 150;
@@ -140,7 +140,7 @@ public class BeziqueGameControllerTests
     public void CheckWinner_PlayerAtTargetScore_ReturnsPlayerId()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 2, TargetScore = 1500 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 4, TargetScore = 1500 });
 
         controller.Players[0].TotalScore = 1600;
         controller.Players[1].TotalScore = 1200;
@@ -154,7 +154,7 @@ public class BeziqueGameControllerTests
     public void CheckWinner_NoPlayerAtTargetScore_ReturnsNegativeOne()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 2, TargetScore = 1500 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 4, TargetScore = 1500 });
 
         controller.Players[0].TotalScore = 1200;
         controller.Players[1].TotalScore = 1000;
@@ -168,7 +168,7 @@ public class BeziqueGameControllerTests
     public void CanSwapTrumpSeven_PlayerHasTrumpSevenAndTrumpNotSeven_ReturnsTrue()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 2, TargetScore = 1500 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 4, TargetScore = 1500 });
 
         // Set trump to Diamonds
         controller.Context.TrumpSuit = Suit.Diamonds;
@@ -191,7 +191,7 @@ public class BeziqueGameControllerTests
     public void CanSwapTrumpSeven_PlayerDoesNotHaveTrumpSeven_ReturnsFalse()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 2, TargetScore = 1500 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 4, TargetScore = 1500 });
 
         // Set trump to Diamonds
         controller.Context.TrumpSuit = Suit.Diamonds;
@@ -210,7 +210,7 @@ public class BeziqueGameControllerTests
     public void SwapTrumpSeven_ValidSwap_SwapsCardsAndAddsPoints()
     {
         var controller = new BeziqueGameController();
-        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 2, TargetScore = 1500 });
+        controller.Initialize(new GameConfig { PlayerCount = 2, DeckCount = 4, TargetScore = 1500 });
 
         controller.Context.TrumpSuit = Suit.Diamonds;
         var originalTrumpCard = new Card((byte)20, 0); // King of Diamonds
