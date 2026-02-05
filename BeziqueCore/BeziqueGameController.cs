@@ -82,6 +82,57 @@ public class BeziqueGameController
 
     public int LastWinner => Context.LastTrickWinner;
 
+    /// <summary>
+    /// Maps the FSM state ID to the legacy GameState enum.
+    /// This provides backward compatibility while using FSM as the single source of truth.
+    /// </summary>
+    public GameState CurrentState => MapFsmState(_adapter.CurrentFsmStateId);
+
+    private GameState MapFsmState(Bezique.StateId id)
+    {
+        return id switch
+        {
+            // Deal states
+            Bezique.StateId.DEAL => GameState.Deal,
+            Bezique.StateId.DEALFIRST => GameState.Deal,
+            Bezique.StateId.DEALMID => GameState.Deal,
+            Bezique.StateId.DEALLAST => GameState.Deal,
+            Bezique.StateId.SELECTTRUMP => GameState.Deal,
+
+            // Play states (Phase 1)
+            Bezique.StateId.PLAY => GameState.Play,
+            Bezique.StateId.PLAYFIRST => GameState.Play,
+            Bezique.StateId.PLAYMID => GameState.Play,
+            Bezique.StateId.PLAYLAST => GameState.Play,
+
+            // Meld states
+            Bezique.StateId.MELD => GameState.Meld,
+            Bezique.StateId.TRYMELDED => GameState.Meld,
+            Bezique.StateId.MELDED => GameState.Meld,
+            Bezique.StateId.NOMELD => GameState.Meld,
+
+            // New Trick and Draw states
+            Bezique.StateId.NEWTRICK => GameState.NewTrick,
+            Bezique.StateId.ADDONECARDTOALL => GameState.NewTrick,
+
+            // Phase 2 (Last 9 cards) states
+            Bezique.StateId.L9PLAY => GameState.L9Play,
+            Bezique.StateId.L9PLAYFIRST => GameState.L9Play,
+            Bezique.StateId.L9PLAYMID => GameState.L9Play,
+            Bezique.StateId.L9PLAYLAST => GameState.L9Play,
+            Bezique.StateId.L9NEWTRICK => GameState.L9NewTrick,
+
+            // Round End states
+            Bezique.StateId.ROUNDEND => GameState.RoundEnd,
+            Bezique.StateId.CALCULATEPOINT => GameState.RoundEnd,
+
+            // Game Over
+            Bezique.StateId.GAMEOVER => GameState.GameOver,
+
+            _ => GameState.Play // Default fallback
+        };
+    }
+
     internal void OnTrickEnded(int winnerId, bool isFinalTrick)
     {
         TrickEnded?.Invoke(this, new TrickEndedEventArgs(winnerId, isFinalTrick));

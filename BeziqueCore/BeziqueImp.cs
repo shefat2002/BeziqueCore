@@ -24,6 +24,12 @@ public class BeziqueAdapter : IBeziqueAdapter
     }
 
     /// <summary>
+    /// Exposes the current FSM state ID for Controller mapping.
+    /// This allows the Controller to query the real FSM state instead of maintaining a shadow state.
+    /// </summary>
+    public Bezique.StateId CurrentFsmStateId => _stateMachine.stateId;
+
+    /// <summary>
     /// Starts the StateSmith state machine.
     /// The FSM will automatically progress through deal phases: DealFirst → DealMid → DealLast → SelectTrump → Play
     /// </summary>
@@ -337,8 +343,12 @@ public class BeziqueAdapter : IBeziqueAdapter
         int points = _controller.Players[currentPlayer].RoundScore - beforeScore;
         _controller.OnMeldDeclared(currentPlayer, meldType, points);
 
-        // Dispatch success event to state machine
+        // Dispatch success event to move FSM from TryMelded -> Melded
         _stateMachine.DispatchEvent(Bezique.EventId.SUCCESS);
+
+        // Dispatch COMPLETE to move FSM from Melded -> NewTrick
+        // This prevents the deadlock where FSM gets stuck in Melded state
+        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
 
         return true;
     }
@@ -491,12 +501,9 @@ public class BeziqueAdapter : IBeziqueAdapter
             // Phase 2: Already in L9PlayLast, dispatch COMPLETE to go to L9NewTrick
             _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
         }
-        else
-        {
-            // Phase 1: Already in PlayLast, dispatch COMPLETE to go to Meld
-            // FSM will flow: PlayLast -> Meld -> NewTrick -> AddOneCardToAll -> Play
-            _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
-        }
+        // Phase 1: PlayCard already dispatched COMPLETE to move to Meld (TryMelded) state.
+        // TryMelded waits for SUCCESS or FAILED event from DeclareMeld or SkipMeld.
+        // We do NOT dispatch anything here - let the meld flow continue naturally.
     }
 
     private bool AllHandsEmpty()
