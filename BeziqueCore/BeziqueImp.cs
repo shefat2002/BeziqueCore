@@ -113,8 +113,9 @@ public class BeziqueAdapter : IBeziqueAdapter
 
     public void PlayLastCard()
     {
-        // Last card played - trick complete
+        // Last card played - trick complete, resolve it
         _cardsPlayedThisTrick++;
+        ResolveTrickInternal();
     }
 
     // Meld Phase Methods
@@ -136,6 +137,14 @@ public class BeziqueAdapter : IBeziqueAdapter
 
     // Trick Transition Methods
     public void StartNewTrick()
+    {
+        _controller.PlayedCards.Clear();
+        _controller.Context.CurrentTurnPlayer = _controller.Context.LastTrickWinner;
+        _cardsPlayedThisTrick = 0;
+        _meldDeclared = false;
+    }
+
+    public void StartL9NewTrick()
     {
         _controller.PlayedCards.Clear();
         _controller.Context.CurrentTurnPlayer = _controller.Context.LastTrickWinner;
@@ -196,15 +205,9 @@ public class BeziqueAdapter : IBeziqueAdapter
 
     public void L9PlayLastCard()
     {
+        // Last card played - trick complete, resolve it
         _cardsPlayedThisTrick++;
-    }
-
-    public void StartL9NewTrick()
-    {
-        _controller.PlayedCards.Clear();
-        _controller.Context.CurrentTurnPlayer = _controller.Context.LastTrickWinner;
-        _cardsPlayedThisTrick = 0;
-        _meldDeclared = false;
+        ResolveTrickInternal();
     }
 
     // Round End Methods
@@ -295,7 +298,7 @@ public class BeziqueAdapter : IBeziqueAdapter
         }
         else
         {
-            // Last card of trick - trick complete
+            // Last card of trick - FSM will call PlayLastCard/L9PlayLastCard which resolves the trick
             if (_controller.Context.CurrentPhase == GamePhase.Phase2_Last9)
             {
                 _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // Move to L9PlayLast
@@ -304,9 +307,6 @@ public class BeziqueAdapter : IBeziqueAdapter
             {
                 _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // Move to PlayLast
             }
-
-            // Automatically resolve trick after last card
-            ResolveTrickInternal();
         }
 
         return true;
@@ -480,18 +480,22 @@ public class BeziqueAdapter : IBeziqueAdapter
         _controller.Context.LastTrickWinner = winnerId;
         _controller.OnTrickEnded(winnerId, isFinalTrick);
 
-        // Update controller state
+        // Dispatch appropriate FSM event based on game state
         if (isFinalTrick)
         {
-            _controller.SetState(GameState.RoundEnd);
+            // Final trick of the round - transition to RoundEnd
+            _stateMachine.DispatchEvent(Bezique.EventId.NOCARD);
         }
-        else if (_controller.Context.DrawDeck.Count == 0)
+        else if (_controller.Context.CurrentPhase == GamePhase.Phase2_Last9)
         {
-            _controller.SetState(GameState.L9NewTrick);
+            // Phase 2: Already in L9PlayLast, dispatch COMPLETE to go to L9NewTrick
+            _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
         }
         else
         {
-            _controller.SetState(GameState.NewTrick);
+            // Phase 1: Already in PlayLast, dispatch COMPLETE to go to Meld
+            // FSM will flow: PlayLast -> Meld -> NewTrick -> AddOneCardToAll -> Play
+            _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
         }
     }
 

@@ -8,13 +8,6 @@ public class BeziqueGameController
     public GameContext Context { get; private set; }
     public List<Card> PlayedCards { get; private set; }
 
-    private GameState _currentState = GameState.Play;
-    public GameState CurrentState
-    {
-        get => _currentState;
-        set => _currentState = value;
-    }
-
     public byte PlayerCount => (byte)Players.Length;
     public ushort TargetScore { get; private set; }
 
@@ -38,11 +31,10 @@ public class BeziqueGameController
         Players = players;
         Context = context;
         PlayedCards = new List<Card>();
-        _currentState = GameState.Play;
 
-        Context.CurrentTurnPlayer = 1 % PlayerCount;
+        Context.CurrentTurnPlayer = 0;
 
-        // Start the state machine
+        // Start the state machine - it will manage all state transitions
         _adapter.StartStateMachine();
     }
 
@@ -89,9 +81,6 @@ public class BeziqueGameController
     public int CurrentPlayer => Context.CurrentTurnPlayer;
 
     public int LastWinner => Context.LastTrickWinner;
-
-    // Internal access for adapter
-    internal void SetState(GameState state) => _currentState = state;
 
     internal void OnTrickEnded(int winnerId, bool isFinalTrick)
     {
