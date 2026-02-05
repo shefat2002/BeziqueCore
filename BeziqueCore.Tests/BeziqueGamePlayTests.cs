@@ -148,11 +148,12 @@ public class BeziqueGamePlayTests
         controller.Players[0].TableCards.Clear();
         controller.Players[0].MeldHistory.Clear();
 
-        // CardId formula: (Rank-7)*4 + Suit, Suit: Diamonds=0, Clubs=1, Hearts=2, Spades=3
-        var queenSpades1 = new Card((byte)23, 0);  // Queen of Spades: (12-7)*4 + 3 = 23
-        var queenSpades2 = new Card((byte)23, 1);  // Second Queen of Spades
-        var jackDiamonds1 = new Card((byte)16, 0); // Jack of Diamonds: (11-7)*4 + 0 = 16
-        var jackDiamonds2 = new Card((byte)16, 1); // Second Jack of Diamonds
+        // Rank enum: Seven=7, Eight=8, Nine=9, Jack=10, Queen=11, King=12, Ten=13, Ace=14
+        // CardId formula: (RankValue-7)*4 + Suit, Suit: Diamonds=0, Clubs=1, Hearts=2, Spades=3
+        var queenSpades1 = new Card((byte)19, 0);  // Queen of Spades: (11-7)*4 + 3 = 19
+        var queenSpades2 = new Card((byte)19, 1);  // Second Queen of Spades
+        var jackDiamonds1 = new Card((byte)12, 0); // Jack of Diamonds: (10-7)*4 + 0 = 12
+        var jackDiamonds2 = new Card((byte)12, 1); // Second Jack of Diamonds
         controller.Players[0].Hand.AddRange(new[] { queenSpades1, queenSpades2, jackDiamonds1, jackDiamonds2 });
 
         int beforeScore = controller.Players[0].RoundScore;
