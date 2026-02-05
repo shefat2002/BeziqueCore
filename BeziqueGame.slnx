@@ -3,4 +3,6 @@
   <Project Path="BeziqueCore.Tests/BeziqueCore.Tests.csproj" />
   <Project Path="GrpcService/GrpcService.csproj" />
 
+  <Project Path="BeziqueCLI/BeziqueCLI.csproj" />
+
 </Solution>
