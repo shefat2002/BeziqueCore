@@ -12,38 +12,162 @@ public partial class Bezique
 public class BeziqueAdapter : IBeziqueAdapter
 {
     private readonly BeziqueGameController _controller;
-    private readonly Bezique? _stateMachine;
+    private readonly Bezique _stateMachine;
     private int _cardsPlayedThisTrick = 0;
     private bool _meldDeclared = false;
+    private int _dealPhase = 0; // 0=first 3 cards, 1=second 3 cards, 2=last 3 cards
 
     public BeziqueAdapter(BeziqueGameController controller)
     {
         _controller = controller;
+        _stateMachine = new Bezique();
+        _stateMachine.SetAdapter(this);
     }
 
-    public void SetStateMachine(Bezique stateMachine)
+    /// <summary>
+    /// Initialize and start the state machine when game is initialized
+    /// </summary>
+    public void StartStateMachine()
     {
-        // stateMachine will set its own adapter reference
+        _stateMachine.Start();
+
+        // The state machine enters DealFirst state on Start().
+        // We need to dispatch COMPLETE events to progress through the deal phases:
+        // DealFirst → (COMPLETE) → DealMid → (COMPLETE) → DealLast → (COMPLETE) → SelectTrump
+        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // DealFirst → DealMid
+        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // DealMid → DealLast
+        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // DealLast → SelectTrump
     }
 
-    // IBeziqueAdapter - State Machine Behaviors
-    public void DealFirstSet() { }
-    public void DealMidSet() { }
-    public void DealLastSet() { }
-    public void SelectTrump() { }
+    // ============================================================
+    // IBeziqueAdapter - State Machine Behavior Implementations
+    // ============================================================
 
-    public void PlayFirstCard() { }
+    // Deal Phase Methods
+    public void DealFirstSet()
+    {
+        int cardsToDeal = 3;
+        for (int i = 0; i < _controller.PlayerCount; i++)
+        {
+            // Skip dealer (last player) for first deal
+            if (i == _controller.PlayerCount - 1)
+            {
+                i++; // Skip dealer
+                if (i >= _controller.PlayerCount) break;
+            }
 
-    public void PlayMidCard() { }
+            for (int j = 0; j < cardsToDeal; j++)
+            {
+                if (_controller.Context.DrawDeck.Count > 0)
+                {
+                    _controller.Players[i].Hand.Add(_controller.Context.DrawDeck.Pop());
+                }
+            }
+        }
+        _dealPhase = 1;
+    }
 
-    public void PlayLastCard() { }
+    public void DealMidSet()
+    {
+        int cardsToDeal = 3;
+        for (int i = 0; i < _controller.PlayerCount; i++)
+        {
+            // Skip dealer (last player) for middle deal
+            if (i == _controller.PlayerCount - 1)
+            {
+                i++; // Skip dealer
+                if (i >= _controller.PlayerCount) break;
+            }
 
-    public void TryMeld() => _meldDeclared = false;
+            for (int j = 0; j < cardsToDeal; j++)
+            {
+                if (_controller.Context.DrawDeck.Count > 0)
+                {
+                    _controller.Players[i].Hand.Add(_controller.Context.DrawDeck.Pop());
+                }
+            }
+        }
+        _dealPhase = 2;
+    }
 
-    public void MeldSuccess() { }
+    public void DealLastSet()
+    {
+        int cardsToDeal = 3;
+        for (int i = 0; i < _controller.PlayerCount; i++)
+        {
+            // Deal to all players including dealer
+            for (int j = 0; j < cardsToDeal; j++)
+            {
+                if (_controller.Context.DrawDeck.Count > 0)
+                {
+                    _controller.Players[i].Hand.Add(_controller.Context.DrawDeck.Pop());
+                }
+            }
+        }
 
-    public void MeldFailed() { }
+        // Set current turn to player after dealer
+        _controller.Context.CurrentTurnPlayer = 1 % _controller.PlayerCount;
+    }
 
+    public void SelectTrump()
+    {
+        if (_controller.Context.DrawDeck.Count > 0)
+        {
+            _controller.Context.TrumpCard = _controller.Context.DrawDeck.Pop();
+
+            // Check if trump is a seven - dealer gets bonus
+            if (_controller.Context.TrumpCard.Rank == Rank.Seven && !_controller.Context.TrumpCard.IsJoker)
+            {
+                int dealerIndex = _controller.PlayerCount - 1;
+                _controller.Players[dealerIndex].RoundScore += 10;
+            }
+
+            if (!_controller.Context.TrumpCard.IsJoker)
+            {
+                _controller.Context.TrumpSuit = _controller.Context.TrumpCard.Suit;
+            }
+        }
+    }
+
+    // Play Phase Methods
+    public void PlayFirstCard()
+    {
+        // Reset for new trick
+        _cardsPlayedThisTrick = 1;
+        _meldDeclared = false;
+    }
+
+    public void PlayMidCard()
+    {
+        // Advance turn after first/middle player
+        _controller.Context.CurrentTurnPlayer = TurnManager.AdvanceTurn(_controller.Context.CurrentTurnPlayer, _controller.PlayerCount);
+        _cardsPlayedThisTrick++;
+    }
+
+    public void PlayLastCard()
+    {
+        // Last card played - trick complete
+        _cardsPlayedThisTrick++;
+    }
+
+    // Meld Phase Methods
+    public void TryMeld()
+    {
+        _meldDeclared = false;
+        // State machine enters TryMelded state - awaiting external meld declaration
+    }
+
+    public void MeldSuccess()
+    {
+        _meldDeclared = true;
+    }
+
+    public void MeldFailed()
+    {
+        _meldDeclared = false;
+    }
+
+    // Trick Transition Methods
     public void StartNewTrick()
     {
         _controller.PlayedCards.Clear();
@@ -54,77 +178,157 @@ public class BeziqueAdapter : IBeziqueAdapter
 
     public void DrawCardsForAll()
     {
-        for (int i = 0; i < _controller.Players.Length; i++)
+        int winnerId = _controller.Context.LastTrickWinner;
+        int playerCount = _controller.PlayerCount;
+
+        // Winner draws first (top card)
+        if (_controller.Context.DrawDeck.Count > 0)
         {
+            _controller.Players[winnerId].Hand.Add(_controller.Context.DrawDeck.Pop());
+        }
+
+        // Others draw in order
+        for (int i = 1; i < playerCount; i++)
+        {
+            int playerId = (winnerId + i) % playerCount;
             if (_controller.Context.DrawDeck.Count > 0)
             {
-                _controller.Players[i].Hand.Add(_controller.Context.DrawDeck.Pop());
+                _controller.Players[playerId].Hand.Add(_controller.Context.DrawDeck.Pop());
             }
         }
     }
 
+    // L9 Play Phase Methods (Last 9 cards, no drawing)
     public void L9PlayFirstCard()
     {
         _controller.Context.CurrentPhase = GamePhase.Phase2_Last9;
-        _cardsPlayedThisTrick = 0;
+        _cardsPlayedThisTrick = 1;
+        _meldDeclared = false;
+
+        // Return all table cards to hand
+        PhaseTransitionManager.ReturnAllTableCardsToHand(_controller.Players);
+        _controller.OnPhaseChanged(GamePhase.Phase2_Last9);
     }
 
-    public void L9PlayMidCard() { }
+    public void L9PlayMidCard()
+    {
+        _controller.Context.CurrentTurnPlayer = TurnManager.AdvanceTurn(_controller.Context.CurrentTurnPlayer, _controller.PlayerCount);
+        _cardsPlayedThisTrick++;
+    }
 
-    public void L9PlayLastCard() { }
+    public void L9PlayLastCard()
+    {
+        _cardsPlayedThisTrick++;
+    }
 
     public void StartL9NewTrick()
     {
         _controller.PlayedCards.Clear();
         _controller.Context.CurrentTurnPlayer = _controller.Context.LastTrickWinner;
         _cardsPlayedThisTrick = 0;
+        _meldDeclared = false;
     }
 
+    // Round End Methods
     void IBeziqueAdapter.EndRound()
     {
+        int winnerId = RoundEndHandler.EndRound(_controller.Players, _controller.Context.GameMode, _controller.PlayerCount);
+        _controller.OnRoundEnded(winnerId, _controller.Players.Select(p => p.TotalScore).ToArray());
+    }
+
+    public void CalculatePoints()
+    {
+        // Points are calculated during EndRound, this is a state machine notification
+    }
+
+    // Game End Method
+    public void GameOver()
+    {
+        // Find and announce winner
+        int winnerId = -1;
+        int highestScore = -1;
+
         for (int i = 0; i < _controller.Players.Length; i++)
         {
-            _controller.Players[i].TotalScore += _controller.Players[i].RoundScore;
-            _controller.Players[i].RoundScore = 0;
+            if (_controller.Players[i].TotalScore > highestScore)
+            {
+                highestScore = _controller.Players[i].TotalScore;
+                winnerId = i;
+            }
+        }
+
+        if (winnerId >= 0)
+        {
+            _controller.OnGameEnded(winnerId);
         }
     }
 
-    public void CalculatePoints() { }
+    // ============================================================
+    // Public API - Methods Called from BeziqueGameController
+    // ============================================================
 
-    public void GameOver() { }
-
-    // Public API - Delegated from Controller
     public bool PlayCard(Card card)
     {
         int currentPlayer = _controller.Context.CurrentTurnPlayer;
+        var player = _controller.Players[currentPlayer];
 
-        if (_controller.Context.CurrentPhase == GamePhase.Phase1_Normal)
-        {
-            if (!PlayStateHandler.ValidateAndPlayCardPhase1(_controller.Players[currentPlayer], card, _controller.PlayedCards, currentPlayer))
-                return false;
-        }
-        else if (_controller.Context.CurrentPhase == GamePhase.Phase2_Last9)
+        // Validate card is in hand or table
+        bool cardInHand = PlayCardValidator.ContainsCard(player.Hand, card);
+        bool cardOnTable = PlayCardValidator.ContainsCard(player.TableCards, card);
+
+        if (!cardInHand && !cardOnTable)
+            return false;
+
+        // Validate move based on phase
+        if (_controller.Context.CurrentPhase == GamePhase.Phase2_Last9)
         {
             var leadSuit = _controller.PlayedCards.Count > 0 ? _controller.PlayedCards[0].Suit : Suit.None;
             var currentWinner = _controller.PlayedCards.Count > 0 ? _controller.PlayedCards[0] : (Card?)null;
 
-            if (!L9PlayStateHandler.ValidateAndPlayCardPhase2(_controller.Players[currentPlayer], card, _controller.PlayedCards, currentPlayer, leadSuit, currentWinner, _controller.Context.TrumpSuit))
+            if (!Phase2MoveValidator.IsLegalMove(player.Hand.Concat(player.TableCards).ToList(), card, leadSuit, currentWinner, _controller.Context.TrumpSuit))
+            {
                 return false;
+            }
+        }
+
+        // Play the card
+        _controller.PlayedCards.Add(card);
+        PlayCardValidator.TryRemoveCard(player.Hand, card);
+
+        // Dispatch event to state machine based on position in trick
+        int cardsInTrick = _controller.PlayedCards.Count;
+
+        if (cardsInTrick == 1)
+        {
+            // First card of trick
+            if (_controller.Context.CurrentPhase == GamePhase.Phase2_Last9)
+            {
+                _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // Move to L9PlayFirst
+            }
+            else
+            {
+                _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // Move to PlayFirst
+            }
+        }
+        else if (cardsInTrick < _controller.PlayerCount)
+        {
+            // Middle card(s) of trick
+            _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // Move to PlayMid or L9PlayMid
         }
         else
         {
-            return false;
-        }
+            // Last card of trick - trick complete
+            if (_controller.Context.CurrentPhase == GamePhase.Phase2_Last9)
+            {
+                _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // Move to L9PlayLast
+            }
+            else
+            {
+                _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // Move to PlayLast
+            }
 
-        _cardsPlayedThisTrick++;
-
-        if (_cardsPlayedThisTrick == _controller.PlayerCount)
-        {
+            // Automatically resolve trick after last card
             ResolveTrickInternal();
-        }
-        else
-        {
-            _controller.Context.CurrentTurnPlayer = TurnManager.AdvanceTurn(_controller.Context.CurrentTurnPlayer, _controller.PlayerCount);
         }
 
         return true;
@@ -134,10 +338,18 @@ public class BeziqueAdapter : IBeziqueAdapter
     {
         int currentPlayer = _controller.Context.CurrentTurnPlayer;
 
-        var bestMeld = MeldValidator.FindBestMeld(_controller.Players[currentPlayer], _controller.Context.TrumpSuit);
-        if (bestMeld == null) return false;
+        // Only trick winner can meld
+        if (currentPlayer != _controller.Context.LastTrickWinner)
+            return false;
 
-        if (bestMeld.Type != meldType) return false;
+        // Must be in Phase 1
+        if (_controller.Context.CurrentPhase != GamePhase.Phase1_Normal)
+            return false;
+
+        // Validate meld
+        var bestMeld = MeldValidator.FindBestMeld(_controller.Players[currentPlayer], _controller.Context.TrumpSuit);
+        if (bestMeld == null || bestMeld.Type != meldType)
+            return false;
 
         int beforeScore = _controller.Players[currentPlayer].RoundScore;
         if (!MeldStateHandler.DeclareMeld(_controller.Players[currentPlayer], cards, meldType, _controller.Context.TrumpSuit))
@@ -146,12 +358,18 @@ public class BeziqueAdapter : IBeziqueAdapter
         _meldDeclared = true;
         int points = _controller.Players[currentPlayer].RoundScore - beforeScore;
         _controller.OnMeldDeclared(currentPlayer, meldType, points);
+
+        // Dispatch success event to state machine
+        _stateMachine.DispatchEvent(Bezique.EventId.SUCCESS);
+
         return true;
     }
 
     public void SkipMeld()
     {
         _meldDeclared = false;
+        // Dispatch failed event to state machine to continue flow
+        _stateMachine.DispatchEvent(Bezique.EventId.FAILED);
     }
 
     public bool CanSwapTrumpSeven()
@@ -178,41 +396,57 @@ public class BeziqueAdapter : IBeziqueAdapter
         {
             if (_controller.Players[i].TotalScore >= _controller.TargetScore)
             {
+                // Dispatch winning score event to state machine
+                _stateMachine.DispatchEvent(Bezique.EventId.WINNINGSCORE);
                 return i;
             }
         }
         return -1;
     }
 
-    public void ResolveTrick() => ResolveTrickInternal();
+    public void ResolveTrick()
+    {
+        // This is called externally - resolution happens automatically after last card played
+        // No action needed here as it's handled in PlayCard
+    }
 
     public int EndRound()
     {
         int winnerId = RoundEndHandler.EndRound(_controller.Players, _controller.Context.GameMode, _controller.PlayerCount);
+        _controller.OnRoundEnded(winnerId, _controller.Players.Select(p => p.TotalScore).ToArray());
+
+        // Notify state machine that round ended
+        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
+
         return winnerId;
     }
 
-    // New Gateway Methods
+    // Gateway Methods
     public void DrawCards()
     {
         int winnerId = _controller.Context.LastTrickWinner;
 
         if (_controller.Context.DrawDeck.Count == 0)
+        {
+            // Deck empty - dispatch event to transition to L9 phase
+            _stateMachine.DispatchEvent(Bezique.EventId.DECKEMPTY);
             return;
+        }
 
-        // Check for phase transition - ExecuteDraw handles it automatically
+        // Execute draw
         bool transitioned = PhaseTransitionManager.ExecuteDraw(_controller.Players, winnerId, _controller.Context.TrumpCard, _controller.Context.DrawDeck, _controller.PlayerCount);
 
         if (transitioned)
         {
             _controller.Context.CurrentPhase = GamePhase.Phase2_Last9;
             _controller.OnPhaseChanged(GamePhase.Phase2_Last9);
+            // Dispatch deck empty event to transition state machine
+            _stateMachine.DispatchEvent(Bezique.EventId.DECKEMPTY);
         }
     }
 
     public bool CanMeld()
     {
-        // Only trick winner can meld, and only in Phase 1
         if (_controller.Context.CurrentPhase != GamePhase.Phase1_Normal)
             return false;
 
@@ -228,24 +462,21 @@ public class BeziqueAdapter : IBeziqueAdapter
     public Card[] GetLegalMoves()
     {
         int currentPlayer = _controller.Context.CurrentTurnPlayer;
-        var hand = _controller.Players[currentPlayer].Hand;
-        var tableCards = _controller.Players[currentPlayer].TableCards;
+        var player = _controller.Players[currentPlayer];
 
         if (_controller.Context.CurrentPhase == GamePhase.Phase1_Normal)
         {
-            // In Phase 1, any card from Hand or TableCards can be played
-            return hand.Concat(tableCards).ToArray();
+            return player.Hand.Concat(player.TableCards).ToArray();
         }
         else if (_controller.Context.CurrentPhase == GamePhase.Phase2_Last9)
         {
-            // Phase 2: Strict validation
             var leadSuit = _controller.PlayedCards.Count > 0 ? _controller.PlayedCards[0].Suit : Suit.None;
             var currentWinner = _controller.PlayedCards.Count > 0 ? _controller.PlayedCards[0] : (Card?)null;
 
             var legalMoves = new List<Card>();
-            foreach (var card in hand.Concat(tableCards))
+            foreach (var card in player.Hand.Concat(player.TableCards))
             {
-                if (Phase2MoveValidator.IsLegalMove(hand.Concat(tableCards).ToList(), card, leadSuit, currentWinner, _controller.Context.TrumpSuit))
+                if (Phase2MoveValidator.IsLegalMove(player.Hand.Concat(player.TableCards).ToList(), card, leadSuit, currentWinner, _controller.Context.TrumpSuit))
                 {
                     legalMoves.Add(card);
                 }
@@ -262,7 +493,10 @@ public class BeziqueAdapter : IBeziqueAdapter
         return MeldValidator.FindBestMeld(_controller.Players[currentPlayer], _controller.Context.TrumpSuit);
     }
 
-    // Internal
+    // ============================================================
+    // Internal Implementation
+    // ============================================================
+
     private void ResolveTrickInternal()
     {
         var playerIndices = new int[_controller.PlayerCount];
@@ -274,15 +508,13 @@ public class BeziqueAdapter : IBeziqueAdapter
         _controller.Context.LastTrickWinner = winnerId;
         _controller.OnTrickEnded(winnerId, isFinalTrick);
 
+        // Update controller state
         if (isFinalTrick)
         {
             _controller.SetState(GameState.RoundEnd);
-            _controller.OnGameEnded(winnerId);
         }
         else if (_controller.Context.DrawDeck.Count == 0)
         {
-            _controller.Context.CurrentPhase = GamePhase.Phase2_Last9;
-            _controller.OnPhaseChanged(GamePhase.Phase2_Last9);
             _controller.SetState(GameState.L9NewTrick);
         }
         else

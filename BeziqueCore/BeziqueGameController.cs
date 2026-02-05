@@ -41,6 +41,9 @@ public class BeziqueGameController
         _currentState = GameState.Play;
 
         Context.CurrentTurnPlayer = 1 % PlayerCount;
+
+        // Start the state machine
+        _adapter.StartStateMachine();
     }
 
     // Core Game Actions
