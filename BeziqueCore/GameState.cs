@@ -27,24 +27,36 @@ public static class GameInitializer
         var deck = DeckFactory.Shuffled(new Interfaces.SystemRandom(), config.DeckCount);
         var drawDeck = new Stack<Card>(deck);
 
-        // Create players with empty hands - state machine will deal cards
         players = new Player[config.PlayerCount];
         for (int i = 0; i < config.PlayerCount; i++)
         {
-            players[i] = new Player(i) { Hand = new List<Card>() };
+            var hand = new List<Card>();
+            for (int j = 0; j < 9; j++)
+            {
+                if (drawDeck.Count > 0) hand.Add(drawDeck.Pop());
+            }
+            players[i] = new Player(i) { Hand = hand };
         }
 
-        // Don't select trump yet - state machine will handle it
+        // Select trump card
+        var trumpCard = drawDeck.Count > 0 ? drawDeck.Pop() : new Card((byte)0, -1);
+
         context = new GameContext
         {
             DrawDeck = drawDeck,
-            TrumpCard = new Card((byte)0, -1), // Placeholder - will be set by state machine
-            TrumpSuit = Suit.Diamonds, // Default - will be set by state machine
+            TrumpCard = trumpCard,
+            TrumpSuit = trumpCard.IsJoker ? Suit.Diamonds : trumpCard.Suit,
             CurrentPhase = GamePhase.Phase1_Normal,
             CurrentTurnPlayer = 0,
             LastTrickWinner = 0,
             GameMode = config.Mode
         };
+
+        // Dealer bonus if trump is a seven
+        if (trumpCard.Rank == Rank.Seven && !trumpCard.IsJoker)
+        {
+            players[config.PlayerCount - 1].RoundScore += 10;
+        }
     }
 }
 

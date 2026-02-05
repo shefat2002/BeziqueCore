@@ -24,109 +24,37 @@ public class BeziqueAdapter : IBeziqueAdapter
         _stateMachine.SetAdapter(this);
     }
 
-    /// <summary>
-    /// Initialize and start the state machine when game is initialized
-    /// </summary>
+ 
     public void StartStateMachine()
     {
         _stateMachine.Start();
 
-        // The state machine enters DealFirst state on Start().
-        // We need to dispatch COMPLETE events to progress through the deal phases:
-        // DealFirst → (COMPLETE) → DealMid → (COMPLETE) → DealLast → (COMPLETE) → SelectTrump
         _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // DealFirst → DealMid
         _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // DealMid → DealLast
         _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // DealLast → SelectTrump
+        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // SelectTrump → Play
+
     }
 
-    // ============================================================
-    // IBeziqueAdapter - State Machine Behavior Implementations
-    // ============================================================
 
-    // Deal Phase Methods
     public void DealFirstSet()
     {
-        int cardsToDeal = 3;
-        for (int i = 0; i < _controller.PlayerCount; i++)
-        {
-            // Skip dealer (last player) for first deal
-            if (i == _controller.PlayerCount - 1)
-            {
-                i++; // Skip dealer
-                if (i >= _controller.PlayerCount) break;
-            }
-
-            for (int j = 0; j < cardsToDeal; j++)
-            {
-                if (_controller.Context.DrawDeck.Count > 0)
-                {
-                    _controller.Players[i].Hand.Add(_controller.Context.DrawDeck.Pop());
-                }
-            }
-        }
-        _dealPhase = 1;
+        // Cards already dealt - no-op
     }
 
     public void DealMidSet()
     {
-        int cardsToDeal = 3;
-        for (int i = 0; i < _controller.PlayerCount; i++)
-        {
-            // Skip dealer (last player) for middle deal
-            if (i == _controller.PlayerCount - 1)
-            {
-                i++; // Skip dealer
-                if (i >= _controller.PlayerCount) break;
-            }
-
-            for (int j = 0; j < cardsToDeal; j++)
-            {
-                if (_controller.Context.DrawDeck.Count > 0)
-                {
-                    _controller.Players[i].Hand.Add(_controller.Context.DrawDeck.Pop());
-                }
-            }
-        }
-        _dealPhase = 2;
+        // Cards already dealt - no-op
     }
 
     public void DealLastSet()
     {
-        int cardsToDeal = 3;
-        for (int i = 0; i < _controller.PlayerCount; i++)
-        {
-            // Deal to all players including dealer
-            for (int j = 0; j < cardsToDeal; j++)
-            {
-                if (_controller.Context.DrawDeck.Count > 0)
-                {
-                    _controller.Players[i].Hand.Add(_controller.Context.DrawDeck.Pop());
-                }
-            }
-        }
-
-        // Set current turn to player after dealer
-        _controller.Context.CurrentTurnPlayer = 1 % _controller.PlayerCount;
+        // Cards already dealt - no-op
     }
 
     public void SelectTrump()
     {
-        if (_controller.Context.DrawDeck.Count > 0)
-        {
-            _controller.Context.TrumpCard = _controller.Context.DrawDeck.Pop();
-
-            // Check if trump is a seven - dealer gets bonus
-            if (_controller.Context.TrumpCard.Rank == Rank.Seven && !_controller.Context.TrumpCard.IsJoker)
-            {
-                int dealerIndex = _controller.PlayerCount - 1;
-                _controller.Players[dealerIndex].RoundScore += 10;
-            }
-
-            if (!_controller.Context.TrumpCard.IsJoker)
-            {
-                _controller.Context.TrumpSuit = _controller.Context.TrumpCard.Suit;
-            }
-        }
+        // Trump already selected by GameInitializer - no-op
     }
 
     // Play Phase Methods
