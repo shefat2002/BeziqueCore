@@ -24,40 +24,76 @@ public class BeziqueAdapter : IBeziqueAdapter
     }
 
     /// <summary>
-    /// Starts the StateSmith state machine and progresses through initial deal phases to reach Play state.
-    /// Cards are already dealt by GameInitializer, so deal phase methods are no-ops.
+    /// Starts the StateSmith state machine.
+    /// The FSM will automatically progress through deal phases: DealFirst → DealMid → DealLast → SelectTrump → Play
     /// </summary>
     public void StartStateMachine()
     {
         _stateMachine.Start();
-
-        // Dispatch COMPLETE events to progress through deal states to reach Play state
-        // DealFirst → DealMid → DealLast → SelectTrump → Play
-        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
-        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
-        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
-        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
     }
 
-
+    /// <summary>
+    /// FSM Action: Deal first set of 3 cards to each player.
+    /// Called by state machine when in DealFirst state.
+    /// </summary>
     public void DealFirstSet()
     {
-        // Cards already dealt - no-op
+        DealCardsToAllPlayers(cardsPerPlayer: 3);
     }
 
+    /// <summary>
+    /// FSM Action: Deal second set of 3 cards to each player.
+    /// Called by state machine when in DealMid state.
+    /// </summary>
     public void DealMidSet()
     {
-        // Cards already dealt - no-op
+        DealCardsToAllPlayers(cardsPerPlayer: 3);
     }
 
+    /// <summary>
+    /// FSM Action: Deal third set of 3 cards to each player.
+    /// Called by state machine when in DealLast state.
+    /// </summary>
     public void DealLastSet()
     {
-        // Cards already dealt - no-op
+        DealCardsToAllPlayers(cardsPerPlayer: 3);
     }
 
+    /// <summary>
+    /// FSM Action: Select trump card from deck.
+    /// Called by state machine when in SelectTrump state.
+    /// </summary>
     public void SelectTrump()
     {
-        // Trump already selected by GameInitializer - no-op
+        if (_controller.Context.DrawDeck.Count > 0)
+        {
+            var trumpCard = _controller.Context.DrawDeck.Pop();
+            _controller.Context.TrumpCard = trumpCard;
+            _controller.Context.TrumpSuit = trumpCard.IsJoker ? Suit.Diamonds : trumpCard.Suit;
+
+            // Dealer bonus if trump is a seven
+            if (trumpCard.Rank == Rank.Seven && !trumpCard.IsJoker)
+            {
+                _controller.Players[_controller.PlayerCount - 1].RoundScore += 10;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Helper method to deal specified number of cards to each player.
+    /// </summary>
+    private void DealCardsToAllPlayers(int cardsPerPlayer)
+    {
+        for (int i = 0; i < _controller.PlayerCount; i++)
+        {
+            for (int j = 0; j < cardsPerPlayer; j++)
+            {
+                if (_controller.Context.DrawDeck.Count > 0)
+                {
+                    _controller.Players[i].Hand.Add(_controller.Context.DrawDeck.Pop());
+                }
+            }
+        }
     }
 
     // Play Phase Methods
