@@ -107,25 +107,36 @@ public class BeziqueAdapter : IBeziqueAdapter
         _meldDeclared = false;
     }
 
+    /// <summary>
+    /// Adapter Implementation: Called by FSM State 'AddOneCardToAll'.
+    /// Executes the actual draw logic and decides the next state transition.
+    /// </summary>
     public void DrawCardsForAll()
     {
         int winnerId = _controller.Context.LastTrickWinner;
-        int playerCount = _controller.PlayerCount;
 
-        // Winner draws first (top card)
-        if (_controller.Context.DrawDeck.Count > 0)
+        // EXECUTE LOGIC HERE
+        bool transitioned = PhaseTransitionManager.ExecuteDraw(
+            _controller.Players,
+            winnerId,
+            _controller.Context.TrumpCard,
+            _controller.Context.DrawDeck,
+            _controller.PlayerCount
+        );
+
+        // DECIDE NEXT STATE
+        if (transitioned)
         {
-            _controller.Players[winnerId].Hand.Add(_controller.Context.DrawDeck.Pop());
+            _controller.Context.CurrentPhase = GamePhase.Phase2_Last9;
+            _controller.OnPhaseChanged(GamePhase.Phase2_Last9);
+
+            // Transition FSM: AddOneCardToAll -> L9Play
+            _stateMachine.DispatchEvent(Bezique.EventId.DECKEMPTY);
         }
-
-        // Others draw in order
-        for (int i = 1; i < playerCount; i++)
+        else
         {
-            int playerId = (winnerId + i) % playerCount;
-            if (_controller.Context.DrawDeck.Count > 0)
-            {
-                _controller.Players[playerId].Hand.Add(_controller.Context.DrawDeck.Pop());
-            }
+            // Transition FSM: AddOneCardToAll -> Play
+            _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
         }
     }
 
@@ -352,28 +363,22 @@ public class BeziqueAdapter : IBeziqueAdapter
         return winnerId;
     }
 
-    // Gateway Methods
+    // ============================================================
+    // Gateway Methods - Public API (Called by Controller/UI)
+    // ============================================================
+
+    /// <summary>
+    /// Gateway Method: Called by UI to trigger card drawing.
+    /// This only tells the FSM to proceed - the actual logic is in DrawCardsForAll().
+    /// </summary>
     public void DrawCards()
     {
-        int winnerId = _controller.Context.LastTrickWinner;
+        // Validation: Can only draw if deck has cards
+        if (_controller.Context.DrawDeck.Count == 0) return;
 
-        if (_controller.Context.DrawDeck.Count == 0)
-        {
-            // Deck empty - dispatch event to transition to L9 phase
-            _stateMachine.DispatchEvent(Bezique.EventId.DECKEMPTY);
-            return;
-        }
-
-        // Execute draw
-        bool transitioned = PhaseTransitionManager.ExecuteDraw(_controller.Players, winnerId, _controller.Context.TrumpCard, _controller.Context.DrawDeck, _controller.PlayerCount);
-
-        if (transitioned)
-        {
-            _controller.Context.CurrentPhase = GamePhase.Phase2_Last9;
-            _controller.OnPhaseChanged(GamePhase.Phase2_Last9);
-            // Dispatch deck empty event to transition state machine
-            _stateMachine.DispatchEvent(Bezique.EventId.DECKEMPTY);
-        }
+        // ACTION: Tell FSM to move from 'NewTrick' to 'AddOneCardToAll'.
+        // The FSM will then automatically call 'DrawCardsForAll()' below.
+        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
     }
 
     public bool CanMeld()
