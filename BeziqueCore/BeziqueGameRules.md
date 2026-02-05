@@ -65,7 +65,7 @@ Here is the comprehensive list of **Rules, Exceptions, and Edge Cases** for the 
 1.  **Double Bezique Strict Rule:** You must lay down all 4 cards **at once**.
     *   *Edge Case:* If you meld a Single Bezique (40), and later get the other pair, melding the second pair counts as another Single Bezique (40). Total 80, not 500.
 2.  **Joker Substitution:**
-    *   Jokers can substitute **ONLY** in Four-of-a-Kind (Aces, Kings, Queens, Jacks).
+    *   A joker can substitute **ONLY** in Four-of-a-Kind (Aces, Kings, Queens, Jacks).
     *   Jokers **CANNOT** be used in Runs, Marriages, or Bezique.
 3.  **Card Reusability (The "ID" Check):**
     *   A specific card (by UniqueID) cannot be used for the **same MeldType** twice.
@@ -115,7 +115,7 @@ Here is the comprehensive list of **Rules, Exceptions, and Edge Cases** for the 
 
 #### **7.2 Advanced Mode (Ace/Ten Count)**
 *   **Logic:** Iterate through the `WonPile` of the player.
-*   **Value:** Ace = 10pts, Ten = 10pts.
+*   **Value:** Each Ace = 10pts, Each Ten = 10pts.
 *   **Thresholds (The "All or Nothing" Rule):**
     *   **2 Players:** Need **14 or more** Aces/Tens to score. (<14 = 0 pts).
     *   **4 Players:** Need **8 or more** Aces/Tens to score. (<8 = 0 pts).

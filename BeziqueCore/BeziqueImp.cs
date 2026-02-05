@@ -27,6 +27,13 @@ public class BeziqueAdapter : IBeziqueAdapter
     public void StartStateMachine()
     {
         _stateMachine.Start();
+
+        // Dispatch COMPLETE events to progress through deal states to reach Play state
+        // DealFirst → DealMid → DealLast → SelectTrump → Play
+        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
+        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
+        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
+        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
     }
 
     public void DealFirstSet()
