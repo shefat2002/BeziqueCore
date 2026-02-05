@@ -15,7 +15,6 @@ public class BeziqueAdapter : IBeziqueAdapter
     private readonly Bezique _stateMachine;
     private int _cardsPlayedThisTrick = 0;
     private bool _meldDeclared = false;
-    private int _dealPhase = 0; // 0=first 3 cards, 1=second 3 cards, 2=last 3 cards
 
     public BeziqueAdapter(BeziqueGameController controller)
     {
@@ -24,16 +23,20 @@ public class BeziqueAdapter : IBeziqueAdapter
         _stateMachine.SetAdapter(this);
     }
 
- 
+    /// <summary>
+    /// Starts the StateSmith state machine and progresses through initial deal phases to reach Play state.
+    /// Cards are already dealt by GameInitializer, so deal phase methods are no-ops.
+    /// </summary>
     public void StartStateMachine()
     {
         _stateMachine.Start();
 
-        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // DealFirst → DealMid
-        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // DealMid → DealLast
-        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // DealLast → SelectTrump
-        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // SelectTrump → Play
-
+        // Dispatch COMPLETE events to progress through deal states to reach Play state
+        // DealFirst → DealMid → DealLast → SelectTrump → Play
+        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
+        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
+        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
+        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
     }
 
 
