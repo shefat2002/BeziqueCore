@@ -14,7 +14,6 @@ public class BeziqueAdapter : IBeziqueAdapter
     private readonly BeziqueGameController _controller;
     private readonly Bezique _stateMachine;
     private int _cardsPlayedThisTrick = 0;
-    private bool _meldDeclared = false;
 
     public BeziqueAdapter(BeziqueGameController controller)
     {
@@ -23,43 +22,23 @@ public class BeziqueAdapter : IBeziqueAdapter
         _stateMachine.SetAdapter(this);
     }
 
-    /// <summary>
-    /// Exposes the current FSM state ID for Controller mapping.
-    /// This allows the Controller to query the real FSM state instead of maintaining a shadow state.
-    /// </summary>
     public Bezique.StateId CurrentFsmStateId => _stateMachine.stateId;
 
-    /// <summary>
-    /// Starts the StateSmith state machine.
-    /// The FSM will automatically progress through deal phases: DealFirst → DealMid → DealLast → SelectTrump → Play
-    /// </summary>
     public void StartStateMachine()
     {
         _stateMachine.Start();
     }
 
-    /// <summary>
-    /// FSM Action: Deal first set of 3 cards to each player.
-    /// Called by state machine when in DealFirst state.
-    /// </summary>
     public void DealFirstSet()
     {
         DealCardsToAllPlayers(cardsPerPlayer: 3);
     }
 
-    /// <summary>
-    /// FSM Action: Deal second set of 3 cards to each player.
-    /// Called by state machine when in DealMid state.
-    /// </summary>
     public void DealMidSet()
     {
         DealCardsToAllPlayers(cardsPerPlayer: 3);
     }
 
-    /// <summary>
-    /// FSM Action: Deal third set of 3 cards to each player.
-    /// Called by state machine when in DealLast state.
-    /// </summary>
     public void DealLastSet()
     {
         DealCardsToAllPlayers(cardsPerPlayer: 3);
@@ -107,7 +86,6 @@ public class BeziqueAdapter : IBeziqueAdapter
     {
         // Reset for new trick
         _cardsPlayedThisTrick = 1;
-        _meldDeclared = false;
     }
 
     public void PlayMidCard()
@@ -127,18 +105,15 @@ public class BeziqueAdapter : IBeziqueAdapter
     // Meld Phase Methods
     public void TryMeld()
     {
-        _meldDeclared = false;
         // State machine enters TryMelded state - awaiting external meld declaration
     }
 
     public void MeldSuccess()
     {
-        _meldDeclared = true;
     }
 
     public void MeldFailed()
     {
-        _meldDeclared = false;
     }
 
     // Trick Transition Methods
@@ -147,7 +122,6 @@ public class BeziqueAdapter : IBeziqueAdapter
         _controller.PlayedCards.Clear();
         _controller.Context.CurrentTurnPlayer = _controller.Context.LastTrickWinner;
         _cardsPlayedThisTrick = 0;
-        _meldDeclared = false;
     }
 
     public void StartL9NewTrick()
@@ -155,7 +129,6 @@ public class BeziqueAdapter : IBeziqueAdapter
         _controller.PlayedCards.Clear();
         _controller.Context.CurrentTurnPlayer = _controller.Context.LastTrickWinner;
         _cardsPlayedThisTrick = 0;
-        _meldDeclared = false;
     }
 
     /// <summary>
@@ -196,7 +169,6 @@ public class BeziqueAdapter : IBeziqueAdapter
     {
         _controller.Context.CurrentPhase = GamePhase.Phase2_Last9;
         _cardsPlayedThisTrick = 1;
-        _meldDeclared = false;
 
         // Return all table cards to hand
         PhaseTransitionManager.ReturnAllTableCardsToHand(_controller.Players);
@@ -339,7 +311,6 @@ public class BeziqueAdapter : IBeziqueAdapter
         if (!MeldStateHandler.DeclareMeld(_controller.Players[currentPlayer], cards, meldType, _controller.Context.TrumpSuit))
             return false;
 
-        _meldDeclared = true;
         int points = _controller.Players[currentPlayer].RoundScore - beforeScore;
         _controller.OnMeldDeclared(currentPlayer, meldType, points);
 
@@ -355,7 +326,6 @@ public class BeziqueAdapter : IBeziqueAdapter
 
     public void SkipMeld()
     {
-        _meldDeclared = false;
         // Dispatch failed event to state machine to continue flow
         _stateMachine.DispatchEvent(Bezique.EventId.FAILED);
     }
@@ -390,12 +360,6 @@ public class BeziqueAdapter : IBeziqueAdapter
             }
         }
         return -1;
-    }
-
-    public void ResolveTrick()
-    {
-        // This is called externally - resolution happens automatically after last card played
-        // No action needed here as it's handled in PlayCard
     }
 
     public int EndRound()

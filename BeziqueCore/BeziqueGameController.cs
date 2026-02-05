@@ -49,10 +49,6 @@ public class BeziqueGameController
 
     public void SkipMeld() => _adapter.SkipMeld();
 
-    public void ResolveTrick() => _adapter.ResolveTrick();
-
-    public void StartNewTrick() => _adapter.StartNewTrick();
-
     public int EndRound() => _adapter.EndRound();
 
     public int CheckWinner() => _adapter.CheckWinner();
