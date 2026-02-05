@@ -46,7 +46,6 @@ public class BeziqueAdapter : IBeziqueAdapter
 
     /// <summary>
     /// FSM Action: Select trump card from deck.
-    /// Called by state machine when in SelectTrump state.
     /// </summary>
     public void SelectTrump()
     {
@@ -56,7 +55,6 @@ public class BeziqueAdapter : IBeziqueAdapter
             _controller.Context.TrumpCard = trumpCard;
             _controller.Context.TrumpSuit = trumpCard.IsJoker ? Suit.Diamonds : trumpCard.Suit;
 
-            // Dealer bonus if trump is a seven
             if (trumpCard.Rank == Rank.Seven && !trumpCard.IsJoker)
             {
                 _controller.Players[_controller.PlayerCount - 1].RoundScore += 10;

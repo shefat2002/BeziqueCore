@@ -24,23 +24,20 @@ public static class GameInitializer
 {
     public static void InitializeGame(GameConfig config, out Player[] players, out GameContext context)
     {
-        // Create shuffled deck - cards will be dealt by state machine
         var deck = DeckFactory.Shuffled(new Interfaces.SystemRandom(), config.DeckCount);
         var drawDeck = new Stack<Card>(deck);
 
-        // Create players with empty hands - state machine will deal cards
         players = new Player[config.PlayerCount];
         for (int i = 0; i < config.PlayerCount; i++)
         {
             players[i] = new Player(i) { Hand = new List<Card>() };
         }
 
-        // Initialize context - trump will be selected by state machine
         context = new GameContext
         {
             DrawDeck = drawDeck,
-            TrumpCard = new Card((byte)0, -1), // Will be set by SelectTrump()
-            TrumpSuit = Suit.None, // Will be set by SelectTrump()
+            TrumpCard = new Card((byte)0, -1),
+            TrumpSuit = Suit.None,
             CurrentPhase = GamePhase.Phase1_Normal,
             CurrentTurnPlayer = 0,
             LastTrickWinner = 0,
