@@ -78,10 +78,6 @@ public class BeziqueGameController
 
     public int LastWinner => Context.LastTrickWinner;
 
-    /// <summary>
-    /// Maps the FSM state ID to the legacy GameState enum.
-    /// This provides backward compatibility while using FSM as the single source of truth.
-    /// </summary>
     public GameState CurrentState => MapFsmState(_adapter.CurrentFsmStateId);
 
     private GameState MapFsmState(Bezique.StateId id)
