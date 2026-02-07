@@ -46,30 +46,6 @@ public static class GameInitializer
     }
 }
 
-public static class PlayStateHandler
-{
-    public static bool ValidateAndPlayCardPhase1(Player player, Card card, List<Card> playedCards, int playerIndex)
-    {
-        if (!PlayCardValidator.TryPlayCard(player, card, out var playedCard)) return false;
-
-        playedCards.Add(playedCard);
-        return true;
-    }
-}
-
-public static class L9PlayStateHandler
-{
-    public static bool ValidateAndPlayCardPhase2(Player player, Card card, List<Card> playedCards, int playerIndex, Suit leadSuit, Card? currentWinner, Suit trump)
-    {
-        if (!Phase2MoveValidator.IsLegalMove(player.Hand, card, leadSuit, currentWinner, trump)) return false;
-
-        if (!PlayCardValidator.TryRemoveCard(player.Hand, card)) return false;
-
-        playedCards.Add(card);
-        return true;
-    }
-}
-
 public static class TrickResolverHandler
 {
     public static int ResolveTrick(List<Card> playedCards, Player[] players, int[] playerIndices, Suit trump, bool isFinalTrick)
@@ -122,11 +98,6 @@ public static class MeldStateHandler
         return MeldValidator.TryExecuteMeld(player, cards, meldType, trump);
     }
 
-    public static bool DeclareMeld(Player player, List<Card> cards, MeldType meldType, Suit trump)
-    {
-        return MeldValidator.TryExecuteMeld(player, cards, meldType, trump);
-    }
-
     public static bool CanSwapTrumpSeven(Player player, Card trumpCard, Suit trump)
     {
         if (player.HasSwappedSeven) return false;
@@ -164,15 +135,6 @@ public static class MeldStateHandler
     }
 }
 
-public static class NewTrickHandler
-{
-    public static void StartNewTrick(List<Card> playedCards, int winnerPlayerId, ref int currentTurnPlayer)
-    {
-        playedCards.Clear();
-        currentTurnPlayer = winnerPlayerId;
-    }
-}
-
 public static class RoundEndHandler
 {
     public static int EndRound(Player[] players, GameMode mode, byte playerCount)
@@ -192,19 +154,6 @@ public static class RoundEndHandler
         }
 
         return winnerId;
-    }
-
-    public static void ResetRound(Player[] players)
-    {
-        for (int i = 0; i < players.Length; i++)
-        {
-            players[i].RoundScore = 0;
-            players[i].Hand.Clear();
-            players[i].TableCards.Clear();
-            players[i].WonPile.Clear();
-            players[i].HasSwappedSeven = false;
-            players[i].MeldHistory.Clear();
-        }
     }
 
     public static bool CheckGameOver(Player[] players, ushort winningScoreThreshold)

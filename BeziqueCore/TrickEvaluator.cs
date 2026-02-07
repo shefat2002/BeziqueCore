@@ -29,33 +29,6 @@ public static class TrickEvaluator
         return winnerIndex;
     }
 
-    public static int GetWinner(IReadOnlyList<Card> played, Suit trump)
-    {
-        if (played.Count == 0) return -1;
-
-        var leadCard = played[0];
-        var leadSuit = leadCard.IsJoker ? Suit.None : leadCard.Suit;
-        var leadIsJoker = leadCard.IsJoker;
-
-        int winnerIndex = 0;
-        Card winningCard = leadCard;
-        bool currentWinnerWasLeadJoker = leadIsJoker;
-
-        for (int i = 1; i < played.Count; i++)
-        {
-            var challenger = played[i];
-
-            if (ChallengerBeatsWinner(winningCard, challenger, leadSuit, trump, currentWinnerWasLeadJoker))
-            {
-                winnerIndex = i;
-                winningCard = challenger;
-                currentWinnerWasLeadJoker = false;
-            }
-        }
-
-        return winnerIndex;
-    }
-
     private static bool ChallengerBeatsWinner(Card winner, Card challenger, Suit leadSuit, Suit trump, bool winnerWasLeadJoker)
     {
         bool challengerIsJoker = challenger.IsJoker;

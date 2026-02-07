@@ -29,7 +29,7 @@ public class TrumpSevenDetectorTests
     [Fact]
     public void IsTrumpSeven_ReturnsFalse_WhenCardIsJoker()
     {
-        var joker = DeckFactory.CreateJoker(0);
+        var joker = new Card(32, 0);
         var result = TrumpSevenDetector.IsTrumpSeven(joker, Suit.Spades);
         Assert.False(result);
     }

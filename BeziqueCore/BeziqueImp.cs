@@ -96,7 +96,6 @@ internal class BeziqueAdapter : IBeziqueAdapter
         // For 2-player games: advance to second player's turn before they play
         // For 4-player games: advance to last player's turn (but card was already played by this point)
         // The trick is already complete by the time we're called - just resolve it
-        _cardsPlayedThisTrick++;
         ResolveTrickInternal();
     }
 
@@ -123,14 +122,12 @@ internal class BeziqueAdapter : IBeziqueAdapter
     {
         _controller.PlayedCards.Clear();
         _controller.Context.CurrentTurnPlayer = _controller.Context.LastTrickWinner;
-        _cardsPlayedThisTrick = 0;
     }
 
     public void StartL9NewTrick()
     {
         _controller.PlayedCards.Clear();
         _controller.Context.CurrentTurnPlayer = _controller.Context.LastTrickWinner;
-        _cardsPlayedThisTrick = 0;
     }
 
     public void DrawCardsForAll()
@@ -166,7 +163,6 @@ internal class BeziqueAdapter : IBeziqueAdapter
     public void L9PlayFirstCard()
     {
         _controller.Context.CurrentPhase = GamePhase.Phase2_Last9;
-        _cardsPlayedThisTrick = 1;
 
         // Return all table cards to hand
         PhaseTransitionManager.ReturnAllTableCardsToHand(_controller.Players);
@@ -176,13 +172,11 @@ internal class BeziqueAdapter : IBeziqueAdapter
     public void L9PlayMidCard()
     {
         _controller.Context.CurrentTurnPlayer = TurnManager.AdvanceTurn(_controller.Context.CurrentTurnPlayer, _controller.PlayerCount);
-        _cardsPlayedThisTrick++;
     }
 
     public void L9PlayLastCard()
     {
         // Last card played - trick complete, resolve it
-        _cardsPlayedThisTrick++;
         ResolveTrickInternal();
     }
 

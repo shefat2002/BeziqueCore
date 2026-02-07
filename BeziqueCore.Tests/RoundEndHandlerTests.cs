@@ -192,33 +192,6 @@ public class RoundEndHandlerTests
     }
 
     [Fact]
-    public void ResetRound_ClearsAllPlayerStates()
-    {
-        var players = new[]
-        {
-            new Player(0)
-            {
-                RoundScore = 100,
-                Hand = new List<Card> { new Card(0, 0) },
-                TableCards = new List<Card> { new Card(1, 0) },
-                WonPile = new List<Card> { new Card(2, 0) },
-                HasSwappedSeven = true
-            }
-        };
-
-        players[0].MeldHistory[MeldType.Bezique] = new List<Card> { new Card(3, 0), new Card(4, 0) };
-
-        RoundEndHandler.ResetRound(players);
-
-        Assert.Equal(0, players[0].RoundScore);
-        Assert.Empty(players[0].Hand);
-        Assert.Empty(players[0].TableCards);
-        Assert.Empty(players[0].WonPile);
-        Assert.False(players[0].HasSwappedSeven);
-        Assert.Empty(players[0].MeldHistory);
-    }
-
-    [Fact]
     public void GetFinalWinner_ReturnsHighestTotalScorePlayer()
     {
         var players = new[]

@@ -342,28 +342,4 @@ public class MeldValidatorTests
         Assert.Equal(40, MeldValidator.GetPoints(MeldType.FourJacks));
     }
 
-    [Fact]
-    public void TryExecuteMeld_WithList_ReturnsTrue_WhenValid()
-    {
-        var player = new Player(0);
-        var cards = new List<Card> { new Card(3, 0) };
-        player.Hand.Add(cards[0]);
-
-        var result = MeldValidator.TryExecuteMeld(player, cards, MeldType.TrumpSeven, Suit.Spades);
-
-        Assert.True(result);
-        Assert.Equal(10, player.RoundScore);
-    }
-
-    [Fact]
-    public void TryExecuteMeld_WithList_ReturnsFalse_WhenInvalid()
-    {
-        var player = new Player(0);
-        var cards = new List<Card> { new Card(10, 0) };
-        player.Hand.Add(cards[0]);
-
-        var result = MeldValidator.TryExecuteMeld(player, cards, MeldType.FourAces, Suit.Diamonds);
-
-        Assert.False(result);
-    }
 }

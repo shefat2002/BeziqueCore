@@ -5,7 +5,7 @@ public class TrickEvaluatorTests
     [Fact]
     public void GetWinner_JokerVsNonTrump_JokerWins()
     {
-        var joker = DeckFactory.CreateJoker(0);
+        var joker = new Card(32, 0);
         var tenOfDiamonds = new Card(25, 0);
         var played = new[] { joker, tenOfDiamonds };
         var result = TrickEvaluator.GetWinner(played, Suit.Hearts);
@@ -15,7 +15,7 @@ public class TrickEvaluatorTests
     [Fact]
     public void GetWinner_JokerVsTrump_TrumpWins()
     {
-        var joker = DeckFactory.CreateJoker(0);
+        var joker = new Card(32, 0);
         var queenOfHearts = new Card(18, 0);
         var played = new[] { joker, queenOfHearts };
         var result = TrickEvaluator.GetWinner(played, Suit.Hearts);
@@ -67,7 +67,7 @@ public class TrickEvaluatorTests
     public void GetWinner_FollowJoker_AlwaysLoses()
     {
         var aceOfSpades = new Card(31, 0);
-        var joker = DeckFactory.CreateJoker(1);
+        var joker = new Card(32, 1);
         var played = new[] { aceOfSpades, joker };
         var result = TrickEvaluator.GetWinner(played, Suit.Diamonds);
         Assert.Equal(0, result);

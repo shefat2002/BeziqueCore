@@ -125,40 +125,6 @@ public static class MeldValidator
         return true;
     }
 
-    public static bool TryExecuteMeld(Player player, List<Card> cards, MeldType meldType, Suit trump)
-    {
-        if (!ValidateMeld(meldType, cards.ToArray(), trump)) return false;
-        if (!CanUseCardsForMeld(player, cards.ToArray(), meldType)) return false;
-
-        int additionalPoints = 0;
-
-        if (meldType == MeldType.TrumpRun && player.MeldHistory.ContainsKey(MeldType.TrumpMarriage))
-        {
-            additionalPoints = GetPoints(MeldType.TrumpRun) - GetPoints(MeldType.TrumpMarriage);
-        }
-
-        for (int i = 0; i < cards.Count; i++)
-        {
-            if (!PlayCardValidator.TryRemoveCard(player.Hand, cards[i]))
-            {
-                return false;
-            }
-
-            player.TableCards.Add(cards[i]);
-        }
-
-        player.RoundScore += GetPoints(meldType) + additionalPoints;
-
-        if (!player.MeldHistory.ContainsKey(meldType))
-        {
-            player.MeldHistory[meldType] = new List<Card>();
-        }
-
-        player.MeldHistory[meldType].AddRange(cards);
-
-        return true;
-    }
-
     private static bool ValidateTrumpSeven(Card[] cards, Suit trump)
     {
         return cards.Length == 1 && cards[0].Rank == Rank.Seven && cards[0].Suit == trump;

@@ -14,9 +14,6 @@ public static class Phase2MoveValidator
     public static bool HasTrumpSuit(List<Card> hand, Suit trump) =>
         hand.Exists(c => c.Suit == trump);
 
-    public static List<Card> FindTrumpCards(List<Card> hand, Suit trump) =>
-        hand.Where(c => c.Suit == trump).ToList();
-
     public static bool IsLegalMove(List<Card> hand, Card cardToPlay, Suit leadSuit, Card? currentWinner, Suit trump)
     {
         if (!currentWinner.HasValue) return true;
@@ -45,22 +42,5 @@ public static class Phase2MoveValidator
         }
 
         return true;
-    }
-
-    public static List<Card> GetLegalMoves(List<Card> hand, Suit leadSuit, Card? currentWinner, Suit trump)
-    {
-        if (!currentWinner.HasValue) return new List<Card>(hand);
-
-        var legalMoves = new List<Card>();
-
-        foreach (var card in hand)
-        {
-            if (IsLegalMove(hand, card, leadSuit, currentWinner, trump))
-            {
-                legalMoves.Add(card);
-            }
-        }
-
-        return legalMoves;
     }
 }

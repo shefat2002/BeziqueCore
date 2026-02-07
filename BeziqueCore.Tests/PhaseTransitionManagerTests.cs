@@ -293,7 +293,7 @@ public class PhaseTransitionManagerTests
     }
 
     [Fact]
-    public void ExecuteDraw_NormalDraw_FourPlayers_WinnerDrawsFirstThenOthers()
+    public void ExecuteDraw_NormalDraw_FourPlayers_AllPlayersDrawOneCard()
     {
         var players = new[]
         {
@@ -304,20 +304,28 @@ public class PhaseTransitionManagerTests
         };
         var trumpCard = new Card((byte)0, 0);
         var drawDeck = new Stack<Card>();
+        // Add 8 cards so we don't trigger phase 2 transition (need exactly 4 for transition)
         drawDeck.Push(new Card((byte)31, 3));
         drawDeck.Push(new Card((byte)30, 2));
         drawDeck.Push(new Card((byte)29, 1));
         drawDeck.Push(new Card((byte)28, 0));
         drawDeck.Push(new Card((byte)27, 3));
+        drawDeck.Push(new Card((byte)26, 2));
+        drawDeck.Push(new Card((byte)25, 1));
+        drawDeck.Push(new Card((byte)24, 0));
 
         bool transitioned = PhaseTransitionManager.ExecuteDraw(players, winnerId: 1, trumpCard, drawDeck, playerCount: 4);
 
         Assert.False(transitioned);
+        // All players draw one card each in player order
+        Assert.Single(players[0].Hand);
+        Assert.Equal((byte)31, players[0].Hand[0].CardId);
         Assert.Single(players[1].Hand);
-        Assert.Equal((byte)27, players[1].Hand[0].CardId);
-        Assert.Equal((byte)28, players[0].Hand[0].CardId);
+        Assert.Equal((byte)30, players[1].Hand[0].CardId);
+        Assert.Single(players[2].Hand);
         Assert.Equal((byte)29, players[2].Hand[0].CardId);
-        Assert.Equal((byte)30, players[3].Hand[0].CardId);
+        Assert.Single(players[3].Hand);
+        Assert.Equal((byte)28, players[3].Hand[0].CardId);
     }
 
     [Fact]

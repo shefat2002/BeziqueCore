@@ -72,20 +72,6 @@ public class Phase2MoveValidatorTests
         Assert.False(Phase2MoveValidator.HasTrumpSuit(hand, Suit.Diamonds));
     }
 
-    [Fact]
-    public void FindTrumpCards_ReturnsOnlyTrumpCards()
-    {
-        var hand = new List<Card>
-        {
-            new Card((byte)0, 0),
-            new Card((byte)4, 0),
-            new Card((byte)1, 0)
-        };
-        var trumps = Phase2MoveValidator.FindTrumpCards(hand, Suit.Diamonds);
-        Assert.Equal(2, trumps.Count);
-        Assert.All(trumps, c => Assert.Equal(Suit.Diamonds, c.Suit));
-    }
-
     #endregion
 
     #region IsLegalMove Tests
@@ -160,95 +146,6 @@ public class Phase2MoveValidatorTests
         var winner = new Card((byte)9, 0);
         Assert.True(Phase2MoveValidator.IsLegalMove(hand, hand[0], Suit.Hearts, winner, Suit.Diamonds));
         Assert.True(Phase2MoveValidator.IsLegalMove(hand, hand[1], Suit.Hearts, winner, Suit.Diamonds));
-    }
-
-    #endregion
-
-    #region GetLegalMoves Tests
-
-    [Fact]
-    public void GetLegalMoves_NoCurrentWinner_ReturnsAllCards()
-    {
-        var hand = new List<Card>
-        {
-            new Card((byte)0, 0),
-            new Card((byte)1, 0)
-        };
-        var legal = Phase2MoveValidator.GetLegalMoves(hand, Suit.Diamonds, null, Suit.Spades);
-        Assert.Equal(2, legal.Count);
-    }
-
-    [Fact]
-    public void GetLegalMoves_HasLeadSuit_ReturnsOnlyLeadSuit()
-    {
-        var hand = new List<Card>
-        {
-            new Card((byte)0, 0),
-            new Card((byte)1, 0),
-            new Card((byte)8, 0)
-        };
-        var winner = new Card((byte)12, 0);
-        var legal = Phase2MoveValidator.GetLegalMoves(hand, Suit.Diamonds, winner, Suit.Spades);
-        Assert.Equal(2, legal.Count);
-        Assert.All(legal, c => Assert.Equal(Suit.Diamonds, c.Suit));
-    }
-
-    [Fact]
-    public void GetLegalMoves_HasHigherLeadSuit_ReturnsOnlyHigherCards()
-    {
-        var hand = new List<Card>
-        {
-            new Card((byte)8, 0),
-            new Card((byte)24, 0),
-            new Card((byte)16, 0)
-        };
-        var winner = new Card((byte)16, 0);
-        var legal = Phase2MoveValidator.GetLegalMoves(hand, Suit.Diamonds, winner, Suit.Spades);
-        Assert.Single(legal);
-        Assert.Equal((byte)24, legal[0].CardId);
-    }
-
-    [Fact]
-    public void GetLegalMoves_NoLeadSuitHasTrump_ReturnsOnlyTrump()
-    {
-        var hand = new List<Card>
-        {
-            new Card((byte)0, 0),
-            new Card((byte)4, 0),
-            new Card((byte)1, 0)
-        };
-        var winner = new Card((byte)10, 0);
-        var legal = Phase2MoveValidator.GetLegalMoves(hand, Suit.Hearts, winner, Suit.Diamonds);
-        Assert.Equal(2, legal.Count);
-        Assert.All(legal, c => Assert.Equal(Suit.Diamonds, c.Suit));
-    }
-
-    [Fact]
-    public void GetLegalMoves_TrumpWinningNoHigherTrump_ReturnsAllTrump()
-    {
-        var hand = new List<Card>
-        {
-            new Card((byte)8, 0),
-            new Card((byte)1, 0),
-            new Card((byte)12, 0)
-        };
-        var winner = new Card((byte)24, 0);
-        var legal = Phase2MoveValidator.GetLegalMoves(hand, Suit.Hearts, winner, Suit.Diamonds);
-        Assert.Equal(2, legal.Count);
-        Assert.All(legal, c => Assert.Equal(Suit.Diamonds, c.Suit));
-    }
-
-    [Fact]
-    public void GetLegalMoves_NoLeadSuitNoTrump_ReturnsAllCards()
-    {
-        var hand = new List<Card>
-        {
-            new Card((byte)1, 0),
-            new Card((byte)5, 0)
-        };
-        var winner = new Card((byte)9, 0);
-        var legal = Phase2MoveValidator.GetLegalMoves(hand, Suit.Hearts, winner, Suit.Diamonds);
-        Assert.Equal(2, legal.Count);
     }
 
     #endregion

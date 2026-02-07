@@ -36,8 +36,4 @@ public static class DeckFactory
 
         return deck;
     }
-
-    public static Card CreateCard(byte cardId, sbyte deckIndex = -1) => new(cardId, deckIndex);
-
-    public static Card CreateJoker(sbyte deckIndex = -1) => new(JokerCardId, deckIndex);
 }

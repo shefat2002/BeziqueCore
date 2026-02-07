@@ -250,7 +250,7 @@ public class MeldStateHandlerTests
             RoundScore = 100
         };
 
-        bool result = MeldStateHandler.DeclareMeld(player, new List<Card> { king, queen }, MeldType.TrumpMarriage, Suit.Diamonds);
+        bool result = MeldStateHandler.DeclareMeld(player, new[] { king, queen }, MeldType.TrumpMarriage, Suit.Diamonds);
 
         Assert.True(result);
         Assert.Equal(140, player.RoundScore);
