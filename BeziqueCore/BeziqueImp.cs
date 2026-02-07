@@ -51,9 +51,6 @@ public class BeziqueAdapter : IBeziqueAdapter
         DealCardsToAllPlayers(cardsPerPlayer: 3);
     }
 
-    /// <summary>
-    /// FSM Action: Select trump card from deck.
-    /// </summary>
     public void SelectTrump()
     {
         if (_controller.Context.DrawDeck.Count > 0)
@@ -69,9 +66,6 @@ public class BeziqueAdapter : IBeziqueAdapter
         }
     }
 
-    /// <summary>
-    /// Helper method to deal specified number of cards to each player.
-    /// </summary>
     private void DealCardsToAllPlayers(int cardsPerPlayer)
     {
         for (int i = 0; i < _controller.PlayerCount; i++)
@@ -142,10 +136,6 @@ public class BeziqueAdapter : IBeziqueAdapter
         _cardsPlayedThisTrick = 0;
     }
 
-    /// <summary>
-    /// Adapter Implementation: Called by FSM State 'AddOneCardToAll'.
-    /// Executes the actual draw logic and decides the next state transition.
-    /// </summary>
     public void DrawCardsForAll()
     {
         int winnerId = _controller.Context.LastTrickWinner;
@@ -233,9 +223,6 @@ public class BeziqueAdapter : IBeziqueAdapter
         }
     }
 
-    // ============================================================
-    // Public API - Methods Called from BeziqueGameController
-    // ============================================================
 
     public bool PlayCard(Card card)
     {
@@ -437,14 +424,6 @@ public class BeziqueAdapter : IBeziqueAdapter
         return winnerId;
     }
 
-    // ============================================================
-    // Gateway Methods - Public API (Called by Controller/UI)
-    // ============================================================
-
-    /// <summary>
-    /// Gateway Method: Called by UI to trigger card drawing.
-    /// This only tells the FSM to proceed - the actual logic is in DrawCardsForAll().
-    /// </summary>
     public void DrawCards()
     {
         // Validation: Can only draw if deck has cards
