@@ -9,11 +9,10 @@ public partial class Bezique
     public void SetAdapter(IBeziqueAdapter adapter) => _adapter = adapter;
 }
 
-public class BeziqueAdapter : IBeziqueAdapter
+internal class BeziqueAdapter : IBeziqueAdapter
 {
     private readonly BeziqueGameController _controller;
     private readonly Bezique _stateMachine;
-    private int _cardsPlayedThisTrick = 0;
 
     public BeziqueAdapter(BeziqueGameController controller)
     {
@@ -83,15 +82,13 @@ public class BeziqueAdapter : IBeziqueAdapter
     // Play Phase Methods
     public void PlayFirstCard()
     {
-        // First player plays - mark that we've started the trick
-        _cardsPlayedThisTrick = 1;
+        // First player plays - FSM entry point
     }
 
     public void PlayMidCard()
     {
         // Advance turn after first/middle player
         _controller.Context.CurrentTurnPlayer = TurnManager.AdvanceTurn(_controller.Context.CurrentTurnPlayer, _controller.PlayerCount);
-        _cardsPlayedThisTrick++;
     }
 
     public void PlayLastCard()
