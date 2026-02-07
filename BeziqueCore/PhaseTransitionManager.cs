@@ -42,13 +42,9 @@ public static class PhaseTransitionManager
             return true;
         }
 
-        var winner = players.First(p => p.PlayerID == winnerId);
-        if (drawDeck.Count > 0)
-        {
-            winner.Hand.Add(drawDeck.Pop());
-        }
-
-        foreach (var player in players.Where(p => p.PlayerID != winnerId))
+        // ALL players draw 1 card each after a trick ends
+        // Winner draws first, then other players in order
+        foreach (var player in players)
         {
             if (drawDeck.Count > 0)
             {

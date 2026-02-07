@@ -89,7 +89,7 @@ public class BeziqueAdapter : IBeziqueAdapter
     // Play Phase Methods
     public void PlayFirstCard()
     {
-        // Reset for new trick
+        // First player plays - mark that we've started the trick
         _cardsPlayedThisTrick = 1;
     }
 
@@ -102,7 +102,9 @@ public class BeziqueAdapter : IBeziqueAdapter
 
     public void PlayLastCard()
     {
-        // Last card played - trick complete, resolve it
+        // For 2-player games: advance to second player's turn before they play
+        // For 4-player games: advance to last player's turn (but card was already played by this point)
+        // The trick is already complete by the time we're called - just resolve it
         _cardsPlayedThisTrick++;
         ResolveTrickInternal();
     }
@@ -263,36 +265,92 @@ public class BeziqueAdapter : IBeziqueAdapter
         _controller.PlayedCards.Add(card);
         PlayCardValidator.TryRemoveCard(player.Hand, card);
 
-        // Dispatch event to state machine based on position in trick
+        // Dispatch event to state machine based on current FSM state and cards played
         int cardsInTrick = _controller.PlayedCards.Count;
+        var currentState = _stateMachine.stateId;
 
-        if (cardsInTrick == 1)
+        // The FSM advances through states based on COMPLETE events
+        // For 2-player: PlayFirst (stay) -> PlayFirst (stay) -> PlayLast -> resolve
+        // For 4-player: PlayFirst -> PlayMid -> PlayMid -> PlayLast -> resolve
+        //
+        // We dispatch COMPLETE to move to the NEXT state when enough cards have been played
+
+        if (_controller.Context.CurrentPhase == GamePhase.Phase2_Last9)
         {
-            // First card of trick
-            if (_controller.Context.CurrentPhase == GamePhase.Phase2_Last9)
+            // Phase 2 logic
+            if (currentState == Bezique.StateId.L9PLAYFIRST)
             {
-                _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // Move to L9PlayFirst
+                // Advance turn for next player (FSM entry method doesn't do this for us)
+                _controller.Context.CurrentTurnPlayer = TurnManager.AdvanceTurn(_controller.Context.CurrentTurnPlayer, _controller.PlayerCount);
+
+                if (_controller.PlayerCount == 2)
+                {
+                    // 2-player: Stay in L9PlayFirst until 2 cards played
+                    if (cardsInTrick == 2)
+                    {
+                        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // L9PlayFirst -> L9PlayLast
+                    }
+                    // else: stay in L9PlayFirst, don't dispatch
+                }
+                else
+                {
+                    // 4-player: Move to L9PlayMid after first card
+                    _stateMachine.DispatchEvent(Bezique.EventId.HASMID);
+                }
             }
-            else
+            else if (currentState == Bezique.StateId.L9PLAYMID)
             {
-                _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // Move to PlayFirst
+                if (cardsInTrick < _controller.PlayerCount)
+                {
+                    _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // L9PlayMid -> L9PlayMid
+                }
+                else
+                {
+                    _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // L9PlayMid -> L9PlayLast
+                }
             }
-        }
-        else if (cardsInTrick < _controller.PlayerCount)
-        {
-            // Middle card(s) of trick
-            _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // Move to PlayMid or L9PlayMid
+            else if (currentState == Bezique.StateId.L9PLAYLAST)
+            {
+                _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // L9PlayLast -> resolve trick
+            }
         }
         else
         {
-            // Last card of trick - FSM will call PlayLastCard/L9PlayLastCard which resolves the trick
-            if (_controller.Context.CurrentPhase == GamePhase.Phase2_Last9)
+            // Phase 1 logic
+            if (currentState == Bezique.StateId.PLAYFIRST)
             {
-                _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // Move to L9PlayLast
+                // Advance turn for next player (FSM entry method doesn't do this for us)
+                _controller.Context.CurrentTurnPlayer = TurnManager.AdvanceTurn(_controller.Context.CurrentTurnPlayer, _controller.PlayerCount);
+
+                if (_controller.PlayerCount == 2)
+                {
+                    // 2-player: Stay in PlayFirst until 2 cards played
+                    if (cardsInTrick == 2)
+                    {
+                        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // PlayFirst -> PlayLast
+                    }
+                    // else: stay in PlayFirst, don't dispatch
+                }
+                else
+                {
+                    // 4-player: Move to PlayMid after first card
+                    _stateMachine.DispatchEvent(Bezique.EventId.HASMID);
+                }
             }
-            else
+            else if (currentState == Bezique.StateId.PLAYMID)
             {
-                _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // Move to PlayLast
+                if (cardsInTrick < _controller.PlayerCount)
+                {
+                    _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // PlayMid -> PlayMid
+                }
+                else
+                {
+                    _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // PlayMid -> PlayLast
+                }
+            }
+            else if (currentState == Bezique.StateId.PLAYLAST)
+            {
+                _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE); // PlayLast -> resolve trick
             }
         }
 
@@ -466,14 +524,11 @@ public class BeziqueAdapter : IBeziqueAdapter
             // Final trick of the round - transition to RoundEnd
             _stateMachine.DispatchEvent(Bezique.EventId.NOCARD);
         }
-        else if (_controller.Context.CurrentPhase == GamePhase.Phase2_Last9)
+        else
         {
-            // Phase 2: Already in L9PlayLast, dispatch COMPLETE to go to L9NewTrick
+            // Dispatch COMPLETE to transition from PlayLast to Meld (Phase 1) or L9PlayLast to L9NewTrick (Phase 2)
             _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
         }
-        // Phase 1: PlayCard already dispatched COMPLETE to move to Meld (TryMelded) state.
-        // TryMelded waits for SUCCESS or FAILED event from DeclareMeld or SkipMeld.
-        // We do NOT dispatch anything here - let the meld flow continue naturally.
     }
 
     private bool AllHandsEmpty()
