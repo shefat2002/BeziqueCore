@@ -2,13 +2,13 @@ using BeziqueCore.Interfaces;
 
 namespace BeziqueCore;
 
-public class BeziqueConcruite : IBeziqueAdapter
+public class BeziqueConcrete : IBeziqueAdapter
 {
     public readonly List<byte> Dealer;
     public readonly List<byte>[] Player;
     public byte DealOrder;
 
-    public BeziqueConcruite(int player)
+    public BeziqueConcrete(int player)
     {
         Player = new List<byte>[player];
         for (int i = 0; i < player; i++)
@@ -31,10 +31,6 @@ public class BeziqueConcruite : IBeziqueAdapter
         }
     }
 
-    public void CheckPlayerCount()
-    {
-        throw new NotImplementedException();
-    }
 
     public void DealThreeCards()
     {

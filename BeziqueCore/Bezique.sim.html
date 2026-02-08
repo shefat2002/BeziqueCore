@@ -253,8 +253,6 @@ StartGame
 
 StartGame : StartGame
 
-StartGame : enter / #123; _adapter.CheckPlayerCount()#59; #125;
-
 %% Initial state name as "." so that it fits in black circle shape.
 %% See https://github.com/StateSmith/StateSmith/issues/404
 state "." as ROOT.(InitialState)
@@ -1249,13 +1247,6 @@ evaluateGuard = null;
         {
             // Step 1: execute action `this.tracer?.enterState('StartGame');`
             this.tracer?.enterState('StartGame');
-        } // end of behavior for StartGame
-        
-        // StartGame behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "_adapter.CheckPlayerCount();"); }
-        {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "_adapter.CheckPlayerCount();");`
-            this.tracer?.log("⚡ FSM would execute action: " + "_adapter.CheckPlayerCount();");
         } // end of behavior for StartGame
     }
     

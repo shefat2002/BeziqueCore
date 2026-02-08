@@ -24,7 +24,7 @@ public class BeziqueService : Bezique.BeziqueBase
 
         bezique = new BeziqueCore.Bezique();
         bezique.Start();
-        bezique.SetAdapter(new BeziqueConcruite(playerCount));
+        bezique.SetAdapter(new BeziqueConcrete(playerCount));
 
         if (playerCount == 2) bezique.DispatchEvent(BeziqueCore.Bezique.EventId.TWOPLAYERGAME);
         if (playerCount == 4) bezique.DispatchEvent(BeziqueCore.Bezique.EventId.FOURPLAYERGAME);

@@ -680,13 +680,6 @@ public partial class Bezique
     private void STARTGAME_enter()
     {
         this.stateId = StateId.STARTGAME;
-
-        // StartGame behavior
-        // uml: enter / { _adapter.CheckPlayerCount(); }
-        {
-            // Step 1: execute action `_adapter.CheckPlayerCount();`
-            _adapter.CheckPlayerCount();
-        } // end of behavior for StartGame
     }
 
     private void STARTGAME_exit()
