@@ -318,14 +318,15 @@ public class PhaseTransitionManagerTests
 
         Assert.False(transitioned);
         // All players draw one card each in player order
+        // Stack is LIFO - last pushed (24) is first popped
         Assert.Single(players[0].Hand);
-        Assert.Equal((byte)31, players[0].Hand[0].CardId);
+        Assert.Equal((byte)24, players[0].Hand[0].CardId);
         Assert.Single(players[1].Hand);
-        Assert.Equal((byte)30, players[1].Hand[0].CardId);
+        Assert.Equal((byte)25, players[1].Hand[0].CardId);
         Assert.Single(players[2].Hand);
-        Assert.Equal((byte)29, players[2].Hand[0].CardId);
+        Assert.Equal((byte)26, players[2].Hand[0].CardId);
         Assert.Single(players[3].Hand);
-        Assert.Equal((byte)28, players[3].Hand[0].CardId);
+        Assert.Equal((byte)27, players[3].Hand[0].CardId);
     }
 
     [Fact]

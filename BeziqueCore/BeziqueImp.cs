@@ -26,28 +26,24 @@ internal class BeziqueAdapter : IBeziqueAdapter
     public void StartStateMachine()
     {
         _stateMachine.Start();
-
-        // Dispatch COMPLETE events to progress through deal states to reach Play state
-        // DealFirst → DealMid → DealLast → SelectTrump → Play
-        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
-        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
-        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
-        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
     }
 
     public void DealFirstSet()
     {
         DealCardsToAllPlayers(cardsPerPlayer: 3);
+        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
     }
 
     public void DealMidSet()
     {
         DealCardsToAllPlayers(cardsPerPlayer: 3);
+        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
     }
 
     public void DealLastSet()
     {
         DealCardsToAllPlayers(cardsPerPlayer: 3);
+        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
     }
 
     public void SelectTrump()
@@ -63,6 +59,7 @@ internal class BeziqueAdapter : IBeziqueAdapter
                 _controller.Players[_controller.PlayerCount - 1].RoundScore += 10;
             }
         }
+        _stateMachine.DispatchEvent(Bezique.EventId.COMPLETE);
     }
 
     private void DealCardsToAllPlayers(int cardsPerPlayer)

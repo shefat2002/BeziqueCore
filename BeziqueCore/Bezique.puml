@@ -5,56 +5,52 @@ SmRunnerSettings.transpilerId = "CSharp"
 
 [RenderConfig.CSharp]
 NameSpace = "BeziqueCore;"
+
 '/
 
 hide empty description
 skinparam stateMessageAlignment center
 
-' Game Flow:
-' 1. Deal Phase - Deal cards in 3 sets (3-3-3 for 2 players, 3-3-3 for 4 players)
-' 2. Select Trump - Flip the trump card
-' 3. Play Phase - Players play cards in tricks
-'    - 2 player: skip PlayMid
-'    - 4 player: PlayFirst -> PlayMid -> PlayLast
-' 4. Meld Phase - Winner can declare melds
-' 5. NewTrick - Clear played cards, winner leads
-' 6. AddOneCardToAll - Each player draws 1 card from deck
-' 7. Repeat Play/Meld/NewTrick/Draw until deck empty
-' 8. L9Play - Play last 9 cards (no drawing)
-' 9. RoundEnd - Calculate scores
-' 10. Check for winning score or start new round
-'
-' Events:
-' - Complete: State finished, move to next
-' - HasMid: 4 players, has middle player(s)
-' - Success: Meld declared successfully
-' - Failed: Meld failed or not declared
-' - DeckEmpty: No more cards to draw
-' - NoCard: Player has no more cards
-' - WinningScore: Player reached target score
+state StartGame
 
-[*] -> Deal
 
-state Deal {
-    [*] -> DealFirst
+state Deal2Player {
+    [*] -> Deal2_1
 
-    state DealFirst
-    state DealMid
-    state DealLast
 
-    DealFirst : enter / _adapter.DealFirstSet()
-    DealFirst -> DealMid : Complete
+    Deal2_1 -> Deal2_2 :  Complete;
+    Deal2_2 --> Deal2_1 : Pending;
+    Deal2_2 --> SelectTrump : Complete;
 
-    DealMid : enter / _adapter.DealMidSet()
-    DealMid -> DealLast : Complete
+    Deal2_1 : enter / _adapter.Deal2_1()
+    Deal2_2 : enter / _adapter.Deal2_2()
+}
+state Deal4Player {
+    [*] -> Deal4_1
 
-    DealLast : enter / _adapter.DealLastSet()
-    DealLast -> SelectTrump : Complete
+
+    Deal4_1 -> Deal4_2 : Complete;
+    Deal4_2 -> Deal4_3 : Complete;
+    Deal4_3 -> Deal4_4 : Complete;
+    
+    DealFirst -> DealLast : Complete;
+    DealLast --> DealFirst : Complete;
+
+    Deal4_1 : enter / _adapter.DealFirst()
+    Deal4_2 : enter / _adapter.DealThird()
+    Deal4_3 : enter / _adapter.DealSecond()
+    Deal4_4 : enter / _adapter.DealLastSet()
 }
 
-state SelectTrump
-SelectTrump : enter / _adapter.SelectTrump()
-SelectTrump --> Play : Complete
+[*] -> StartGame
+StartGame --> Deal2Player : _adapter.isTwoPlayerGame();
+
+
+state SelectTrump{
+    SelectTrump : enter / _adapter.SelectTrump()
+    
+    SelectTrump --> Play : Complete
+}
 
 state Play {
     [*] -> PlayFirst
