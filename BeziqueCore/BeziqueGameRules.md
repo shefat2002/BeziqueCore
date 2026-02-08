@@ -40,7 +40,7 @@ Here is the comprehensive list of **Rules, Exceptions, and Edge Cases** for the 
 1.  **Validation:** Players can play **ANY** card from their Hand or TableCards.
 2.  **Draw Order:** Trick Winner draws top card. Loser(s) draw next cards.
 3.  **Trump 7 Swap:**
-    *   **Who:** Trick Winner only.
+    *   **Who:** Trick Winner only (Meld).
     *   **Condition:** Holds Rank 7 of Trump Suit + Game Trump Card is NOT Rank 7.
     *   **Action:** Swap Hand Card with Table Trump Card.
     *   **Score:** +10 Points.
@@ -111,7 +111,8 @@ Here is the comprehensive list of **Rules, Exceptions, and Edge Cases** for the 
 **Trigger:** All 9 tricks of Phase 2 are complete.
 
 #### **7.1 Standard Mode**
-*   No additional scoring. `Total Score = Accumulated In-Game Points`.
+*   **Logic:** Iterate through the `WonPile` of the player.
+*   **Value:** Each Ace = 10pts, Each Ten = 10pts.
 
 #### **7.2 Advanced Mode (Ace/Ten Count)**
 *   **Logic:** Iterate through the `WonPile` of the player.

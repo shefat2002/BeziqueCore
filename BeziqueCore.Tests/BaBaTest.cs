@@ -9,7 +9,7 @@ public class BaBaTest
     {
         _output = output;
 
-        var baba = new BaBa();
+        var baba = new BeziqueConcruite();
         foreach (var card in baba.Dealer)
         {
             _output.WriteLine(card.ToString());
@@ -19,7 +19,7 @@ public class BaBaTest
     [Fact]
     public void DeckCardCheck()
     {
-        var baba = new BaBa();
+        var baba = new BeziqueConcruite();
 
         // Act
         var cards = baba.Dealer;

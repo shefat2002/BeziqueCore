@@ -5,7 +5,6 @@ SmRunnerSettings.transpilerId = "CSharp"
 
 [RenderConfig.CSharp]
 NameSpace = "BeziqueCore;"
-
 '/
 
 hide empty description
@@ -13,123 +12,182 @@ skinparam stateMessageAlignment center
 
 state StartGame
 
+[*] --> StartGame
+StartGame --> DealTwoPlayer : TwoPlayerGame
+StartGame --> DealFourPlayer : FourPlayerGame
 
-state Deal2Player {
-    [*] -> Deal2_1
+StartGame : enter / _adapter.CheckPlayerCount();
 
-
-    Deal2_1 -> Deal2_2 :  Complete;
-    Deal2_2 --> Deal2_1 : Pending;
-    Deal2_2 --> SelectTrump : Complete;
-
-    Deal2_1 : enter / _adapter.Deal2_1()
-    Deal2_2 : enter / _adapter.Deal2_2()
-}
-state Deal4Player {
-    [*] -> Deal4_1
-
-
-    Deal4_1 -> Deal4_2 : Complete;
-    Deal4_2 -> Deal4_3 : Complete;
-    Deal4_3 -> Deal4_4 : Complete;
+state DealTwoPlayer{
+    state Deal2_FirstPlayer
+    state Deal2_SecondPlayer
     
-    DealFirst -> DealLast : Complete;
-    DealLast --> DealFirst : Complete;
-
-    Deal4_1 : enter / _adapter.DealFirst()
-    Deal4_2 : enter / _adapter.DealThird()
-    Deal4_3 : enter / _adapter.DealSecond()
-    Deal4_4 : enter / _adapter.DealLastSet()
-}
-
-[*] -> StartGame
-StartGame --> Deal2Player : _adapter.isTwoPlayerGame();
-
-
-state SelectTrump{
-    SelectTrump : enter / _adapter.SelectTrump()
+    [*] -down-> Deal2_FirstPlayer 
+    Deal2_FirstPlayer --> Deal2_SecondPlayer : Complete
+    Deal2_SecondPlayer --> Deal2_FirstPlayer : DealNotComplete
+    Deal2_SecondPlayer --> FlipTrump
     
-    SelectTrump --> Play : Complete
+    Deal2_FirstPlayer : enter / _adapter.DealThreeCards();
+    Deal2_SecondPlayer : enter / _adapter.DealThreeCards();
+    
 }
 
-state Play {
-    [*] -> PlayFirst
-
-    state PlayFirst
-    state PlayMid
-    state PlayLast
-
-    PlayFirst : enter / _adapter.PlayFirstCard()
-    PlayFirst -> PlayMid : HasMid
-    PlayFirst -> PlayLast : Complete
-
-    PlayMid : enter / _adapter.PlayMidCard()
-    PlayMid -> PlayLast : Complete
-
-    PlayLast : enter / _adapter.PlayLastCard()
-    PlayLast --> Meld : Complete
+state DealFourPlayer{
+    state Deal4_FirstPlayer
+    state Deal4_SecondPlayer
+    state Deal4_ThirdPlayer
+    state Deal4_FourthPlayer
+    
+    [*] -down-> Deal4_FirstPlayer 
+    Deal4_FirstPlayer --> Deal4_SecondPlayer : Complete
+    Deal4_SecondPlayer --> Deal4_ThirdPlayer : Complete
+    Deal4_ThirdPlayer --> Deal4_FourthPlayer : Complete
+    Deal4_FourthPlayer --> Deal4_FirstPlayer : DealNotComplete
+    Deal4_FourthPlayer --> FlipTrump
+    
+    Deal4_FirstPlayer : enter / _adapter.DealThreeCards();
+    Deal4_SecondPlayer : enter / _adapter.DealThreeCards();
+    Deal4_ThirdPlayer : enter / _adapter.DealThreeCards();
+    Deal4_FourthPlayer : enter / _adapter.DealThreeCards();
 }
 
-state Meld {
-    [*] -> TryMelded
 
-    state TryMelded
-    state Melded
-    state NoMeld
 
-    TryMelded : enter / _adapter.TryMeld()
-    TryMelded -> Melded : Success
-    TryMelded -> NoMeld : Failed
+state FlipTrump
 
-    Melded : enter / _adapter.MeldSuccess()
-    Melded -> NewTrick : Complete
+FlipTrump : enter / _adapter.FlipCard();
 
-    NoMeld : enter / _adapter.MeldFailed()
-    NoMeld --> NewTrick : Complete
+FlipTrump --> Add10PointsToDealer : Trump7
+FlipTrump --> PlayPhase1 : OtherCard
+
+Add10PointsToDealer : enter / _adapter.Add10PointsToDealer();
+
+Add10PointsToDealer --> PlayPhase1
+
+state PlayPhase1{
+
 }
 
-state NewTrick
-NewTrick : enter / _adapter.StartNewTrick()
-NewTrick -> AddOneCardToAll : Complete
 
-state AddOneCardToAll
-AddOneCardToAll : enter / _adapter.DrawCardsForAll()
-AddOneCardToAll --> Play : Complete
-AddOneCardToAll --> L9Play : DeckEmpty
-
-state L9Play {
-    [*] -> L9PlayFirst
-
-    state L9PlayFirst
-    state L9PlayMid
-    state L9PlayLast
-
-    L9PlayFirst : enter / _adapter.L9PlayFirstCard()
-    L9PlayFirst --> L9PlayMid : HasMid
-    L9PlayFirst --> L9PlayLast : Complete
-
-    L9PlayMid : enter / _adapter.L9PlayMidCard()
-    L9PlayMid --> L9PlayLast : Complete
-
-    L9PlayLast : enter / _adapter.L9PlayLastCard()
-    L9PlayLast --> L9NewTrick : Complete
-}
-
-state L9NewTrick
-L9NewTrick : enter / _adapter.StartL9NewTrick()
-L9NewTrick --> L9Play : Complete
-L9NewTrick --> RoundEnd : NoCard
-
-state RoundEnd
-RoundEnd : enter / _adapter.EndRound()
-RoundEnd -> CalculatePoint : Complete
-
-state CalculatePoint
-CalculatePoint : enter / _adapter.CalculatePoints()
-CalculatePoint --> Deal : Complete
-CalculatePoint --> GameOver : WinningScore
-
-state GameOver
-GameOver : enter / _adapter.GameOver()
+'state StartGame
+'
+'
+'state Deal2Player {
+'    [*] -> Deal2_1
+'
+'
+'    Deal2_1 -> Deal2_2 :  Complete;
+'    Deal2_2 --> Deal2_1 : Pending;
+'    Deal2_2 --> SelectTrump : Complete;
+'
+'    Deal2_1 : enter / _adapter.Deal2_1()
+'    Deal2_2 : enter / _adapter.Deal2_2()
+'}
+'state Deal4Player {
+'    [*] -> Deal4_1
+'
+'
+'    Deal4_1 -> Deal4_2 : Complete;
+'    Deal4_2 -> Deal4_3 : Complete;
+'    Deal4_3 -> Deal4_4 : Complete;
+'    
+'    DealFirst -> DealLast : Complete;
+'    DealLast --> DealFirst : Complete;
+'
+'    Deal4_1 : enter / _adapter.DealFirst()
+'    Deal4_2 : enter / _adapter.DealThird()
+'    Deal4_3 : enter / _adapter.DealSecond()
+'    Deal4_4 : enter / _adapter.DealLastSet()
+'}
+'
+'[*] -> StartGame
+'StartGame --> Deal2Player : _adapter.isTwoPlayerGame();
+'
+'
+'state SelectTrump{
+'    SelectTrump : enter / _adapter.SelectTrump()
+'    
+'    SelectTrump --> Play : Complete
+'}
+'
+'state Play {
+'    [*] -> PlayFirst
+'
+'    state PlayFirst
+'    state PlayMid
+'    state PlayLast
+'
+'    PlayFirst : enter / _adapter.PlayFirstCard()
+'    PlayFirst -> PlayMid : HasMid
+'    PlayFirst -> PlayLast : Complete
+'
+'    PlayMid : enter / _adapter.PlayMidCard()
+'    PlayMid -> PlayLast : Complete
+'
+'    PlayLast : enter / _adapter.PlayLastCard()
+'    PlayLast --> Meld : Complete
+'}
+'
+'state Meld {
+'    [*] -> TryMelded
+'
+'    state TryMelded
+'    state Melded
+'    state NoMeld
+'
+'    TryMelded : enter / _adapter.TryMeld()
+'    TryMelded -> Melded : Success
+'    TryMelded -> NoMeld : Failed
+'
+'    Melded : enter / _adapter.MeldSuccess()
+'    Melded -> NewTrick : Complete
+'
+'    NoMeld : enter / _adapter.MeldFailed()
+'    NoMeld --> NewTrick : Complete
+'}
+'
+'state NewTrick
+'NewTrick : enter / _adapter.StartNewTrick()
+'NewTrick -> AddOneCardToAll : Complete
+'
+'state AddOneCardToAll
+'AddOneCardToAll : enter / _adapter.DrawCardsForAll()
+'AddOneCardToAll --> Play : Complete
+'AddOneCardToAll --> L9Play : DeckEmpty
+'
+'state L9Play {
+'    [*] -> L9PlayFirst
+'
+'    state L9PlayFirst
+'    state L9PlayMid
+'    state L9PlayLast
+'
+'    L9PlayFirst : enter / _adapter.L9PlayFirstCard()
+'    L9PlayFirst --> L9PlayMid : HasMid
+'    L9PlayFirst --> L9PlayLast : Complete
+'
+'    L9PlayMid : enter / _adapter.L9PlayMidCard()
+'    L9PlayMid --> L9PlayLast : Complete
+'
+'    L9PlayLast : enter / _adapter.L9PlayLastCard()
+'    L9PlayLast --> L9NewTrick : Complete
+'}
+'
+'state L9NewTrick
+'L9NewTrick : enter / _adapter.StartL9NewTrick()
+'L9NewTrick --> L9Play : Complete
+'L9NewTrick --> RoundEnd : NoCard
+'
+'state RoundEnd
+'RoundEnd : enter / _adapter.EndRound()
+'RoundEnd -> CalculatePoint : Complete
+'
+'state CalculatePoint
+'CalculatePoint : enter / _adapter.CalculatePoints()
+'CalculatePoint --> Deal : Complete
+'CalculatePoint --> GameOver : WinningScore
+'
+'state GameOver
+'GameOver : enter / _adapter.GameOver()
 
 @enduml
