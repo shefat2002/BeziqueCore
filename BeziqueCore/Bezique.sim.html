@@ -443,7 +443,7 @@ Deal4_FourthPlayer --> FlipTrump : DealComplete
 
 DealFourPlayer.(InitialState) --> Deal4_FirstPlayer
 
-Add10PointsToDealer --> PlayPhase1 : do
+Add10PointsToDealer --> PlayPhase1 : Complete
 
 Phase1_TrickStart --> Phase1_Wait : OpponentTurn
 
@@ -659,7 +659,7 @@ evaluateGuard = null;
             case Bezique.StateId.ADD10POINTSTODEALER:
                 switch (eventId)
                 {
-                    case Bezique.EventId.DO: this.#ADD10POINTSTODEALER_do(); break;
+                    case Bezique.EventId.COMPLETE: this.#ADD10POINTSTODEALER_complete(); break;
                 }
                 break;
             
@@ -986,10 +986,10 @@ evaluateGuard = null;
         this.stateId = Bezique.StateId.ROOT;
     }
     
-    #ADD10POINTSTODEALER_do()
+    #ADD10POINTSTODEALER_complete()
     {
         // Add10PointsToDealer behavior
-        // uml: do / { this.tracer?.edgeTransition("edge15"); } TransitionTo(PlayPhase1)
+        // uml: Complete / { this.tracer?.edgeTransition("edge15"); } TransitionTo(PlayPhase1)
         {
             // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
             this.#ADD10POINTSTODEALER_exit();
@@ -2811,7 +2811,7 @@ evaluateGuard = null;
     "DealNotComplete"
   ],
   "Add10PointsToDealer": [
-    "do"
+    "Complete"
   ],
   "PlayPhase1": [],
   "Phase1_TrickStart": [

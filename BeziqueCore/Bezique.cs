@@ -125,7 +125,7 @@ public partial class Bezique
             case StateId.ADD10POINTSTODEALER:
                 switch (eventId)
                 {
-                    case EventId.DO: ADD10POINTSTODEALER_do(); break;
+                    case EventId.COMPLETE: ADD10POINTSTODEALER_complete(); break;
                 }
                 break;
 
@@ -438,10 +438,10 @@ public partial class Bezique
         this.stateId = StateId.ROOT;
     }
 
-    private void ADD10POINTSTODEALER_do()
+    private void ADD10POINTSTODEALER_complete()
     {
         // Add10PointsToDealer behavior
-        // uml: do TransitionTo(PlayPhase1)
+        // uml: Complete TransitionTo(PlayPhase1)
         {
             // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
             ADD10POINTSTODEALER_exit();
