@@ -10,6 +10,7 @@ public class BeziqueConcrete : IBeziqueAdapter
     public byte SetsDealtToCurrentPlayer;  // Track sets dealt to current player (0, 1, 2)
     public const byte SetsPerPlayer = 3;   // 3 sets of 3 cards = 9 cards per player
     public byte? TrumpCard;  // The flipped trump card on table
+    public byte? TrumpSuit;  // The trump suit (0-3) derived from TrumpCard
     public const byte RANK_7_OFFSET = 0;  // Card value 0 is rank 7
 
     public BeziqueConcrete(int player)
@@ -49,8 +50,14 @@ public class BeziqueConcrete : IBeziqueAdapter
     {
         if (Dealer.Count == 0) return;  // No cards to flip
 
-        TrumpCard = Dealer[0];  // Flip the top card (it stays visible on table/dealer deck)
-        Dealer.RemoveAt(0);  // Remove from deck
+        TrumpCard = Dealer[0]; 
+        TrumpSuit = CardHelper.GetDeckIndex(TrumpCard.Value);
+        Dealer.RemoveAt(0);
+    }
+
+    public bool IsTrump7()
+    {
+        return TrumpCard.HasValue && CardHelper.GetCardValue(TrumpCard.Value) == RANK_7_OFFSET;
     }
 
     public void Add10PointsToDealer()
