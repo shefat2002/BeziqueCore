@@ -11,15 +11,32 @@ public partial class Bezique
     public enum EventId
     {
         DO = 0, // The `do` event is special. State event handlers do not consume this event (ancestors all get it too) unless a transition occurs.
-        COMPLETE = 1,
-        DEALNOTCOMPLETE = 2,
-        FOURPLAYERGAME = 3,
-        OTHERCARD = 4,
-        TRUMP7 = 5,
-        TWOPLAYERGAME = 6,
+        ALLPLAYERPLAYED = 1,
+        AVAILABLECARDSONDECK = 2,
+        COMPLETE = 3,
+        DEALCOMPLETE = 4,
+        DEALNOTCOMPLETE = 5,
+        DECKEMPTY = 6,
+        DRAWCARDTOALL = 7,
+        FOURPLAYERGAME = 8,
+        HANDEMPTY = 9,
+        MELDOPPORTUNITY = 10,
+        MELDPOINTGIVEN = 11,
+        MORECARDSINHAND = 12,
+        MOREPLAYERSTODRAW = 13,
+        NOMELDOPPORTUNITY = 14,
+        OPPONENTPLAYED = 15,
+        OPPONENTTURN = 16,
+        OTHERCARD = 17,
+        PLAYERTURN = 18,
+        TRUMP7 = 19,
+        TWOPLAYERGAME = 20,
+        WAITINGFOROPPONENT = 21,
+        WINNINGSCORE = 22,
+        WINNINGSCORENOTREACHED = 23,
     }
 
-    public const int EventIdCount = 7;
+    public const int EventIdCount = 24;
 
     public enum StateId
     {
@@ -34,11 +51,26 @@ public partial class Bezique
         DEAL2_FIRSTPLAYER = 8,
         DEAL2_SECONDPLAYER = 9,
         FLIPTRUMP = 10,
-        PLAYPHASE1 = 11,
-        STARTGAME = 12,
+        GAMEEND = 11,
+        PLAYPHASE1 = 12,
+        DECK = 13,
+        DRAWACARD = 14,
+        MELD = 15,
+        PHASE1_PLAY = 16,
+        PHASE1_TRICKSTART = 17,
+        PHASE1_TRICKWINNER = 18,
+        PHASE1_WAIT = 19,
+        PLAYPHASE2 = 20,
+        HAND = 21,
+        PHASE2_PLAY = 22,
+        PHASE2_TRICKSTART = 23,
+        PHASE2_TRICKWINNER = 24,
+        PHASE2_WAIT = 25,
+        ROUNDEND = 26,
+        STARTGAME = 27,
     }
 
-    public const int StateIdCount = 13;
+    public const int StateIdCount = 28;
 
     // Used internally by state machine. Feel free to inspect, but don't modify.
     public StateId stateId;
@@ -115,7 +147,7 @@ public partial class Bezique
                 switch (eventId)
                 {
                     case EventId.DEALNOTCOMPLETE: DEAL4_FOURTHPLAYER_dealnotcomplete(); break;
-                    case EventId.DO: DEAL4_FOURTHPLAYER_do(); break;
+                    case EventId.DEALCOMPLETE: DEAL4_FOURTHPLAYER_dealcomplete(); break;
                 }
                 break;
 
@@ -153,7 +185,7 @@ public partial class Bezique
                 switch (eventId)
                 {
                     case EventId.DEALNOTCOMPLETE: DEAL2_SECONDPLAYER_dealnotcomplete(); break;
-                    case EventId.DO: DEAL2_SECONDPLAYER_do(); break;
+                    case EventId.DEALCOMPLETE: DEAL2_SECONDPLAYER_dealcomplete(); break;
                 }
                 break;
 
@@ -166,9 +198,133 @@ public partial class Bezique
                 }
                 break;
 
+            // STATE: GameEnd
+            case StateId.GAMEEND:
+                // No events handled by this state (or its ancestors).
+                break;
+
             // STATE: PlayPhase1
             case StateId.PLAYPHASE1:
                 // No events handled by this state (or its ancestors).
+                break;
+
+            // STATE: Deck
+            case StateId.DECK:
+                switch (eventId)
+                {
+                    case EventId.DECKEMPTY: DECK_deckempty(); break;
+                    case EventId.AVAILABLECARDSONDECK: DECK_availablecardsondeck(); break;
+                }
+                break;
+
+            // STATE: DrawACard
+            case StateId.DRAWACARD:
+                switch (eventId)
+                {
+                    case EventId.MOREPLAYERSTODRAW: DRAWACARD_moreplayerstodraw(); break;
+                    case EventId.DRAWCARDTOALL: DRAWACARD_drawcardtoall(); break;
+                }
+                break;
+
+            // STATE: Meld
+            case StateId.MELD:
+                switch (eventId)
+                {
+                    case EventId.MELDPOINTGIVEN: MELD_meldpointgiven(); break;
+                }
+                break;
+
+            // STATE: Phase1_Play
+            case StateId.PHASE1_PLAY:
+                switch (eventId)
+                {
+                    case EventId.WAITINGFOROPPONENT: PHASE1_PLAY_waitingforopponent(); break;
+                    case EventId.ALLPLAYERPLAYED: PHASE1_PLAY_allplayerplayed(); break;
+                }
+                break;
+
+            // STATE: Phase1_TrickStart
+            case StateId.PHASE1_TRICKSTART:
+                switch (eventId)
+                {
+                    case EventId.OPPONENTTURN: PHASE1_TRICKSTART_opponentturn(); break;
+                    case EventId.PLAYERTURN: PHASE1_TRICKSTART_playerturn(); break;
+                }
+                break;
+
+            // STATE: Phase1_TrickWinner
+            case StateId.PHASE1_TRICKWINNER:
+                switch (eventId)
+                {
+                    case EventId.MELDOPPORTUNITY: PHASE1_TRICKWINNER_meldopportunity(); break;
+                    case EventId.NOMELDOPPORTUNITY: PHASE1_TRICKWINNER_nomeldopportunity(); break;
+                }
+                break;
+
+            // STATE: Phase1_Wait
+            case StateId.PHASE1_WAIT:
+                switch (eventId)
+                {
+                    case EventId.OPPONENTPLAYED: PHASE1_WAIT_opponentplayed(); break;
+                    case EventId.ALLPLAYERPLAYED: PHASE1_WAIT_allplayerplayed(); break;
+                }
+                break;
+
+            // STATE: PlayPhase2
+            case StateId.PLAYPHASE2:
+                // No events handled by this state (or its ancestors).
+                break;
+
+            // STATE: Hand
+            case StateId.HAND:
+                switch (eventId)
+                {
+                    case EventId.HANDEMPTY: HAND_handempty(); break;
+                    case EventId.MORECARDSINHAND: HAND_morecardsinhand(); break;
+                }
+                break;
+
+            // STATE: Phase2_Play
+            case StateId.PHASE2_PLAY:
+                switch (eventId)
+                {
+                    case EventId.ALLPLAYERPLAYED: PHASE2_PLAY_allplayerplayed(); break;
+                    case EventId.WAITINGFOROPPONENT: PHASE2_PLAY_waitingforopponent(); break;
+                }
+                break;
+
+            // STATE: Phase2_TrickStart
+            case StateId.PHASE2_TRICKSTART:
+                switch (eventId)
+                {
+                    case EventId.OPPONENTTURN: PHASE2_TRICKSTART_opponentturn(); break;
+                    case EventId.PLAYERTURN: PHASE2_TRICKSTART_playerturn(); break;
+                }
+                break;
+
+            // STATE: Phase2_TrickWinner
+            case StateId.PHASE2_TRICKWINNER:
+                switch (eventId)
+                {
+                    case EventId.DO: PHASE2_TRICKWINNER_do(); break;
+                }
+                break;
+
+            // STATE: Phase2_Wait
+            case StateId.PHASE2_WAIT:
+                switch (eventId)
+                {
+                    case EventId.ALLPLAYERPLAYED: PHASE2_WAIT_allplayerplayed(); break;
+                }
+                break;
+
+            // STATE: RoundEnd
+            case StateId.ROUNDEND:
+                switch (eventId)
+                {
+                    case EventId.WINNINGSCORE: ROUNDEND_winningscore(); break;
+                    case EventId.WINNINGSCORENOTREACHED: ROUNDEND_winningscorenotreached(); break;
+                }
                 break;
 
             // STATE: StartGame
@@ -211,7 +367,37 @@ public partial class Bezique
 
                 case StateId.FLIPTRUMP: FLIPTRUMP_exit(); break;
 
+                case StateId.GAMEEND: GAMEEND_exit(); break;
+
                 case StateId.PLAYPHASE1: PLAYPHASE1_exit(); break;
+
+                case StateId.DECK: DECK_exit(); break;
+
+                case StateId.DRAWACARD: DRAWACARD_exit(); break;
+
+                case StateId.MELD: MELD_exit(); break;
+
+                case StateId.PHASE1_PLAY: PHASE1_PLAY_exit(); break;
+
+                case StateId.PHASE1_TRICKSTART: PHASE1_TRICKSTART_exit(); break;
+
+                case StateId.PHASE1_TRICKWINNER: PHASE1_TRICKWINNER_exit(); break;
+
+                case StateId.PHASE1_WAIT: PHASE1_WAIT_exit(); break;
+
+                case StateId.PLAYPHASE2: PLAYPHASE2_exit(); break;
+
+                case StateId.HAND: HAND_exit(); break;
+
+                case StateId.PHASE2_PLAY: PHASE2_PLAY_exit(); break;
+
+                case StateId.PHASE2_TRICKSTART: PHASE2_TRICKSTART_exit(); break;
+
+                case StateId.PHASE2_TRICKWINNER: PHASE2_TRICKWINNER_exit(); break;
+
+                case StateId.PHASE2_WAIT: PHASE2_WAIT_exit(); break;
+
+                case StateId.ROUNDEND: ROUNDEND_exit(); break;
 
                 case StateId.STARTGAME: STARTGAME_exit(); break;
 
@@ -265,8 +451,9 @@ public partial class Bezique
             // Step 3: Enter/move towards transition target `PlayPhase1`.
             PLAYPHASE1_enter();
 
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
+            // Finish transition by calling pseudo state transition function.
+            PlayPhase1_InitialState_transition();
+            return; // event processing immediately stops when a transition finishes. No other behaviors for this state are checked.
         } // end of behavior for Add10PointsToDealer
 
         // No ancestor handles this event.
@@ -351,6 +538,27 @@ public partial class Bezique
         this.stateId = StateId.DEALFOURPLAYER;
     }
 
+    private void DEAL4_FOURTHPLAYER_dealcomplete()
+    {
+        // Deal4_FourthPlayer behavior
+        // uml: DealComplete TransitionTo(FlipTrump)
+        {
+            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
+            ExitUpToStateHandler(StateId.ROOT);
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `FlipTrump`.
+            DEALTWOPLAYER_enter();
+            FLIPTRUMP_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for Deal4_FourthPlayer
+
+        // No ancestor handles this event.
+    }
+
     private void DEAL4_FOURTHPLAYER_dealnotcomplete()
     {
         // Deal4_FourthPlayer behavior
@@ -363,27 +571,6 @@ public partial class Bezique
 
             // Step 3: Enter/move towards transition target `Deal4_FirstPlayer`.
             DEAL4_FIRSTPLAYER_enter();
-
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
-        } // end of behavior for Deal4_FourthPlayer
-
-        // No ancestor handles this event.
-    }
-
-    private void DEAL4_FOURTHPLAYER_do()
-    {
-        // Deal4_FourthPlayer behavior
-        // uml: do TransitionTo(FlipTrump)
-        {
-            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
-            ExitUpToStateHandler(StateId.ROOT);
-
-            // Step 2: Transition action: ``.
-
-            // Step 3: Enter/move towards transition target `FlipTrump`.
-            DEALTWOPLAYER_enter();
-            FLIPTRUMP_enter();
 
             // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
             return;
@@ -555,6 +742,26 @@ public partial class Bezique
         this.stateId = StateId.DEALTWOPLAYER;
     }
 
+    private void DEAL2_SECONDPLAYER_dealcomplete()
+    {
+        // Deal2_SecondPlayer behavior
+        // uml: DealComplete TransitionTo(FlipTrump)
+        {
+            // Step 1: Exit states until we reach `DealTwoPlayer` state (Least Common Ancestor for transition).
+            DEAL2_SECONDPLAYER_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `FlipTrump`.
+            FLIPTRUMP_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for Deal2_SecondPlayer
+
+        // No ancestor handles this event.
+    }
+
     private void DEAL2_SECONDPLAYER_dealnotcomplete()
     {
         // Deal2_SecondPlayer behavior
@@ -567,26 +774,6 @@ public partial class Bezique
 
             // Step 3: Enter/move towards transition target `Deal2_FirstPlayer`.
             DEAL2_FIRSTPLAYER_enter();
-
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
-        } // end of behavior for Deal2_SecondPlayer
-
-        // No ancestor handles this event.
-    }
-
-    private void DEAL2_SECONDPLAYER_do()
-    {
-        // Deal2_SecondPlayer behavior
-        // uml: do TransitionTo(FlipTrump)
-        {
-            // Step 1: Exit states until we reach `DealTwoPlayer` state (Least Common Ancestor for transition).
-            DEAL2_SECONDPLAYER_exit();
-
-            // Step 2: Transition action: ``.
-
-            // Step 3: Enter/move towards transition target `FlipTrump`.
-            FLIPTRUMP_enter();
 
             // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
             return;
@@ -630,8 +817,9 @@ public partial class Bezique
             // Step 3: Enter/move towards transition target `PlayPhase1`.
             PLAYPHASE1_enter();
 
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
+            // Finish transition by calling pseudo state transition function.
+            PlayPhase1_InitialState_transition();
+            return; // event processing immediately stops when a transition finishes. No other behaviors for this state are checked.
         } // end of behavior for FlipTrump
 
         // No ancestor handles this event.
@@ -659,6 +847,21 @@ public partial class Bezique
 
 
     ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state GAMEEND
+    ////////////////////////////////////////////////////////////////////////////////
+
+    private void GAMEEND_enter()
+    {
+        this.stateId = StateId.GAMEEND;
+    }
+
+    private void GAMEEND_exit()
+    {
+        this.stateId = StateId.ROOT;
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
     // event handlers for state PLAYPHASE1
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -670,6 +873,774 @@ public partial class Bezique
     private void PLAYPHASE1_exit()
     {
         this.stateId = StateId.ROOT;
+    }
+
+    private void PlayPhase1_InitialState_transition()
+    {
+        // PlayPhase1.<InitialState> behavior
+        // uml: TransitionTo(Phase1_TrickStart)
+        {
+            // Step 1: Exit states until we reach `PlayPhase1` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `Phase1_TrickStart`.
+            PHASE1_TRICKSTART_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for PlayPhase1.<InitialState>
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state DECK
+    ////////////////////////////////////////////////////////////////////////////////
+
+    private void DECK_enter()
+    {
+        this.stateId = StateId.DECK;
+
+        // Deck behavior
+        // uml: enter / { _adapter.CheckDeckCardCount(); }
+        {
+            // Step 1: execute action `_adapter.CheckDeckCardCount();`
+            _adapter.CheckDeckCardCount();
+        } // end of behavior for Deck
+    }
+
+    private void DECK_exit()
+    {
+        this.stateId = StateId.PLAYPHASE1;
+    }
+
+    private void DECK_availablecardsondeck()
+    {
+        // Deck behavior
+        // uml: AvailableCardsOnDeck TransitionTo(Phase1_TrickStart)
+        {
+            // Step 1: Exit states until we reach `PlayPhase1` state (Least Common Ancestor for transition).
+            DECK_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `Phase1_TrickStart`.
+            PHASE1_TRICKSTART_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for Deck
+
+        // No ancestor handles this event.
+    }
+
+    private void DECK_deckempty()
+    {
+        // Deck behavior
+        // uml: DeckEmpty TransitionTo(PlayPhase2)
+        {
+            // Step 1: Exit states until we reach `PlayPhase1` state (Least Common Ancestor for transition).
+            DECK_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `PlayPhase2`.
+            PLAYPHASE2_enter();
+
+            // PlayPhase2.<InitialState> behavior
+            // uml: TransitionTo(Phase2_TrickStart)
+            {
+                // Step 1: Exit states until we reach `PlayPhase2` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
+
+                // Step 2: Transition action: ``.
+
+                // Step 3: Enter/move towards transition target `Phase2_TrickStart`.
+                PHASE2_TRICKSTART_enter();
+
+                // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+                return;
+            } // end of behavior for PlayPhase2.<InitialState>
+        } // end of behavior for Deck
+
+        // No ancestor handles this event.
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state DRAWACARD
+    ////////////////////////////////////////////////////////////////////////////////
+
+    private void DRAWACARD_enter()
+    {
+        this.stateId = StateId.DRAWACARD;
+
+        // DrawACard behavior
+        // uml: enter / { _adapter.DrawCardFromDeck(); }
+        {
+            // Step 1: execute action `_adapter.DrawCardFromDeck();`
+            _adapter.DrawCardFromDeck();
+        } // end of behavior for DrawACard
+    }
+
+    private void DRAWACARD_exit()
+    {
+        this.stateId = StateId.PLAYPHASE1;
+    }
+
+    private void DRAWACARD_drawcardtoall()
+    {
+        // DrawACard behavior
+        // uml: DrawCardToAll TransitionTo(Deck)
+        {
+            // Step 1: Exit states until we reach `PlayPhase1` state (Least Common Ancestor for transition).
+            DRAWACARD_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `Deck`.
+            DECK_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for DrawACard
+
+        // No ancestor handles this event.
+    }
+
+    private void DRAWACARD_moreplayerstodraw()
+    {
+        // DrawACard behavior
+        // uml: MorePlayersToDraw TransitionTo(DrawACard)
+        {
+            // Step 1: Exit states until we reach `PlayPhase1` state (Least Common Ancestor for transition).
+            DRAWACARD_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `DrawACard`.
+            DRAWACARD_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for DrawACard
+
+        // No ancestor handles this event.
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state MELD
+    ////////////////////////////////////////////////////////////////////////////////
+
+    private void MELD_enter()
+    {
+        this.stateId = StateId.MELD;
+
+        // Meld behavior
+        // uml: enter / { _adapter.AddMeldPoint(); }
+        {
+            // Step 1: execute action `_adapter.AddMeldPoint();`
+            _adapter.AddMeldPoint();
+        } // end of behavior for Meld
+    }
+
+    private void MELD_exit()
+    {
+        this.stateId = StateId.PLAYPHASE1;
+    }
+
+    private void MELD_meldpointgiven()
+    {
+        // Meld behavior
+        // uml: MeldPointGiven TransitionTo(DrawACard)
+        {
+            // Step 1: Exit states until we reach `PlayPhase1` state (Least Common Ancestor for transition).
+            MELD_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `DrawACard`.
+            DRAWACARD_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for Meld
+
+        // No ancestor handles this event.
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state PHASE1_PLAY
+    ////////////////////////////////////////////////////////////////////////////////
+
+    private void PHASE1_PLAY_enter()
+    {
+        this.stateId = StateId.PHASE1_PLAY;
+
+        // Phase1_Play behavior
+        // uml: enter / { _adapter.AllPlayerPlayed(); }
+        {
+            // Step 1: execute action `_adapter.AllPlayerPlayed();`
+            _adapter.AllPlayerPlayed();
+        } // end of behavior for Phase1_Play
+    }
+
+    private void PHASE1_PLAY_exit()
+    {
+        this.stateId = StateId.PLAYPHASE1;
+    }
+
+    private void PHASE1_PLAY_allplayerplayed()
+    {
+        // Phase1_Play behavior
+        // uml: AllPlayerPlayed TransitionTo(Phase1_TrickWinner)
+        {
+            // Step 1: Exit states until we reach `PlayPhase1` state (Least Common Ancestor for transition).
+            PHASE1_PLAY_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `Phase1_TrickWinner`.
+            PHASE1_TRICKWINNER_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for Phase1_Play
+
+        // No ancestor handles this event.
+    }
+
+    private void PHASE1_PLAY_waitingforopponent()
+    {
+        // Phase1_Play behavior
+        // uml: WaitingForOpponent TransitionTo(Phase1_Wait)
+        {
+            // Step 1: Exit states until we reach `PlayPhase1` state (Least Common Ancestor for transition).
+            PHASE1_PLAY_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `Phase1_Wait`.
+            PHASE1_WAIT_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for Phase1_Play
+
+        // No ancestor handles this event.
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state PHASE1_TRICKSTART
+    ////////////////////////////////////////////////////////////////////////////////
+
+    private void PHASE1_TRICKSTART_enter()
+    {
+        this.stateId = StateId.PHASE1_TRICKSTART;
+    }
+
+    private void PHASE1_TRICKSTART_exit()
+    {
+        this.stateId = StateId.PLAYPHASE1;
+    }
+
+    private void PHASE1_TRICKSTART_opponentturn()
+    {
+        // Phase1_TrickStart behavior
+        // uml: OpponentTurn TransitionTo(Phase1_Wait)
+        {
+            // Step 1: Exit states until we reach `PlayPhase1` state (Least Common Ancestor for transition).
+            PHASE1_TRICKSTART_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `Phase1_Wait`.
+            PHASE1_WAIT_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for Phase1_TrickStart
+
+        // No ancestor handles this event.
+    }
+
+    private void PHASE1_TRICKSTART_playerturn()
+    {
+        // Phase1_TrickStart behavior
+        // uml: PlayerTurn TransitionTo(Phase1_Play)
+        {
+            // Step 1: Exit states until we reach `PlayPhase1` state (Least Common Ancestor for transition).
+            PHASE1_TRICKSTART_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `Phase1_Play`.
+            PHASE1_PLAY_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for Phase1_TrickStart
+
+        // No ancestor handles this event.
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state PHASE1_TRICKWINNER
+    ////////////////////////////////////////////////////////////////////////////////
+
+    private void PHASE1_TRICKWINNER_enter()
+    {
+        this.stateId = StateId.PHASE1_TRICKWINNER;
+
+        // Phase1_TrickWinner behavior
+        // uml: enter / { _adapter.DetermineWinner(); }
+        {
+            // Step 1: execute action `_adapter.DetermineWinner();`
+            _adapter.DetermineWinner();
+        } // end of behavior for Phase1_TrickWinner
+    }
+
+    private void PHASE1_TRICKWINNER_exit()
+    {
+        this.stateId = StateId.PLAYPHASE1;
+    }
+
+    private void PHASE1_TRICKWINNER_meldopportunity()
+    {
+        // Phase1_TrickWinner behavior
+        // uml: MeldOpportunity TransitionTo(Meld)
+        {
+            // Step 1: Exit states until we reach `PlayPhase1` state (Least Common Ancestor for transition).
+            PHASE1_TRICKWINNER_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `Meld`.
+            MELD_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for Phase1_TrickWinner
+
+        // No ancestor handles this event.
+    }
+
+    private void PHASE1_TRICKWINNER_nomeldopportunity()
+    {
+        // Phase1_TrickWinner behavior
+        // uml: NoMeldOpportunity TransitionTo(DrawACard)
+        {
+            // Step 1: Exit states until we reach `PlayPhase1` state (Least Common Ancestor for transition).
+            PHASE1_TRICKWINNER_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `DrawACard`.
+            DRAWACARD_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for Phase1_TrickWinner
+
+        // No ancestor handles this event.
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state PHASE1_WAIT
+    ////////////////////////////////////////////////////////////////////////////////
+
+    private void PHASE1_WAIT_enter()
+    {
+        this.stateId = StateId.PHASE1_WAIT;
+
+        // Phase1_Wait behavior
+        // uml: enter / { _adapter.AllPlayerPlayed(); }
+        {
+            // Step 1: execute action `_adapter.AllPlayerPlayed();`
+            _adapter.AllPlayerPlayed();
+        } // end of behavior for Phase1_Wait
+    }
+
+    private void PHASE1_WAIT_exit()
+    {
+        this.stateId = StateId.PLAYPHASE1;
+    }
+
+    private void PHASE1_WAIT_allplayerplayed()
+    {
+        // Phase1_Wait behavior
+        // uml: AllPlayerPlayed TransitionTo(Phase1_TrickWinner)
+        {
+            // Step 1: Exit states until we reach `PlayPhase1` state (Least Common Ancestor for transition).
+            PHASE1_WAIT_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `Phase1_TrickWinner`.
+            PHASE1_TRICKWINNER_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for Phase1_Wait
+
+        // No ancestor handles this event.
+    }
+
+    private void PHASE1_WAIT_opponentplayed()
+    {
+        // Phase1_Wait behavior
+        // uml: OpponentPlayed TransitionTo(Phase1_Play)
+        {
+            // Step 1: Exit states until we reach `PlayPhase1` state (Least Common Ancestor for transition).
+            PHASE1_WAIT_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `Phase1_Play`.
+            PHASE1_PLAY_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for Phase1_Wait
+
+        // No ancestor handles this event.
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state PLAYPHASE2
+    ////////////////////////////////////////////////////////////////////////////////
+
+    private void PLAYPHASE2_enter()
+    {
+        this.stateId = StateId.PLAYPHASE2;
+    }
+
+    private void PLAYPHASE2_exit()
+    {
+        this.stateId = StateId.PLAYPHASE1;
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state HAND
+    ////////////////////////////////////////////////////////////////////////////////
+
+    private void HAND_enter()
+    {
+        this.stateId = StateId.HAND;
+
+        // Hand behavior
+        // uml: enter / { _adapter.CheckCardsOnHand(); }
+        {
+            // Step 1: execute action `_adapter.CheckCardsOnHand();`
+            _adapter.CheckCardsOnHand();
+        } // end of behavior for Hand
+    }
+
+    private void HAND_exit()
+    {
+        this.stateId = StateId.PLAYPHASE2;
+    }
+
+    private void HAND_handempty()
+    {
+        // Hand behavior
+        // uml: HandEmpty TransitionTo(RoundEnd)
+        {
+            // Step 1: Exit states until we reach `PlayPhase2` state (Least Common Ancestor for transition).
+            HAND_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `RoundEnd`.
+            ROUNDEND_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for Hand
+
+        // No ancestor handles this event.
+    }
+
+    private void HAND_morecardsinhand()
+    {
+        // Hand behavior
+        // uml: MoreCardsInHand TransitionTo(Phase2_TrickStart)
+        {
+            // Step 1: Exit states until we reach `PlayPhase2` state (Least Common Ancestor for transition).
+            HAND_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `Phase2_TrickStart`.
+            PHASE2_TRICKSTART_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for Hand
+
+        // No ancestor handles this event.
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state PHASE2_PLAY
+    ////////////////////////////////////////////////////////////////////////////////
+
+    private void PHASE2_PLAY_enter()
+    {
+        this.stateId = StateId.PHASE2_PLAY;
+
+        // Phase2_Play behavior
+        // uml: enter / { _adapter.AllPlayerPlayed(); }
+        {
+            // Step 1: execute action `_adapter.AllPlayerPlayed();`
+            _adapter.AllPlayerPlayed();
+        } // end of behavior for Phase2_Play
+    }
+
+    private void PHASE2_PLAY_exit()
+    {
+        this.stateId = StateId.PLAYPHASE2;
+    }
+
+    private void PHASE2_PLAY_allplayerplayed()
+    {
+        // Phase2_Play behavior
+        // uml: AllPlayerPlayed TransitionTo(Phase2_TrickWinner)
+        {
+            // Step 1: Exit states until we reach `PlayPhase2` state (Least Common Ancestor for transition).
+            PHASE2_PLAY_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `Phase2_TrickWinner`.
+            PHASE2_TRICKWINNER_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for Phase2_Play
+
+        // No ancestor handles this event.
+    }
+
+    private void PHASE2_PLAY_waitingforopponent()
+    {
+        // Phase2_Play behavior
+        // uml: WaitingForOpponent TransitionTo(Phase2_Wait)
+        {
+            // Step 1: Exit states until we reach `PlayPhase2` state (Least Common Ancestor for transition).
+            PHASE2_PLAY_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `Phase2_Wait`.
+            PHASE2_WAIT_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for Phase2_Play
+
+        // No ancestor handles this event.
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state PHASE2_TRICKSTART
+    ////////////////////////////////////////////////////////////////////////////////
+
+    private void PHASE2_TRICKSTART_enter()
+    {
+        this.stateId = StateId.PHASE2_TRICKSTART;
+    }
+
+    private void PHASE2_TRICKSTART_exit()
+    {
+        this.stateId = StateId.PLAYPHASE2;
+    }
+
+    private void PHASE2_TRICKSTART_opponentturn()
+    {
+        // Phase2_TrickStart behavior
+        // uml: OpponentTurn TransitionTo(Phase2_Wait)
+        {
+            // Step 1: Exit states until we reach `PlayPhase2` state (Least Common Ancestor for transition).
+            PHASE2_TRICKSTART_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `Phase2_Wait`.
+            PHASE2_WAIT_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for Phase2_TrickStart
+
+        // No ancestor handles this event.
+    }
+
+    private void PHASE2_TRICKSTART_playerturn()
+    {
+        // Phase2_TrickStart behavior
+        // uml: PlayerTurn TransitionTo(Phase2_Play)
+        {
+            // Step 1: Exit states until we reach `PlayPhase2` state (Least Common Ancestor for transition).
+            PHASE2_TRICKSTART_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `Phase2_Play`.
+            PHASE2_PLAY_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for Phase2_TrickStart
+
+        // No ancestor handles this event.
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state PHASE2_TRICKWINNER
+    ////////////////////////////////////////////////////////////////////////////////
+
+    private void PHASE2_TRICKWINNER_enter()
+    {
+        this.stateId = StateId.PHASE2_TRICKWINNER;
+
+        // Phase2_TrickWinner behavior
+        // uml: enter / { _adapter.DetermineWinner(); }
+        {
+            // Step 1: execute action `_adapter.DetermineWinner();`
+            _adapter.DetermineWinner();
+        } // end of behavior for Phase2_TrickWinner
+    }
+
+    private void PHASE2_TRICKWINNER_exit()
+    {
+        this.stateId = StateId.PLAYPHASE2;
+    }
+
+    private void PHASE2_TRICKWINNER_do()
+    {
+        // Phase2_TrickWinner behavior
+        // uml: do TransitionTo(Hand)
+        {
+            // Step 1: Exit states until we reach `PlayPhase2` state (Least Common Ancestor for transition).
+            PHASE2_TRICKWINNER_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `Hand`.
+            HAND_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for Phase2_TrickWinner
+
+        // No ancestor handles this event.
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state PHASE2_WAIT
+    ////////////////////////////////////////////////////////////////////////////////
+
+    private void PHASE2_WAIT_enter()
+    {
+        this.stateId = StateId.PHASE2_WAIT;
+
+        // Phase2_Wait behavior
+        // uml: enter / { _adapter.AllPlayerPlayed(); }
+        {
+            // Step 1: execute action `_adapter.AllPlayerPlayed();`
+            _adapter.AllPlayerPlayed();
+        } // end of behavior for Phase2_Wait
+    }
+
+    private void PHASE2_WAIT_exit()
+    {
+        this.stateId = StateId.PLAYPHASE2;
+    }
+
+    private void PHASE2_WAIT_allplayerplayed()
+    {
+        // Phase2_Wait behavior
+        // uml: AllPlayerPlayed TransitionTo(Phase2_TrickWinner)
+        {
+            // Step 1: Exit states until we reach `PlayPhase2` state (Least Common Ancestor for transition).
+            PHASE2_WAIT_exit();
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `Phase2_TrickWinner`.
+            PHASE2_TRICKWINNER_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for Phase2_Wait
+
+        // No ancestor handles this event.
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state ROUNDEND
+    ////////////////////////////////////////////////////////////////////////////////
+
+    private void ROUNDEND_enter()
+    {
+        this.stateId = StateId.ROUNDEND;
+    }
+
+    private void ROUNDEND_exit()
+    {
+        this.stateId = StateId.PLAYPHASE2;
+    }
+
+    private void ROUNDEND_winningscore()
+    {
+        // RoundEnd behavior
+        // uml: WinningScore TransitionTo(GameEnd)
+        {
+            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
+            ExitUpToStateHandler(StateId.ROOT);
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `GameEnd`.
+            GAMEEND_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for RoundEnd
+
+        // No ancestor handles this event.
+    }
+
+    private void ROUNDEND_winningscorenotreached()
+    {
+        // RoundEnd behavior
+        // uml: WinningScoreNotReached TransitionTo(StartGame)
+        {
+            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
+            ExitUpToStateHandler(StateId.ROOT);
+
+            // Step 2: Transition action: ``.
+
+            // Step 3: Enter/move towards transition target `StartGame`.
+            STARTGAME_enter();
+
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for RoundEnd
+
+        // No ancestor handles this event.
     }
 
 
@@ -765,7 +1736,22 @@ public partial class Bezique
             case StateId.DEAL2_FIRSTPLAYER: return "DEAL2_FIRSTPLAYER";
             case StateId.DEAL2_SECONDPLAYER: return "DEAL2_SECONDPLAYER";
             case StateId.FLIPTRUMP: return "FLIPTRUMP";
+            case StateId.GAMEEND: return "GAMEEND";
             case StateId.PLAYPHASE1: return "PLAYPHASE1";
+            case StateId.DECK: return "DECK";
+            case StateId.DRAWACARD: return "DRAWACARD";
+            case StateId.MELD: return "MELD";
+            case StateId.PHASE1_PLAY: return "PHASE1_PLAY";
+            case StateId.PHASE1_TRICKSTART: return "PHASE1_TRICKSTART";
+            case StateId.PHASE1_TRICKWINNER: return "PHASE1_TRICKWINNER";
+            case StateId.PHASE1_WAIT: return "PHASE1_WAIT";
+            case StateId.PLAYPHASE2: return "PLAYPHASE2";
+            case StateId.HAND: return "HAND";
+            case StateId.PHASE2_PLAY: return "PHASE2_PLAY";
+            case StateId.PHASE2_TRICKSTART: return "PHASE2_TRICKSTART";
+            case StateId.PHASE2_TRICKWINNER: return "PHASE2_TRICKWINNER";
+            case StateId.PHASE2_WAIT: return "PHASE2_WAIT";
+            case StateId.ROUNDEND: return "ROUNDEND";
             case StateId.STARTGAME: return "STARTGAME";
             default: return "?";
         }
@@ -776,13 +1762,30 @@ public partial class Bezique
     {
         switch (id)
         {
+            case EventId.ALLPLAYERPLAYED: return "ALLPLAYERPLAYED";
+            case EventId.AVAILABLECARDSONDECK: return "AVAILABLECARDSONDECK";
             case EventId.COMPLETE: return "COMPLETE";
+            case EventId.DEALCOMPLETE: return "DEALCOMPLETE";
             case EventId.DEALNOTCOMPLETE: return "DEALNOTCOMPLETE";
+            case EventId.DECKEMPTY: return "DECKEMPTY";
             case EventId.DO: return "DO";
+            case EventId.DRAWCARDTOALL: return "DRAWCARDTOALL";
             case EventId.FOURPLAYERGAME: return "FOURPLAYERGAME";
+            case EventId.HANDEMPTY: return "HANDEMPTY";
+            case EventId.MELDOPPORTUNITY: return "MELDOPPORTUNITY";
+            case EventId.MELDPOINTGIVEN: return "MELDPOINTGIVEN";
+            case EventId.MORECARDSINHAND: return "MORECARDSINHAND";
+            case EventId.MOREPLAYERSTODRAW: return "MOREPLAYERSTODRAW";
+            case EventId.NOMELDOPPORTUNITY: return "NOMELDOPPORTUNITY";
+            case EventId.OPPONENTPLAYED: return "OPPONENTPLAYED";
+            case EventId.OPPONENTTURN: return "OPPONENTTURN";
             case EventId.OTHERCARD: return "OTHERCARD";
+            case EventId.PLAYERTURN: return "PLAYERTURN";
             case EventId.TRUMP7: return "TRUMP7";
             case EventId.TWOPLAYERGAME: return "TWOPLAYERGAME";
+            case EventId.WAITINGFOROPPONENT: return "WAITINGFOROPPONENT";
+            case EventId.WINNINGSCORE: return "WINNINGSCORE";
+            case EventId.WINNINGSCORENOTREACHED: return "WINNINGSCORENOTREACHED";
             default: return "?";
         }
     }

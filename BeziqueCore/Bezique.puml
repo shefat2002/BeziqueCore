@@ -23,7 +23,7 @@ state DealTwoPlayer{
     [*] -down-> Deal2_FirstPlayer 
     Deal2_FirstPlayer --> Deal2_SecondPlayer : Complete
     Deal2_SecondPlayer --> Deal2_FirstPlayer : DealNotComplete
-    Deal2_SecondPlayer --> FlipTrump
+    Deal2_SecondPlayer --> FlipTrump : DealComplete
     
     Deal2_FirstPlayer : enter / _adapter.DealThreeCards();
     Deal2_SecondPlayer : enter / _adapter.DealThreeCards();
@@ -41,7 +41,7 @@ state DealFourPlayer{
     Deal4_SecondPlayer --> Deal4_ThirdPlayer : Complete
     Deal4_ThirdPlayer --> Deal4_FourthPlayer : Complete
     Deal4_FourthPlayer --> Deal4_FirstPlayer : DealNotComplete
-    Deal4_FourthPlayer --> FlipTrump
+    Deal4_FourthPlayer --> FlipTrump : DealComplete
     
     Deal4_FirstPlayer : enter / _adapter.DealThreeCards();
     Deal4_SecondPlayer : enter / _adapter.DealThreeCards();
@@ -62,10 +62,81 @@ Add10PointsToDealer : enter / _adapter.Add10PointsToDealer();
 
 Add10PointsToDealer --> PlayPhase1
 
-state PlayPhase1{
 
+
+state PlayPhase1{
+    state Phase1_TrickStart
+    state Phase1_Wait
+    state Phase1_Play
+    state Phase1_TrickWinner
+    
+    [*] --> Phase1_TrickStart
+    Phase1_TrickStart --> Phase1_Wait :OpponentTurn
+    Phase1_TrickStart --> Phase1_Play :PlayerTurn
+    
+    Phase1_Wait --> Phase1_Play : OpponentPlayed
+    Phase1_Play --> Phase1_Wait : WaitingForOpponent
+    
+    Phase1_Wait : enter / _adapter.AllPlayerPlayed();
+    Phase1_Play : enter / _adapter.AllPlayerPlayed();
+    
+    Phase1_Wait --> Phase1_TrickWinner : AllPlayerPlayed
+    Phase1_Play --> Phase1_TrickWinner : AllPlayerPlayed
+    
+    Phase1_TrickWinner : enter / _adapter.DetermineWinner();
+    
+    Phase1_TrickWinner --> Meld : MeldOpportunity
+    Phase1_TrickWinner --> DrawACard : NoMeldOpportunity
+    
+    Meld : enter / _adapter.AddMeldPoint();
+    
+    Meld --> DrawACard : MeldPointGiven
+    DrawACard --> DrawACard : MorePlayersToDraw
+    DrawACard --> Deck : DrawCardToAll
+    
+    DrawACard : enter / _adapter.DrawCardFromDeck();
+    
+    Deck : enter / _adapter.CheckDeckCardCount();
+    
+    Deck --> PlayPhase2 : DeckEmpty
+    Deck --> Phase1_TrickStart : AvailableCardsOnDeck
 }
 
+state PlayPhase2{
+    state Phase2_TrickStart
+    
+    state Phase2_Wait
+    state Phase2_Play
+    state Phase2_TrickWinner
+    
+    [*] --> Phase2_TrickStart
+    Phase2_TrickStart --> Phase2_Wait :OpponentTurn
+    Phase2_TrickStart --> Phase2_Play :PlayerTurn
+    
+    Phase2_Wait : enter / _adapter.AllPlayerPlayed();
+    Phase2_Play : enter / _adapter.AllPlayerPlayed();
+    
+    Phase2_Wait --> Phase2_TrickWinner : AllPlayerPlayed
+    Phase2_Play --> Phase2_TrickWinner : AllPlayerPlayed
+    Phase2_Play --> Phase2_Wait : WaitingForOpponent
+    
+    Phase2_TrickWinner : enter / _adapter.DetermineWinner();
+    
+    Phase2_TrickWinner --> Hand 
+    
+    Hand : enter / _adapter.CheckCardsOnHand();
+        
+    Hand --> RoundEnd : HandEmpty
+    Hand --> Phase2_TrickStart : MoreCardsInHand
+    
+    
+    
+}
+
+RoundEnd --> GameEnd : WinningScore
+
+
+RoundEnd --> StartGame : WinningScoreNotReached
 
 'state StartGame
 '
