@@ -21,9 +21,25 @@ message GameStarted{
 }
 
 message DealCardResponse{
-    
+    int32 playerIndex = 1;
+    repeated Card cards = 2;
+    string currentState = 3;
+    bool dealingComplete = 4;
+}
+
+message Card {
+    int32 id = 1; 
+    int32 value = 2;    
+    int32 deck = 3;    
 }
 
 message GameState{
+    int32 currentPlayerIndex = 1;   
+    string currentState = 2;       
+    repeated PlayerHand players = 3;  
+}
+
+message PlayerHand {
     int32 playerIndex = 1;
+    repeated Card cards = 2;
 }

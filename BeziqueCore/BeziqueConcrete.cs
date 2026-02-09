@@ -7,6 +7,7 @@ public class BeziqueConcrete : IBeziqueAdapter
     public readonly List<byte> Dealer;
     public readonly List<byte>[] Player;
     public byte DealOrder;
+    
 
     public BeziqueConcrete(int player)
     {
@@ -16,18 +17,13 @@ public class BeziqueConcrete : IBeziqueAdapter
             Player[i] = new List<byte>();
         }
         Dealer = new List<byte>();
-        for (int i = 0; i < 4; i++)
+        for (int deck = 0; deck < 4; deck++)
         {
-            for (int j = 0; j < 32; j++)
+            for (int card = 0; card < 32; card++)
             {
-                Dealer.Add((byte)j);
+                Dealer.Add(CardHelper.CreateCardId((byte)card, (byte)deck));
             }
-        }
-
-        var joker = 32;
-        for (int j = 0; j < 4; j++)
-        {
-            Dealer.Add((byte)joker);
+            Dealer.Add(CardHelper.CreateCardId(CardHelper.JOKER, (byte)deck));
         }
     }
 
@@ -49,11 +45,6 @@ public class BeziqueConcrete : IBeziqueAdapter
     {
         throw new NotImplementedException();
     }
-    
-    
-    
-    
-
     private void RotatePlayer()
     {
         DealOrder = (byte)((DealOrder + 1) % Player.Length);
