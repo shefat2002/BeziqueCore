@@ -71,6 +71,7 @@ public class BeziqueService : Bezique.BeziqueBase
         
         int playerIndex = _adapter.DealOrder;
         int cardCountBefore = _adapter.Player[playerIndex].Count;
+        int setBefore = _adapter.SetsDealtToCurrentPlayer;
 
         _bezique.DispatchEvent(BeziqueCore.Bezique.EventId.COMPLETE);
 
@@ -91,7 +92,9 @@ public class BeziqueService : Bezique.BeziqueBase
         {
             PlayerIndex = playerIndex,
             CurrentState = BeziqueCore.Bezique.StateIdToString(_bezique.stateId),
-            DealingComplete = dealingComplete
+            DealingComplete = dealingComplete,
+            CurrentRound = setBefore + 1,        // Current round (1, 2, or 3)
+            TotalRounds = BeziqueConcrete.SetsPerPlayer 
         };
         response.Cards.AddRange(cardMessages);
         return Task.FromResult(response);

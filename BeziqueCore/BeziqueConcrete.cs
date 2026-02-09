@@ -7,6 +7,8 @@ public class BeziqueConcrete : IBeziqueAdapter
     public readonly List<byte> Dealer;
     public readonly List<byte>[] Player;
     public byte DealOrder;
+    public byte SetsDealtToCurrentPlayer;  // Track sets dealt to current player (0, 1, 2)
+    public const byte SetsPerPlayer = 3;   // 3 sets of 3 cards = 9 cards per player
     
 
     public BeziqueConcrete(int player)
@@ -33,7 +35,13 @@ public class BeziqueConcrete : IBeziqueAdapter
         var range = Dealer.GetRange(0, 3);
         Dealer.RemoveRange(0, 3);
         Player[DealOrder].AddRange(range);
+
         RotatePlayer();
+
+        if (DealOrder == 0)
+        {
+            SetsDealtToCurrentPlayer++;  
+        }
     }
 
     public void FlipCard()
