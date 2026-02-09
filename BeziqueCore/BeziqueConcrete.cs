@@ -53,6 +53,37 @@ public class BeziqueConcrete : IBeziqueAdapter
     {
         throw new NotImplementedException();
     }
+
+    public void CheckDeckCardCount()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void DrawCardFromDeck()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void AddMeldPoint()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void AllPlayerPlayed()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void DetermineWinner()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void CheckCardsOnHand()
+    {
+        throw new NotImplementedException();
+    }
+
     private void RotatePlayer()
     {
         DealOrder = (byte)((DealOrder + 1) % Player.Length);
