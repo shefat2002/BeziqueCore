@@ -6,16 +6,20 @@ public class BeziqueConcrete : IBeziqueAdapter
 {
     public readonly List<byte> Dealer;
     public readonly List<byte>[] Player;
+    public readonly int[] Scores; 
     public byte DealOrder;
-    public byte SetsDealtToCurrentPlayer;  // Track sets dealt to current player (0, 1, 2)
-    public const byte SetsPerPlayer = 3;   // 3 sets of 3 cards = 9 cards per player
-    public byte? TrumpCard;  // The flipped trump card on table
-    public byte? TrumpSuit;  // The trump suit (0-3) derived from TrumpCard
-    public const byte RANK_7_OFFSET = 0;  // Card value 0 is rank 7
+    public byte DealerIndex; 
+    public byte SetsDealtToCurrentPlayer;
+    public const byte SetsPerPlayer = 3;  
+    public byte? TrumpCard;  
+    public byte? TrumpSuit;
+    public const byte RANK_7_OFFSET = 0; 
+    public const byte TRUMP_7_BONUS = 10; 
 
     public BeziqueConcrete(int player)
     {
         Player = new List<byte>[player];
+        Scores = new int[player];
         for (int i = 0; i < player; i++)
         {
             Player[i] = new List<byte>();
@@ -48,7 +52,7 @@ public class BeziqueConcrete : IBeziqueAdapter
 
     public void FlipCard()
     {
-        if (Dealer.Count == 0) return;  // No cards to flip
+        if (Dealer.Count == 0) return; 
 
         TrumpCard = Dealer[0]; 
         TrumpSuit = CardHelper.GetDeckIndex(TrumpCard.Value);
@@ -62,7 +66,7 @@ public class BeziqueConcrete : IBeziqueAdapter
 
     public void Add10PointsToDealer()
     {
-        throw new NotImplementedException();
+        Scores[DealerIndex] += TRUMP_7_BONUS;
     }
 
     public void CheckDeckCardCount()
