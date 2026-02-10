@@ -6,15 +6,16 @@ public class BeziqueConcrete : IBeziqueAdapter
 {
     public readonly List<byte> Dealer;
     public readonly List<byte>[] Player;
-    public readonly int[] Scores; 
+    public readonly int[] Scores;
     public byte DealOrder;
-    public byte DealerIndex; 
+    public byte DealerIndex;
+    public byte DrawOrder;
     public byte SetsDealtToCurrentPlayer;
-    public const byte SetsPerPlayer = 3;  
-    public byte? TrumpCard;  
+    public const byte SetsPerPlayer = 3;
+    public byte? TrumpCard;
     public byte? TrumpSuit;
-    public const byte RANK_7_OFFSET = 0; 
-    public const byte TRUMP_7_BONUS = 10; 
+    public const byte RANK_7_OFFSET = 0;
+    public const byte TRUMP_7_BONUS = 10;
 
     public BeziqueConcrete(int player)
     {
@@ -35,7 +36,6 @@ public class BeziqueConcrete : IBeziqueAdapter
         }
     }
 
-
     public void DealThreeCards()
     {
         var range = Dealer.GetRange(0, 3);
@@ -46,15 +46,15 @@ public class BeziqueConcrete : IBeziqueAdapter
 
         if (DealOrder == 0)
         {
-            SetsDealtToCurrentPlayer++;  
+            SetsDealtToCurrentPlayer++;
         }
     }
 
     public void FlipCard()
     {
-        if (Dealer.Count == 0) return; 
+        if (Dealer.Count == 0) return;
 
-        TrumpCard = Dealer[0]; 
+        TrumpCard = Dealer[0];
         TrumpSuit = CardHelper.GetDeckIndex(TrumpCard.Value);
         Dealer.RemoveAt(0);
     }
@@ -69,22 +69,27 @@ public class BeziqueConcrete : IBeziqueAdapter
         Scores[DealerIndex] += TRUMP_7_BONUS;
     }
 
-    public void CheckDeckCardCount()
+    public DeckCheckResult CheckDeckCardCount()
     {
-        throw new NotImplementedException();
+        return Dealer.Count == 0 ? DeckCheckResult.Empty : DeckCheckResult.AvailableCards;
     }
 
-    public void DrawCardFromDeck()
+    public DrawResult DrawCardFromDeck()
     {
-        throw new NotImplementedException();
+        if (Dealer.Count == 0) return DrawResult.DrawComplete;
+
+        Player[DrawOrder].Add(Dealer[0]);
+        Dealer.RemoveAt(0);
+
+        byte nextPlayer = (byte)((DrawOrder + 1) % Player.Length);
+        bool moreToDraw = nextPlayer != 0;
+
+        DrawOrder = nextPlayer;
+
+        return moreToDraw ? DrawResult.MoreToDraw : DrawResult.DrawComplete;
     }
 
     public void AddMeldPoint()
-    {
-        throw new NotImplementedException();
-    }
-
-    public void AllPlayerPlayed()
     {
         throw new NotImplementedException();
     }
@@ -94,7 +99,7 @@ public class BeziqueConcrete : IBeziqueAdapter
         throw new NotImplementedException();
     }
 
-    public void CheckCardsOnHand()
+    public HandCheckResult CheckCardsOnHand()
     {
         throw new NotImplementedException();
     }
@@ -103,5 +108,4 @@ public class BeziqueConcrete : IBeziqueAdapter
     {
         DealOrder = (byte)((DealOrder + 1) % Player.Length);
     }
-
 }

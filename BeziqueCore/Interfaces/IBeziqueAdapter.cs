@@ -6,10 +6,10 @@ public interface IBeziqueAdapter
     void DealThreeCards();
     void FlipCard();
     void Add10PointsToDealer();
-    void CheckDeckCardCount();
-    void DrawCardFromDeck();
+    DeckCheckResult CheckDeckCardCount();
+    DrawResult DrawCardFromDeck();
     void AddMeldPoint();
-    void AllPlayerPlayed();
     void DetermineWinner();
-    void CheckCardsOnHand();
+    HandCheckResult CheckCardsOnHand();
+    bool IsTrump7();
 }
