@@ -1199,6 +1199,7 @@ public partial class Bezique
         // uml: enter / { _adapter.DetermineWinner(); }
         {
             // Step 1: execute action `_adapter.DetermineWinner();`
+            
             _adapter.DetermineWinner();
         } // end of behavior for Phase1_TrickWinner
     }

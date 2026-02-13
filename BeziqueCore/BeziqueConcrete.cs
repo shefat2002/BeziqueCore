@@ -104,6 +104,12 @@ public class BeziqueConcrete : IBeziqueAdapter
         throw new NotImplementedException();
     }
 
+    public void AllPlayerPlayed()
+    {
+        // Called by FSM when all players have played in a trick
+        // Currently a no-op - logic handled by FSM state transitions
+    }
+
     private void RotatePlayer()
     {
         DealOrder = (byte)((DealOrder + 1) % Player.Length);
