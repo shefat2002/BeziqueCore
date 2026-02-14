@@ -14,6 +14,7 @@ public class BeziqueConcrete : IBeziqueAdapter
     public const byte SetsPerPlayer = 3;
     public byte? TrumpCard;
     public byte? TrumpSuit;
+    private MeldType _pendingMeld;
     public const byte RANK_7_OFFSET = 0;
     public const byte TRUMP_7_BONUS = 10;
 
@@ -91,17 +92,47 @@ public class BeziqueConcrete : IBeziqueAdapter
 
     public void AddMeldPoint()
     {
-        throw new NotImplementedException();
+        int points = _pendingMeld switch
+        {
+            MeldType.Bezique => 40,
+            MeldType.DoubleBezique => 500,
+            MeldType.FourJacks => 40,
+            MeldType.FourQueens => 60,
+            MeldType.FourKings => 80,
+            MeldType.FourAces => 100,
+            MeldType.CommonMarriage => 20,
+            MeldType.TrumpMarriage => 40,
+            MeldType.TrumpRun => 150,
+            _ => 0
+        };
+        Scores[DealOrder] += points;
+    }
+
+    public void SetPendingMeld(MeldType meldType)
+    {
+        _pendingMeld = meldType;
     }
 
     public void DetermineWinner()
     {
-        throw new NotImplementedException();
+        int winnerIndex = -1;
+        int highestScore = -1;
+
+        for (int i = 0; i < Scores.Length; i++)
+        {
+            if (Scores[i] > highestScore)
+            {
+                highestScore = Scores[i];
+                winnerIndex = i;
+            }
+        }
+
+        DealOrder = (byte)winnerIndex;
     }
 
     public HandCheckResult CheckCardsOnHand()
     {
-        throw new NotImplementedException();
+        return Player[DealOrder].Count == 0 ? HandCheckResult.Empty : HandCheckResult.MoreCards;
     }
 
     public void AllPlayerPlayed()

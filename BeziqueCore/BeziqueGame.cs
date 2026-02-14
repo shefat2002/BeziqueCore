@@ -157,7 +157,7 @@ public class BeziqueGame : IBeziqueGame
         if (_adapter == null || _stateMachine == null)
             throw new InvalidOperationException("Game not initialized.");
 
-        _adapter.AddMeldPoint();
+        _adapter.SetPendingMeld(meldType);
         _stateMachine.DispatchEvent(Bezique.EventId.MELDPOINTGIVEN);
     }
 

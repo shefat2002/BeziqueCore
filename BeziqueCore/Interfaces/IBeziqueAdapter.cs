@@ -9,6 +9,7 @@ public interface IBeziqueAdapter
     DeckCheckResult CheckDeckCardCount();
     DrawResult DrawCardFromDeck();
     void AddMeldPoint();
+    void SetPendingMeld(MeldType meldType);
     void DetermineWinner();
     HandCheckResult CheckCardsOnHand();
     bool IsTrump7();
