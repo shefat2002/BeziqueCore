@@ -10,6 +10,7 @@ service Bezique{
     rpc StartGame (PlayerCount) returns (GameStarted);
     rpc DealCard (google.protobuf.Empty) returns (DealCardResponse);
     rpc GetGameState (google.protobuf.Empty) returns (GameState);
+    rpc PlayCard (PlayCardRequest) returns (PlayCardResponse);
 }
 
 message PlayerCount{  
@@ -44,4 +45,16 @@ message GameState{
 message PlayerHand {
     int32 playerIndex = 1;
     repeated Card cards = 2;
+}
+
+message PlayCardRequest {
+    int32 playerIndex = 1;
+    int32 cardId = 2;
+}
+
+message PlayCardResponse {
+    bool success = 1;
+    string message = 2;
+    int32 nextPlayerIndex = 3;
+    string gameState = 4;
 }

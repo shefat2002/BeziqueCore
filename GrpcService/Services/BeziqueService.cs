@@ -1,132 +1,95 @@
 using BeziqueCore;
+using BeziqueCore.Interfaces;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 
 namespace GrpcService.Services;
 
-
-
 public class BeziqueService : Bezique.BeziqueBase
 {
-    private BeziqueCore.Bezique? _bezique;
-    private BeziqueConcrete? _adapter; 
-    
-    
-    
+    private readonly Dictionary<int, BeziqueGame> _games = new();
+    private int _nextGameId = 1;
+
     public override Task<GameStarted> StartGame(PlayerCount request, ServerCallContext context)
     {
-        var playerCount = request.PlayerCount_;
+        int playerCount = request.PlayerCount_;
 
-        // Validate player count
-        if (!playerCount.TryValidatePlayerCount(out var errorMessage))
+        if (playerCount != 2 && playerCount != 4)
         {
             return Task.FromResult(new GameStarted
             {
-                GameStartMessage = errorMessage
+                GameStartMessage = "Failure! Invalid Player Count"
             });
         }
 
-        _adapter = new BeziqueConcrete(playerCount);
-        _bezique = new BeziqueCore.Bezique();
-        _bezique.SetAdapter(_adapter);
-        _bezique.Start();
+        var game = new BeziqueGame();
+        game.Initialize(playerCount);
+        game.StartDealing();
 
-        if (playerCount == 2) _bezique.DispatchEvent(BeziqueCore.Bezique.EventId.TWOPLAYERGAME);
-        if (playerCount == 4) _bezique.DispatchEvent(BeziqueCore.Bezique.EventId.FOURPLAYERGAME);
-
-        var stateIdToString = BeziqueCore.Bezique.StateIdToString(_bezique.stateId);
+        int gameId = _nextGameId++;
+        _games[gameId] = game;
 
         return Task.FromResult(new GameStarted
         {
-            GameStartMessage = $"Game started with {playerCount} players. Current state: {stateIdToString}"
+            GameStartMessage = $"Game started with {playerCount} players. Game ID: {gameId}"
         });
     }
 
     public override Task<DealCardResponse> DealCard(Empty request, ServerCallContext context)
     {
-        if (_bezique == null || _adapter == null)
-        {
-            throw new RpcException(new Status(StatusCode.FailedPrecondition, "Game not started. Call StartGame first."));
-        }
+        var game = GetDefaultGame();
 
-        var currentState = _bezique.stateId;
-        bool isDealingState = currentState == BeziqueCore.Bezique.StateId.DEALFOURPLAYER ||
-                              currentState == BeziqueCore.Bezique.StateId.DEAL4_FIRSTPLAYER ||
-                              currentState == BeziqueCore.Bezique.StateId.DEAL4_SECONDPLAYER ||
-                              currentState == BeziqueCore.Bezique.StateId.DEAL4_THIRDPLAYER ||
-                              currentState == BeziqueCore.Bezique.StateId.DEAL4_FOURTHPLAYER ||
-                              currentState == BeziqueCore.Bezique.StateId.DEALTWOPLAYER ||
-                              currentState == BeziqueCore.Bezique.StateId.DEAL2_FIRSTPLAYER ||
-                              currentState == BeziqueCore.Bezique.StateId.DEAL2_SECONDPLAYER;
-        if (!isDealingState)
-        {
-            return Task.FromResult(new DealCardResponse
-            {
-                PlayerIndex = -1,
-                CurrentState = BeziqueCore.Bezique.StateIdToString(currentState),
-                DealingComplete = currentState == BeziqueCore.Bezique.StateId.PLAYPHASE1 ||
-                                  currentState == BeziqueCore.Bezique.StateId.FLIPTRUMP
-            });
-        }
-        
-        int playerIndex = _adapter.DealOrder;
-        int cardCountBefore = _adapter.Player[playerIndex].Count;
-        int setBefore = _adapter.SetsDealtToCurrentPlayer;
-
-        _bezique.DispatchEvent(BeziqueCore.Bezique.EventId.COMPLETE);
-
-        int cardCountAfter = _adapter.Player[playerIndex].Count;
-        var dealtCards = _adapter.Player[playerIndex].Skip(cardCountBefore).Take(3).ToList();
-
-        var cardMessages = dealtCards.Select(cardId => new Card
-        {
-            Id = cardId,
-            Value = CardHelper.GetCardValue((byte)cardId),
-            Deck = CardHelper.GetDeckIndex((byte)cardId)
-        }).ToList();
-
-        bool dealingComplete = _bezique.stateId == BeziqueCore.Bezique.StateId.PLAYPHASE1 ||
-                               _bezique.stateId == BeziqueCore.Bezique.StateId.FLIPTRUMP;
+        bool couldDeal = game.DealNextSet();
+        var players = game.Players;
+        var currentPlayer = game.CurrentPlayerIndex;
 
         var response = new DealCardResponse
         {
-            PlayerIndex = playerIndex,
-            CurrentState = BeziqueCore.Bezique.StateIdToString(_bezique.stateId),
-            DealingComplete = dealingComplete,
-            CurrentRound = setBefore + 1,        // Current round (1, 2, or 3)
-            TotalRounds = BeziqueConcrete.SetsPerPlayer 
+            PlayerIndex = currentPlayer,
+            CurrentState = game.CurrentPhase.ToString(),
+            DealingComplete = !couldDeal,
+            CurrentRound = (int)game.CurrentPhase + 1,
+            TotalRounds = 3
         };
-        response.Cards.AddRange(cardMessages);
+
+        foreach (var card in players[currentPlayer].Cards)
+        {
+            response.Cards.Add(new Card
+            {
+                Id = card.CardId,
+                Value = card.CardValue,
+                Deck = card.DeckIndex
+            });
+        }
+
         return Task.FromResult(response);
     }
 
     public override Task<GameState> GetGameState(Empty request, ServerCallContext context)
     {
-        if (_bezique == null || _adapter == null)
-        {
-            throw new RpcException(new Status(StatusCode.FailedPrecondition, "Game not started. Call StartGame first."));
-        }
+        var game = GetDefaultGame();
+        var players = game.Players;
 
         var gameState = new GameState
         {
-            CurrentPlayerIndex = _adapter.DealOrder,
-            CurrentState = BeziqueCore.Bezique.StateIdToString(_bezique.stateId)
+            CurrentPlayerIndex = game.CurrentPlayerIndex,
+            CurrentState = game.CurrentPhase.ToString()
         };
 
-        for (int i = 0; i < _adapter.Player.Length; i++)
+        foreach (var player in players)
         {
             var playerHand = new PlayerHand
             {
-                PlayerIndex = i
+                PlayerIndex = player.PlayerIndex
             };
 
-            foreach (var cardId in _adapter.Player[i])
+            foreach (var card in player.Cards)
             {
                 playerHand.Cards.Add(new Card
                 {
-                    Id = cardId,
-                    Value = CardHelper.GetCardValue((byte)cardId),
-                    Deck = CardHelper.GetDeckIndex((byte)cardId)
+                    Id = card.CardId,
+                    Value = card.CardValue,
+                    Deck = card.DeckIndex
                 });
             }
 
@@ -135,20 +98,53 @@ public class BeziqueService : Bezique.BeziqueBase
 
         return Task.FromResult(gameState);
     }
-}
 
-
-public static class BeziqueError
-{
-    public static bool TryValidatePlayerCount(this int playerCount, out string result)
+    public override Task<PlayCardResponse> PlayCard(PlayCardRequest request, ServerCallContext context)
     {
-        result = "";
-        if (playerCount != 2 && playerCount != 4)
+        var game = GetDefaultGame();
+        int playerIndex = request.PlayerIndex;
+        byte cardId = (byte)request.CardId;
+
+        if (!game.IsPlayerTurn(playerIndex))
         {
-            result = "Failure! Invalid Player Count";
-            return false;
+            return Task.FromResult(new PlayCardResponse
+            {
+                Success = false,
+                Message = "Not your turn",
+                NextPlayerIndex = game.CurrentPlayerIndex,
+                GameState = game.CurrentPhase.ToString()
+            });
         }
-        return true;
+
+        var playableCards = game.GetPlayableCards(playerIndex);
+        if (!playableCards.Contains(cardId))
+        {
+            return Task.FromResult(new PlayCardResponse
+            {
+                Success = false,
+                Message = "Card not in hand",
+                NextPlayerIndex = game.CurrentPlayerIndex,
+                GameState = game.CurrentPhase.ToString()
+            });
+        }
+
+        game.PlayCard(playerIndex, cardId);
+
+        return Task.FromResult(new PlayCardResponse
+        {
+            Success = true,
+            Message = "Card played successfully",
+            NextPlayerIndex = game.CurrentPlayerIndex,
+            GameState = game.CurrentPhase.ToString()
+        });
     }
-    
+
+    private BeziqueGame GetDefaultGame()
+    {
+        if (_games.Count == 0)
+        {
+            throw new RpcException(new Status(StatusCode.FailedPrecondition, "Game not started. Call StartGame first."));
+        }
+        return _games.Values.First();
+    }
 }
