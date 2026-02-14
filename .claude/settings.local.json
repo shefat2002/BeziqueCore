@@ -3,7 +3,13 @@
     "allow": [
       "Bash(dotnet build:*)",
       "WebSearch",
-      "mcp__web-reader__webReader"
+      "mcp__web-reader__webReader",
+      "Bash(dotnet test:*)",
+      "Bash(dotnet run:*)",
+      "Bash(dotnet vtest:*)",
+      "Bash(dotnet xunit:*)",
+      "Bash(dotnet tool list:*)",
+      "Bash(dotnet tool run dotnet-xunit)"
     ]
   }
 }
