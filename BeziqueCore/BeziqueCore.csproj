@@ -8,6 +8,11 @@
     <RootNamespace>BeziqueCore</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>GameService.Sdk.BeziqueCore</PackageId>
+    <Authors>GameService</Authors>
+    <Description>Bezique game SDK for GameService - Custom Bezique Game Logics</Description>
+    <PackageTags>game;sdk;bezique;card-game;multiplayer</PackageTags>
   </PropertyGroup>
 
   <!-- PolySharp for .NET Standard 2.1 polyfills -->
