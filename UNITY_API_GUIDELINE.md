@@ -6,47 +6,6 @@ This document provides guidance for integrating BeziqueCore with Unity, supporti
 
 ---
 
-## Architecture Options
-
-```
-+---------------------------------------------------------+
-|                     Unity Integration Layer                |
-+---------------------------------------------------------+
-|                                                         |
-|  +----------------------+     +----------------------+     |
-|  |   Offline Mode       |     |   Online Mode        |     |
-|  |                      |     |                      |     |
-|  | BeziqueOfflineMgr    |     | BeziqueOnlineMgr    |     |
-|  |         |            |     |         |            |     |
-|  |         v            |     |         v            |     |
-|  |  BeziqueCore         |     |  gRPC Client        |     |
-|  |  (Local Logic)       |     |         |            |     |
-|  |                      |     |         v            |     |
-|  +----------------------+     |  gRPC Server        |     |
-|                                  |         |            |     |
-|                                  |         v            |     |
-|                                  |  BeziqueCore        |     |
-|                                  |  (Server Logic)     |     |
-|                                  +----------------------+     |
-|                                                         |
-+---------------------------------------------------------+
-```
-
----
-
-## Offline vs Online Mode Comparison
-
-| Feature          | Offline Mode                          | Online Mode                          |
-|------------------|---------------------------------------|--------------------------------------|
-| **Game Logic**   | Runs locally in Unity                | Runs on gRPC server                |
-| **Latency**       | Zero (instant)                        | Network dependent                     |
-| **AI Players**    | Local AI implementation                | Server-side AI possible                |
-| **Cheat Prevention** | Not applicable (client-trusted)    | Server-authoritative                   |
-| **Save/Load**     | Local (JSON/Binary)                  | Server-side saves                    |
-| **Use Case**      | Single player, hot-seat, learning     | Multiplayer, ranked play               |
-
----
-
 ## Quick API Reference
 
 ### Core Classes

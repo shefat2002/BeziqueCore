@@ -11,5 +11,35 @@
       "Bash(dotnet tool list:*)",
       "Bash(dotnet tool run dotnet-xunit)"
     ]
+  },
+  "teams": {
+    "group": "bezique-dev",
+    "members": [
+      {
+        "name": "core-logic-agent",
+        "agentType": "general-purpose",
+        "description": "Handles core Bezique game logic, state machine, and rules implementation"
+      },
+      {
+        "name": "grpc-implementation-agent",
+        "agentType": "general-purpose",
+        "description": "Handles gRPC service implementation, proto definitions, and server endpoints"
+      },
+      {
+        "name": "integration-bridge-agent",
+        "agentType": "general-purpose",
+        "description": "Bridges core logic and gRPC service, handles integration layer"
+      },
+      {
+        "name": "unity-integration-agent",
+        "agentType": "general-purpose",
+        "description": "Handles Unity integration, makes Unity integration as easy as possible via simplified API"
+      },
+      {
+        "name": "test-agent",
+        "agentType": "general-purpose",
+        "description": "Test writing, test execution, and test maintenance"
+      }
+    ]
   }
 }
