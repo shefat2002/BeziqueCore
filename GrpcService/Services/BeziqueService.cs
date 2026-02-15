@@ -1,14 +1,13 @@
 using BeziqueCore;
 using BeziqueCore.Interfaces;
-using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 
 namespace GrpcService.Services;
 
 public class BeziqueService : Bezique.BeziqueBase
 {
-    private readonly Dictionary<int, BeziqueGame> _games = new();
-    private int _nextGameId = 1;
+    private static readonly Dictionary<int, BeziqueGame> _games = new();
+    private static int _nextGameId = 1;
 
     public override Task<GameStarted> StartGame(PlayerCount request, ServerCallContext context)
     {
@@ -31,13 +30,14 @@ public class BeziqueService : Bezique.BeziqueBase
 
         return Task.FromResult(new GameStarted
         {
-            GameStartMessage = $"Game started with {playerCount} players. Game ID: {gameId}"
+            GameStartMessage = $"Game started with {playerCount} players. Game ID: {gameId}",
+            GameId = gameId
         });
     }
 
-    public override Task<DealCardResponse> DealCard(Empty request, ServerCallContext context)
+    public override Task<DealCardResponse> DealCard(DealCardRequest request, ServerCallContext context)
     {
-        var game = GetDefaultGame();
+        var game = GetGame(request.GameId);
 
         bool couldDeal = game.DealNextSet();
         var players = game.Players;
@@ -49,7 +49,8 @@ public class BeziqueService : Bezique.BeziqueBase
             CurrentState = game.CurrentPhase.ToString(),
             DealingComplete = !couldDeal,
             CurrentRound = (int)game.CurrentPhase + 1,
-            TotalRounds = 3
+            TotalRounds = 3,
+            GameId = request.GameId
         };
 
         foreach (var card in players[currentPlayer].Cards)
@@ -65,15 +66,16 @@ public class BeziqueService : Bezique.BeziqueBase
         return Task.FromResult(response);
     }
 
-    public override Task<GameState> GetGameState(Empty request, ServerCallContext context)
+    public override Task<GameState> GetGameState(GameStateRequest request, ServerCallContext context)
     {
-        var game = GetDefaultGame();
+        var game = GetGame(request.GameId);
         var players = game.Players;
 
         var gameState = new GameState
         {
             CurrentPlayerIndex = game.CurrentPlayerIndex,
-            CurrentState = game.CurrentPhase.ToString()
+            CurrentState = game.CurrentPhase.ToString(),
+            GameId = request.GameId
         };
 
         foreach (var player in players)
@@ -101,7 +103,7 @@ public class BeziqueService : Bezique.BeziqueBase
 
     public override Task<PlayCardResponse> PlayCard(PlayCardRequest request, ServerCallContext context)
     {
-        var game = GetDefaultGame();
+        var game = GetGame(request.GameId);
         int playerIndex = request.PlayerIndex;
         byte cardId = (byte)request.CardId;
 
@@ -112,7 +114,8 @@ public class BeziqueService : Bezique.BeziqueBase
                 Success = false,
                 Message = "Not your turn",
                 NextPlayerIndex = game.CurrentPlayerIndex,
-                GameState = game.CurrentPhase.ToString()
+                GameState = game.CurrentPhase.ToString(),
+                GameId = request.GameId
             });
         }
 
@@ -124,7 +127,8 @@ public class BeziqueService : Bezique.BeziqueBase
                 Success = false,
                 Message = "Card not in hand",
                 NextPlayerIndex = game.CurrentPlayerIndex,
-                GameState = game.CurrentPhase.ToString()
+                GameState = game.CurrentPhase.ToString(),
+                GameId = request.GameId
             });
         }
 
@@ -135,16 +139,17 @@ public class BeziqueService : Bezique.BeziqueBase
             Success = true,
             Message = "Card played successfully",
             NextPlayerIndex = game.CurrentPlayerIndex,
-            GameState = game.CurrentPhase.ToString()
+            GameState = game.CurrentPhase.ToString(),
+            GameId = request.GameId
         });
     }
 
-    private BeziqueGame GetDefaultGame()
+    private BeziqueGame GetGame(int gameId)
     {
-        if (_games.Count == 0)
+        if (!_games.TryGetValue(gameId, out var game))
         {
-            throw new RpcException(new Status(StatusCode.FailedPrecondition, "Game not started. Call StartGame first."));
+            throw new RpcException(new Status(StatusCode.NotFound, $"Game ID {gameId} not found. Call StartGame first."));
         }
-        return _games.Values.First();
+        return game;
     }
 }

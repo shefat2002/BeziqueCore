@@ -14,4 +14,5 @@ public interface IBeziqueAdapter
     HandCheckResult CheckCardsOnHand();
     bool IsTrump7();
     void AllPlayerPlayed();
+    void PlayCard(int playerIndex, byte cardId);
 }

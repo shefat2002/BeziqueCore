@@ -4,30 +4,34 @@ option csharp_namespace = "GrpcService";
 
 package bezique;
 
-import "google/protobuf/empty.proto";
-
 service Bezique{
     rpc StartGame (PlayerCount) returns (GameStarted);
-    rpc DealCard (google.protobuf.Empty) returns (DealCardResponse);
-    rpc GetGameState (google.protobuf.Empty) returns (GameState);
+    rpc DealCard (DealCardRequest) returns (DealCardResponse);
+    rpc GetGameState (GameStateRequest) returns (GameState);
     rpc PlayCard (PlayCardRequest) returns (PlayCardResponse);
 }
 
-message PlayerCount{  
+message PlayerCount{
     int32 playerCount = 1;
 }
 
 message GameStarted{
     string gameStartMessage = 1;
+    int32 gameId = 2;
+}
+
+message DealCardRequest {
+    int32 gameId = 1;
 }
 
 message DealCardResponse{
-    int32 playerIndex = 1;  
-    repeated Card cards = 2;        
-    string currentState = 3; 
-    bool dealingComplete = 4;   
-    int32 currentRound = 5;     
-    int32 totalRounds = 6;  
+    int32 playerIndex = 1;
+    repeated Card cards = 2;
+    string currentState = 3;
+    bool dealingComplete = 4;
+    int32 currentRound = 5;
+    int32 totalRounds = 6;
+    int32 gameId = 7;
 }
 
 message Card {
@@ -37,9 +41,10 @@ message Card {
 }
 
 message GameState{
-    int32 currentPlayerIndex = 1;   
-    string currentState = 2;       
-    repeated PlayerHand players = 3;  
+    int32 currentPlayerIndex = 1;
+    string currentState = 2;
+    repeated PlayerHand players = 3;
+    int32 gameId = 4;
 }
 
 message PlayerHand {
@@ -47,9 +52,14 @@ message PlayerHand {
     repeated Card cards = 2;
 }
 
+message GameStateRequest {
+    int32 gameId = 1;
+}
+
 message PlayCardRequest {
-    int32 playerIndex = 1;
-    int32 cardId = 2;
+    int32 gameId = 1;
+    int32 playerIndex = 2;
+    int32 cardId = 3;
 }
 
 message PlayCardResponse {
@@ -57,4 +67,5 @@ message PlayCardResponse {
     string message = 2;
     int32 nextPlayerIndex = 3;
     string gameState = 4;
+    int32 gameId = 5;
 }

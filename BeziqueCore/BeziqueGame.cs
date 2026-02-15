@@ -133,6 +133,9 @@ public class BeziqueGame : IBeziqueGame
         if (_adapter == null || _stateMachine == null)
             throw new InvalidOperationException("Game not initialized.");
 
+        // Actually remove the card from player's hand
+        _adapter.PlayCard(playerIndex, cardId);
+
         if (playerIndex == 0)
             _stateMachine.DispatchEvent(Bezique.EventId.PLAYERTURN);
         else

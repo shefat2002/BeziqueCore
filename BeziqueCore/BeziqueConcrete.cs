@@ -145,4 +145,17 @@ public class BeziqueConcrete : IBeziqueAdapter
     {
         DealOrder = (byte)((DealOrder + 1) % Player.Length);
     }
+
+    public void PlayCard(int playerIndex, byte cardId)
+    {
+        if (playerIndex < 0 || playerIndex >= Player.Length)
+            return;
+
+        var hand = Player[playerIndex];
+        int cardIndex = hand.IndexOf(cardId);
+        if (cardIndex >= 0)
+        {
+            hand.RemoveAt(cardIndex);
+        }
+    }
 }
