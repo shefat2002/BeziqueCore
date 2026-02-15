@@ -47,6 +47,213 @@ This document provides guidance for integrating BeziqueCore with Unity, supporti
 
 ---
 
+## Quick API Reference
+
+### Core Classes
+
+| Class | Namespace | Purpose |
+|--------|------------|---------|
+| `BeziqueGame` | `BeziqueCore` | Main game class - implements `IBeziqueGame` |
+| `CardHelper` | `BeziqueCore` | Static utility for card ID operations |
+| `BeziqueConcrete` | `BeziqueCore` | Internal adapter (game state storage) |
+
+### Interfaces
+
+| Interface | Namespace | Purpose |
+|-----------|------------|---------|
+| `IBeziqueGame` | `BeziqueCore.Interfaces` | Main game interface |
+| `IGameState` | `BeziqueCore.Interfaces` | Query game state |
+| `IGameEvent` | `BeziqueCore.Interfaces` | Subscribe to game events |
+| `IPlayerHand` | `BeziqueCore.Interfaces` | Player data access |
+| `IGameCard` | `BeziqueCore.Interfaces` | Card data access |
+
+### Enums
+
+| Enum | Values |
+|-------|---------|
+| `GamePhase` | `Dealing`, `TrumpFlip`, `Phase1_Playing`, `Phase2_Playing`, `RoundEnd`, `GameEnd` |
+| `MeldType` | `Bezique`, `DoubleBezique`, `FourJacks`, `FourQueens`, `FourKings`, `FourAces`, `CommonMarriage`, `TrumpMarriage`, `TrumpRun` |
+
+---
+
+## Detailed Public API Reference
+
+The following APIs are **currently implemented** in BeziqueCore and can be used directly in Unity.
+
+The following APIs are **currently implemented** in BeziqueCore and can be used directly in Unity.
+
+### IBeziqueGame - Main Game Interface
+
+**Namespace:** `BeziqueCore.Interfaces`
+
+```csharp
+public interface IBeziqueGame : IGameState, IGameEvent
+{
+    void Initialize(int playerCount);
+    void StartDealing();
+    bool DealNextSet();
+    void CompleteDealing();
+    void PlayCard(int playerIndex, byte cardId);
+    void DrawCard(int playerIndex);
+    void CreateMeld(int playerIndex, MeldType meldType, byte[] cardIds);
+    bool IsPlayerTurn(int playerIndex);
+    IReadOnlyList<byte> GetPlayableCards(int playerIndex);
+    void StartNewRound();
+}
+```
+
+### IGameState - Query Game State
+
+```csharp
+public interface IGameState
+{
+    GamePhase CurrentPhase { get; }
+    IReadOnlyList<IPlayerHand> Players { get; }
+    IGameCard? TrumpCard { get; }
+    byte? TrumpSuit { get; }
+    int DeckCount { get; }
+    int CurrentPlayerIndex { get; }
+    int DealerIndex { get; }
+}
+```
+
+### IGameEvent - Subscribe to Game Events
+
+```csharp
+public interface IGameEvent
+{
+    event Action<int, IReadOnlyList<IGameCard>> CardsDealt;
+    event Action<IGameCard> TrumpCardFlipped;
+    event Action<int> DealerBonusPoints;
+    event Action<int, IGameCard> CardDrawn;
+    event Action<GamePhase> PhaseChanged;
+    event Action<int> TrickComplete;
+    event Action<int, int> MeldPointsAwarded;
+    event Action<int> RoundEnd;
+    event Action<int> GameEnd;
+}
+```
+
+### IPlayerHand - Player Data
+
+```csharp
+public interface IPlayerHand
+{
+    int PlayerIndex { get; }
+    IReadOnlyList<IGameCard> Cards { get; }
+    int Score { get; }
+    bool IsCurrentPlayer { get; }
+}
+```
+
+### IGameCard - Card Data
+
+```csharp
+public interface IGameCard
+{
+    byte CardValue { get; }  // 0-7 (7 to Ace)
+    byte DeckIndex { get; }  // 0-3 (suit/deck)
+    byte CardId { get; }    // Full card ID
+    bool IsJoker { get; }
+}
+```
+
+### GamePhase Enum
+
+```csharp
+public enum GamePhase
+{
+    Dealing,      // Cards being dealt to players
+    TrumpFlip,     // Trump card being revealed
+    Phase1_Playing,  // Main gameplay phase
+    Phase2_Playing,  // Last 9 cards phase
+    RoundEnd,      // Round completed
+    GameEnd         // Game over
+}
+```
+
+### MeldType Enum
+
+```csharp
+public enum MeldType
+{
+    Bezique,         // Q Spades + J Diamonds (40 pts)
+    DoubleBezique,   // 2x Q Spades + 2x J Diamonds (500 pts)
+    FourJacks,       // 40 pts
+    FourQueens,       // 60 pts
+    FourKings,       // 80 pts
+    FourAces,        // 100 pts
+    CommonMarriage,   // K + Q same suit (20 pts)
+    TrumpMarriage,    // K + Q trump suit (40 pts)
+    TrumpRun,        // A, 10, K, Q, J trump suit (150 pts)
+}
+```
+
+### BeziqueGame - Concrete Implementation
+
+**Namespace:** `BeziqueCore`
+
+```csharp
+public class BeziqueGame : IBeziqueGame
+{
+    // Properties from IGameState
+    public GamePhase CurrentPhase { get; }
+    public IReadOnlyList<IPlayerHand> Players { get; }
+    public IGameCard? TrumpCard { get; }
+    public byte? TrumpSuit { get; }
+    public int DeckCount { get; }
+    public int CurrentPlayerIndex { get; }
+    public int DealerIndex { get; }
+
+    // Events from IGameEvent
+    public event Action<int, IReadOnlyList<IGameCard>> CardsDealt;
+    public event Action<IGameCard> TrumpCardFlipped;
+    public event Action<int> DealerBonusPoints;
+    public event Action<int, IGameCard> CardDrawn;
+    public event Action<GamePhase> PhaseChanged;
+    public event Action<int> TrickComplete;
+    public event Action<int, int> MeldPointsAwarded;
+    public event Action<int> RoundEnd;
+    public event Action<int> GameEnd;
+
+    // Methods
+    public void Initialize(int playerCount);
+    public void StartDealing();
+    public bool DealNextSet();
+    public void CompleteDealing();
+    public void PlayCard(int playerIndex, byte cardId);
+    public void DrawCard(int playerIndex);
+    public void CreateMeld(int playerIndex, MeldType meldType, byte[] cardIds);
+    public bool IsPlayerTurn(int playerIndex);
+    public IReadOnlyList<byte> GetPlayableCards(int playerIndex);
+    public void StartNewRound();
+}
+```
+
+### CardHelper - Card Utilities
+
+**Namespace:** `BeziqueCore`
+
+```csharp
+public static class CardHelper
+{
+    // Create a card ID from value and deck
+    public static byte CreateCardId(byte cardValue, byte deckIndex);
+
+    // Extract components from card ID
+    public static byte GetCardValue(byte cardId);  // Returns 0-7
+    public static byte GetDeckIndex(byte cardId);  // Returns 0-3
+
+    // Check for joker
+    public static bool IsJoker(byte cardId);
+
+    // Get card values for comparison
+    public static int GetComparisonValue(byte cardId);
+}
+```
+
+---
+
 ## Part 1: Offline Integration
 
 ### Overview
@@ -63,7 +270,7 @@ Offline mode uses BeziqueCore directly within Unity. No server connection is req
    - Create `Assets/BeziqueCore/BeziqueCore.asmdef`
    - Separates core logic from Unity scripts
 
-### Offline Manager
+### Implementation Example: BeziqueOfflineManager
 
 Create `Assets/Scripts/BeziqueOfflineManager.cs`:
 
@@ -296,7 +503,7 @@ Online mode connects Unity to a gRPC server. The server runs BeziqueCore and Uni
    - Use `Grpc.Tools` to generate C# from `bezique.proto`
    - Or use pre-generated files from the server project
 
-### Online Manager
+### Implementation Example: BeziqueOnlineManager
 
 Create `Assets/Scripts/BeziqueOnlineManager.cs`:
 
