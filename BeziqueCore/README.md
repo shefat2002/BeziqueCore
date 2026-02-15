@@ -5,7 +5,7 @@
 ### Core Classes
 
 | Class | Namespace | Purpose |
-|-------|------------|----------|
+| --- | --- | --- |
 | `BeziqueGame` | `BeziqueCore` | Main game class - implements `IBeziqueGame` |
 | `CardHelper` | `BeziqueCore` | Static utility for card ID operations |
 | `GameCard` | `BeziqueCore` | Implements `IGameCard` interface |
@@ -14,7 +14,7 @@
 ### Public Interfaces
 
 | Interface | Namespace | Purpose |
-|-----------|------------|---------------|
+| --- | --- | --- |
 | `IBeziqueGame` | `BeziqueCore.Interfaces` | Main game interface |
 | `IGameState` | `BeziqueCore.Interfaces` | Query game state |
 | `IGameEvent` | `BeziqueCore.Interfaces` | Subscribe to game events |
@@ -125,7 +125,7 @@ public interface IGameEvent
 ### Event Implementation Status
 
 | Event | Status | Notes |
-|-------|--------|-------|
+| --- | --- | --- |
 | `CardsDealt` | WORKS | Fires during `DealNextSet()` |
 | `TrumpCardFlipped` | WORKS | Fires during `CompleteDealing()` |
 | `DealerBonusPoints` | WORKS | Fires if trump is 7 |
@@ -346,11 +346,7 @@ public class BeziqueOfflineManager
 The server implements the following RPCs:
 
 | RPC | Request | Response | Description |
-|-----|---------|----------|-------------|
-| `StartGame` | `PlayerCount` | `GameStarted` | Initialize and start dealing |
-| `DealCard` | `DealCardRequest` | `DealCardResponse` | Deal next set of cards |
-| `GetGameState` | `GameStateRequest` | `GameState` | Query current state |
-| `PlayCard` | `PlayCardRequest` | `PlayCardResponse` | Play a card |
+| --- | --- | --- | --- |
 | `StartGame` | `PlayerCount` | `GameStarted` | Initialize and start dealing |
 | `DealCard` | `DealCardRequest` | `DealCardResponse` | Deal next set of cards |
 | `GetGameState` | `GameStateRequest` | `GameState` | Query current state |
@@ -568,17 +564,7 @@ public class BeziqueGameManager : MonoBehaviour
 ### Currently NOT Implemented
 
 | Feature | Status |
-|---------|--------|
-| **Event `CardDrawn`** | Event defined but never fires in `DrawCard()` |
-| **Event `TrickComplete`** | Event defined but never fires |
-| **Event `MeldPointsAwarded`** | Event defined but never fires |
-| **Event `RoundEnd`** | Event defined but never fires |
-| **Event `GameEnd`** | Event defined but never fires |
-| **Meld Validation** | `CreateMeld()` accepts any meld without card validation |
-| **Playable Card Validation** | `GetPlayableCards()` returns entire hand, not trick-legal cards |
-| **Trick Winner Detection** | No API to get who won the last trick |
-| **Turn Management** | Must manually track turn order via state polling |
-| **Network Sync** | No built-in networking; use gRPC for online play |
+| --- | --- |
 | **Event `CardDrawn`** | Event defined but never fires in `DrawCard()` |
 | **Event `TrickComplete`** | Event defined but never fires |
 | **Event `MeldPointsAwarded`** | Event defined but never fires |
@@ -645,10 +631,9 @@ RoundEnd / GameEnd [events not fired]
 - **Total: 132 cards**
 
 ### Card Values (0-31 in each deck)
+
 | Value | Meaning |
-|-------|---------|
-| 0-31 | Standard card in deck |
-| 32 | Joker |
+| --- | --- |
 | 0-31 | Standard card in deck |
 | 32 | Joker |
 
@@ -666,5 +651,5 @@ bool isJoker = CardHelper.IsJoker(cardId);    // false
 ## Version History
 
 | Version | Date | Changes |
-|---------|------|---------|
+| --- | --- | --- |
 | 1.0 | Current | Initial release with basic gameplay, dealing, and state management |
