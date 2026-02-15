@@ -9,7 +9,8 @@
       "Bash(dotnet vtest:*)",
       "Bash(dotnet xunit:*)",
       "Bash(dotnet tool list:*)",
-      "Bash(dotnet tool run dotnet-xunit)"
+      "Bash(dotnet tool run dotnet-xunit)",
+      "mcp__ide__getDiagnostics"
     ]
   },
   "teams": {
